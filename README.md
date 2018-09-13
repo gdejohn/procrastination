@@ -20,7 +20,8 @@ to the given binary function to produce a result, otherwise the given supplier i
 
 Sequences are *lazily evaluated*. They procrastinate, putting off work for as long as possible, only computing each
 element on demand. They can also be *memoized* such that each element is computed at most once, the first time it is
-asked for, and then cached. Because sequences are lazy, it is perfectly natural to work with infinite sequences.
+asked for, and then cached. Because sequences are lazy, it is perfectly natural to work with infinite sequences. (Just
+be careful not to fully evaluate them!)
 
 Sequences are *fully persistent*. Instead of mutators, methods are provided that return a new version of a sequence
 reflecting the desired changes, leaving the previous version intact. Every version of a sequence remains accessible.
@@ -85,11 +86,12 @@ And add the dependency:
 
 ### Gradle
 
-Add the JitPack repository to your `build.gradle`:
+Add JitPack to your root `build.gradle` at the end of the repositories:
 
 ```groovy
 allprojects {
     repositories {
+        // ...
         maven { url 'https://jitpack.io' }
     }
 }
@@ -108,6 +110,6 @@ See instructions for other build tools at [JitPack](https://jitpack.io/#io.githu
 ### jshell
 
 The included jshell script `procrastination.jsh` makes it easy to play around with this library, assuming JDK 10 and a
-recent version of Maven are installed and added to your PATH. Just clone the repository, and from the root directory
+recent version of Maven are installed and present on your `PATH`. Just clone the repository, and from the root directory
 run `mvn compile` and `jshell procrastination.jsh`. The script sets up the jshell environment and imports all of the
 types and static members.
