@@ -1044,7 +1044,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchOrThrow(BiFunction,Supplier)
      */
     public <R> Maybe<R> flatMatch(BiFunction<? super T, ? super Sequence<T>, ? extends Maybe<? extends R>> function) {
-        return this.match(function).flatMap(Function.identity());
+        return Maybe.join(this.match(function));
     }
 
     /**
@@ -1170,7 +1170,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      */
     public <R> Maybe<R> flatMatchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends Maybe<? extends R>> function) {
-        return this.matchLazy(function).flatMap(Function.identity());
+        return Maybe.join(this.matchLazy(function));
     }
 
     public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
