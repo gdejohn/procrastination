@@ -1,7 +1,6 @@
 package io.github.gdejohn.procrastination;
 
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -497,7 +496,7 @@ public final class Functions {
      * @throws RuntimeException if the callable throws an exception
      */
     public static <T> T uncheck(Callable<T> callable, Function<? super Exception, ? extends RuntimeException> wrap) {
-        Objects.requireNonNull(wrap);
+        requireNonNull(wrap);
         try {
             return callable.call();
         } catch (Exception exception) {
