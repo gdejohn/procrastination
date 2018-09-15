@@ -2058,7 +2058,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @see Functions#flip(BiFunction)
      */
-    public <R> R foldLeft(R initial, BiFunction<? super R, ? super T, ? extends R> function) {
+    public <R> R foldLeft(R initial, BiFunction<R, ? super T, R> function) {
         return Trampoline.evaluate(this, initial,
             fold -> sequence -> result -> sequence.match(
                 (head, tail) -> call(fold, tail, function.apply(result, head)),
@@ -2073,15 +2073,15 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @param <R> the type of the result
      */
-    public <R> Maybe<R> foldLeft(Function<? super T, ? extends R> initial, BiFunction<? super R, ? super T, ? extends R> function) {
+    public <R> Maybe<R> foldLeft(Function<? super T, ? extends R> initial, BiFunction<R, ? super T, R> function) {
         return this.match((head, tail) -> tail.foldLeft(initial.apply(head), function));
     }
 
     /**
-     * Combine the elements of this sequence into a single element, accumulating from the left, using the first element
-     * as the initial value if this sequence is non-empty.
+     * Combine the elements of this sequence into a single result of the same type with a binary operator, accumulating
+     * from the left, using the first element as the initial value if this sequence is non-empty.
      */
-    public Maybe<T> foldLeft(BiFunction<? super T, ? super T, ? extends T> operator) {
+    public Maybe<T> foldLeft(BiFunction<T, T, T> operator) {
         return this.match((head, tail) -> tail.foldLeft(head, operator));
     }
 
@@ -2090,7 +2090,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @param <R> the type of the result
      */
-    public <R> R foldRight(R initial, BiFunction<? super T, ? super R, ? extends R> function) {
+    public <R> R foldRight(R initial, BiFunction<? super T, R, R> function) {
         return this.reverse().foldLeft(initial, flip(function));
     }
 
@@ -2098,15 +2098,15 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Combine the elements of this sequence into a single result, accumulating from the right, using the last element
      * projected through a function as the initial value if this sequence is non-empty.
      */
-    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, BiFunction<? super T, ? super R, ? extends R> function) {
+    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, BiFunction<? super T, R, R> function) {
         return this.reverse().foldLeft(initial, flip(function));
     }
 
     /**
-     * Combine the elements of this sequence into a single element with a binary operator, accumulating from the right,
-     * using the last element as the initial value if this sequence is non-empty.
+     * Combine the elements of this sequence into a single result of the same type with a binary operator, accumulating
+     * from the right, using the last element as the initial value if this sequence is non-empty.
      */
-    public Maybe<T> foldRight(BiFunction<? super T, ? super T, ? extends T> operator) {
+    public Maybe<T> foldRight(BiFunction<T, T, T> operator) {
         return this.reverse().foldLeft(flip(operator));
     }
 
@@ -2117,8 +2117,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
      */
-    public <R> R foldRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<? super R, ? extends R>>> function) {
-        return Trampoline.evaluate(this, Sequence.<Function<? super R, ? extends R>>empty(),
+    public <R> R foldRight(R initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
+        return Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
             fold -> sequence -> reversed -> sequence.match(
                 (head, tail) -> function.apply(head).match(
                     left -> terminate(reversed.foldLeft(left, uncurry(Functions::apply))),
@@ -2137,9 +2137,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
      */
-    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, Function<? super T, ? extends Either<? extends R, ? extends Function<? super R, ? extends R>>> function) {
+    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
         return Maybe.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<? super R, ? extends R>>empty(),
+            () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
                 fold -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> function.apply(head).match(
@@ -2155,15 +2155,15 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Combine the elements of this sequence into a single element, accumulating from the right, using the last element
-     * as the initial value if this sequence is non-empty, deferring evaluation of the partial results.
+     * Combine the elements of this sequence into a single result of the same type, accumulating from the right, using
+     * the last element as the initial value if this sequence is non-empty, deferring evaluation of the partial results.
      *
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
      */
-    public Maybe<T> foldRight(Function<? super T, ? extends Either<? extends T, ? extends Function<? super T, ? extends T>>> operator) {
+    public Maybe<T> foldRight(Function<T, Either<T, Function<T, T>>> operator) {
         return Maybe.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<? super T, ? extends T>>empty(),
+            () -> Trampoline.evaluate(this, Sequence.<Function<T, T>>empty(),
                 fold -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> operator.apply(head).match(
@@ -2178,26 +2178,26 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    public <R> R foldRightLazy(R initial, BiFunction<? super T, ? super Supplier<R>, ? extends R> function) {
+    public <R> R foldRightLazy(R initial, BiFunction<? super T, Supplier<R>, R> function) {
         return this.match(
-            (head, tail) -> function.apply(head, (Supplier<R>) () -> tail.foldRightLazy(initial, function)),
+            (head, tail) -> function.apply(head, () -> tail.foldRightLazy(initial, function)),
             initial
         );
     }
 
-    public <R> Maybe<R> foldRightLazy(Function<? super T, ? extends R> initial, BiFunction<? super T, ? super Supplier<R>, ? extends R> function) {
+    public <R> Maybe<R> foldRightLazy(Function<? super T, ? extends R> initial, BiFunction<? super T, Supplier<R>, R> function) {
         return this.match(
             (head, tail) -> tail.matchNonEmpty(
-                rest -> function.apply(head, (Supplier<R>) () -> rest.foldRightLazy(initial, function).orThrow()),
+                rest -> function.apply(head, () -> rest.foldRightLazy(initial, function).orThrow()),
                 () -> initial.apply(head)
             )
         );
     }
 
-    public Maybe<T> foldRightLazy(BiFunction<? super T, ? super Supplier<T>, ? extends T> operator) {
+    public Maybe<T> foldRightLazy(BiFunction<T, Supplier<T>, T> operator) {
         return this.match(
             (head, tail) -> tail.matchNonEmpty(
-                rest -> operator.apply(head, (Supplier<T>) () -> rest.foldRightLazy(operator).orThrow()),
+                rest -> operator.apply(head, () -> rest.foldRightLazy(operator).orThrow()),
                 head
             )
         );
@@ -3023,7 +3023,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /** The sequence of intermediate results of a left fold over this sequence. */
-    public <R> Sequence<R> scanLeft(R initial, BiFunction<? super R, ? super T, ? extends R> function) {
+    public <R> Sequence<R> scanLeft(R initial, BiFunction<R, ? super T, R> function) {
         return Sequence.cons(
             initial,
             Sequence.lazy(
@@ -3039,7 +3039,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * The sequence of intermediate results of a left fold over this sequence, using the first element projected
      * through a function as the initial value if this sequence is non-empty.
      */
-    public <R> Sequence<R> scanLeft(Function<? super T, ? extends R> initial, BiFunction<? super R, ? super T, ? extends R> function) {
+    public <R> Sequence<R> scanLeft(Function<? super T, ? extends R> initial, BiFunction<R, ? super T, R> function) {
         return Sequence.lazy(
             () -> this.match(
                 (head, tail) -> tail.scanLeft(initial.apply(head), function),
@@ -3052,7 +3052,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * The sequence of intermediate results of a left fold over this sequence, using the first element as the initial
      * value.
      */
-    public Sequence<T> scanLeft(BiFunction<? super T, ? super T, ? extends T> operator) {
+    public Sequence<T> scanLeft(BiFunction<T, T, T> operator) {
         return Sequence.lazy(
             () -> this.match(
                 (head, tail) -> tail.scanLeft(head, operator),
@@ -3062,7 +3062,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /** The sequence of intermediate results of a right fold over this sequence. */
-    public <R> Sequence<R> scanRight(R initial, BiFunction<? super T, ? super R, ? extends R> function) {
+    public <R> Sequence<R> scanRight(R initial, BiFunction<? super T, R, R> function) {
         return this.reverse().scanLeft(initial, flip(function)).reverse();
     }
 
@@ -3070,7 +3070,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * The sequence of intermediate results of a right fold over this sequence, using the last element projected
      * through a function as the initial value if this sequence is non-empty.
      */
-    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, BiFunction<? super T, ? super R, ? extends R> function) {
+    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, BiFunction<? super T, R, R> function) {
         return this.reverse().scanLeft(initial, flip(function)).reverse();
     }
 
@@ -3082,13 +3082,13 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#scanRight(Object, BiFunction)
      * @see Sequence#scanLeft(BiFunction)
      */
-    public Sequence<T> scanRight(BiFunction<? super T, ? super T, ? extends T> operator) {
+    public Sequence<T> scanRight(BiFunction<T, T, T> operator) {
         return this.reverse().scanLeft(flip(operator)).reverse();
     }
 
-    public <R> Sequence<R> scanRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<? super R, ? extends R>>> function) {
+    public <R> Sequence<R> scanRight(R initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<? super R, ? extends R>>empty(),
+            () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
                     (head, tail) -> function.apply(head).match(
                         left -> terminate(
@@ -3105,9 +3105,9 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, Function<? super T, ? extends Either<? extends R, ? extends Function<? super R, ? extends R>>> function) {
+    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<? super R, ? extends R>>empty(),
+            () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> function.apply(head).match(
@@ -3127,9 +3127,9 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    public Sequence<T> scanRight(Function<? super T, ? extends Either<? extends T, ? extends Function<? super T, ? extends T>>> operator) {
+    public Sequence<T> scanRight(Function<T, Either<T, Function<T, T>>> operator) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<? super T, ? extends T>>empty(),
+            () -> Trampoline.evaluate(this, Sequence.<Function<T, T>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> operator.apply(head).match(
@@ -3149,13 +3149,13 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    public <R> Sequence<R> scanRightLazy(R initial, BiFunction<? super T, ? super Supplier<R>, ? extends R> function) {
+    public <R> Sequence<R> scanRightLazy(R initial, BiFunction<? super T, Supplier<R>, R> function) {
         return Sequence.lazy(
             () -> this.matchLazy(
                 (x, xs) -> let(
                     xs.scanRightLazy(initial, function).memoize(),
                     scan -> Sequence.cons(
-                        () -> function.apply(x.get(), (Supplier<R>) () -> scan.matchOrThrow((y, ys) -> y)),
+                        () -> function.apply(x.get(), () -> scan.matchOrThrow((y, ys) -> y)),
                         scan
                     )
                 ),
@@ -3164,13 +3164,13 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    public Sequence<T> scanRightLazy(BiFunction<? super T, ? super Supplier<T>, ? extends T> function) {
+    public Sequence<T> scanRightLazy(BiFunction<T, Supplier<T>, T> operator) {
         return Sequence.lazy(
             () -> this.matchLazy(
                 (x, xs) -> let(
-                    xs.scanRightLazy(function),
+                    xs.scanRightLazy(operator),
                     scan -> scan.matchLazy(
-                        (y, ys) -> Sequence.cons(function.apply(x.get(), y), Sequence.cons(y, ys)),
+                        (y, ys) -> Sequence.cons(operator.apply(x.get(), y), Sequence.cons(y, ys)),
                         () -> Sequence.of(x)
                     )
                 ),
