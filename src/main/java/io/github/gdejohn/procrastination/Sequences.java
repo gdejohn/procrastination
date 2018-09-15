@@ -403,7 +403,7 @@ public final class Sequences {
 
     /** The least element of a sequence according to the natural order of the elements, if the sequence is non-empty. */
     public static <T extends Comparable<? super T>> Maybe<T> minimum(Sequence<? extends T> sequence) {
-        return sequence.minimum(Comparator.naturalOrder()).map(Function.identity());
+        return Maybe.cast(sequence.minimum(Comparator.naturalOrder()));
     }
 
     /**
