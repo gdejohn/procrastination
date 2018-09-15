@@ -709,7 +709,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#iterate(Object, Predicate, Function)
      * @see Sequence#iterate(Object, Object, BiFunction)
      */
-    public static <T> Sequence<T> iterate(T initial, Function<? super T, ? extends T> next) {
+    public static <T> Sequence<T> iterate(T initial, Function<T, T> next) {
         return Sequence.cons(initial, () -> Sequence.iterate(next.apply(initial), next));
     }
 
@@ -726,7 +726,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#iterate(Object, Predicate, Function)
      * @see Sequence#iterate(Object, Object, BiFunction)
      */
-    public static <T> Sequence<T> iterate(T initial, BiFunction<? super Long, ? super T, ? extends T> next) {
+    public static <T> Sequence<T> iterate(T initial, BiFunction<? super Long, T, T> next) {
         return Sequences.count(1L).scanLeft(initial, flip(next));
     }
 
@@ -747,7 +747,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#iterate(Object, BiFunction)
      * @see Sequence#iterate(Object, Object, BiFunction)
      */
-    public static <T> Sequence<T> iterate(T initial, Predicate<? super T> condition, Function<? super T, ? extends T> next) {
+    public static <T> Sequence<T> iterate(T initial, Predicate<? super T> condition, Function<T, T> next) {
         return Sequence.iterate(initial, next).takeWhile(condition);
     }
 
@@ -766,7 +766,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#iterate(Object, BiFunction)
      * @see Sequence#iterate(Object, Predicate, Function)
      */
-    public static <T> Sequence<T> iterate(T first, T second, BiFunction<? super T, ? super T, ? extends T> next) {
+    public static <T> Sequence<T> iterate(T first, T second, BiFunction<T, T, T> next) {
         return Sequence.cons(first, () -> Sequence.iterate(second, next.apply(first, second), next));
     }
 
@@ -2356,7 +2356,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#pad(Object)
      * @see Sequence#iterate(Object, Function)
      */
-    public Sequence<T> extend(Function<? super T, ? extends T> function) {
+    public Sequence<T> extend(Function<T, T> function) {
         return Sequence.lazy(
             () -> this.matchLazy(
                 (head, tail) -> tail.matchNonEmpty(
