@@ -229,12 +229,12 @@ public final class Functions {
     }
 
     /**
-     * Compute the fixed point of a higher-order function, yielding a recursive lambda expression (i.e., anonymous
+     * Compute the fixed point of a higher-order function, enabling recursive lambda expressions (i.e., anonymous
      * recursion).
      *
      * <p>Lambda expressions by definition are unnamed, making explicit recursion impossible. The trick here is to
-     * abstract the recursive call by accepting the function itself as another argument and letting {@code fix()}
-     * pass it in. For example:
+     * abstract the recursive call by accepting the function itself as another argument and letting {@code fix()} tie
+     * the knot. For example:
      *
      * <pre>    {@code Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));}</pre>
      *
