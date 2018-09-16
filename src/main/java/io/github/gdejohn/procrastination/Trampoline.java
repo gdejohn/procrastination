@@ -212,12 +212,12 @@ public abstract class Trampoline<T> {
      *
      * <p>This enables stack-safe, inline recursion. For example:
      *
-     * <pre>    {@code static <T> Optional<T> find(Sequence<T> sequence, Predicate<T> predicate) {
+     * <pre>    {@code static <T> Maybe<T> find(Sequence<T> sequence, Predicate<T> predicate) {
      *        return Trampoline.evaluate(
      *            sequence,
      *            f -> seq -> seq.match(
-     *                (head, tail) -> predicate.test(head) ? terminate(Optional.of(head)) : call(f, tail),
-     *                () -> terminate(Optional.empty())
+     *                (head, tail) -> predicate.test(head) ? terminate(Maybe.of(head)) : call(f, tail),
+     *                () -> terminate(Maybe.empty())
      *            )
      *        );
      *    }}</pre>
