@@ -469,7 +469,7 @@ public final class Functions {
      * Invoke a callable and return the result if it completes normally, otherwise throw a {@code RuntimeException}
      * wrapping the exception thrown by the callable.
      *
-     * <p>This is useful when implementing functional interfaces that do not allow checked exceptions. For example:
+     * <p>This is useful in lambda expressions when checked exceptions are not allowed. For example:
      *
      * <pre>    {@code BiFunction<Path, Charset, Stream<String>> lines = (path, charset) -> uncheck(
      *        () -> Files.lines(path, charset) // possible IOException
@@ -488,7 +488,7 @@ public final class Functions {
      * Invoke a callable and return the result if it completes normally, otherwise throw an unchecked exception that is
      * a function of the exception thrown by the callable.
      *
-     * <p>This is useful when implementing functional interfaces that do not allow checked exceptions.
+     * <p>This is useful in lambda expressions when checked exceptions are not allowed.
      *
      * @see Functions#uncheck(Callable)
      * @see RuntimeException#RuntimeException(Throwable)
