@@ -50,16 +50,71 @@ lazy, purely functional alternative to [`Entry`](https://docs.oracle.com/javase/
 ## Trampolines and Fixed Points
 
 Applying imperative idioms to sequences is ugly and error-prone; recursive data types call for recursive algorithms.
-Unfortunately, Java isn't very recursion-friendly: deep call stacks quickly run afoul of stack overflow exceptions, and tail
-recursion doesn't help because there's no tail-call elimination. Enter trampolines.
+Unfortunately, Java isn't very recursion-friendly: deep call stacks quickly run afoul of stack overflow exceptions, and
+tail recursion doesn't help because there's no tail-call elimination. This isn't a problem for recursive algorithms
+working with sequences as long as they are lazy with respect to the tail, but whenever an unknown number of elements
+must be traversed all at once, stack overflow is waiting to pounce. Enter trampolines.
 
-`Trampoline` converts tail recursion into a stack-safe loop. To trampoline a tail-recursive method, change the return
-type `T` to `Trampoline<T>`, wrap the expressions returned in base cases with the static factory method
-`Trampoline.terminate()`, suspend recursive calls in `Supplier` lambda expressions, and wrap the suspended recursive
-calls with the static factory method `Trampoline.call()`. To get the result from a trampoline, invoke the instance
-method `evaluate()`.
+`Trampoline` converts tail recursion into a stack-safe loop. To trampoline a tail-recursive method with return type
+`T`, change the return type to `Trampoline<T>`, wrap the expressions returned in base cases with the static factory
+method `Trampoline.terminate()`, suspend recursive calls in `Supplier` lambda expressions, and wrap the suspended
+recursive calls with the static factory method `Trampoline.call()`. To get the result from a trampoline, invoke the
+instance method `evaluate()`.
+
+Tail recursion often means restructuring algorithms such that additional parameters are required, and trampolining
+means that the result must be unwrapped. These are irrelevant and burdensome implementation details that should not be
+exposed to client code. So, the usual practice is to delegate to a private helper method. Alternatively, the recursive
+computation can be performed inline via anonymous recursion!
+
+`Functions.fix()` computes the fixed point of a higher-order function, enabling recursive lambda expressions. Lambda
+expressions by definition are unnamed, making explicit recursion impossible. The trick here is to abstract the
+recursive call by accepting the function itself as another argument and letting `fix()` tie the knot. For example:
+
+```java
+Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
+```
+
+This also works for trampolined functions and curried functions of arbitrarily many arguments. `Trampoline.evaluate()`
+isn't just an instance method, it's also overloaded as an all-in-one static helper method that accepts a trampolined
+recursive lambda expression and matching arguments, fixes the lambda expression, applies it to the arguments, evaluates
+the resulting trampoline, and returns the unwrapped value. And the static factory method `Trampoline.call()` is
+overloaded to accept curried functions and matching arguments. For example:
+
+```java
+static int length(Sequence<?> sequence) {
+    return Trampoline.evaluate(
+        sequence,
+        0,
+        f -> seq -> n -> seq.match(
+            (head, tail) -> call(f, tail, n + 1),
+            () -> terminate(n)
+        )
+    );
+}
+```
 
 ## Getting Started
+
+### Gradle
+
+Add JitPack to your root `build.gradle` at the end of the repositories:
+
+```groovy
+allprojects {
+    repositories {
+        // ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+And add the dependency:
+
+```groovy
+dependencies {
+    implementation 'io.github.gdejohn:procrastination:master-SNAPSHOT'
+}
+```
 
 ### Maven
 
@@ -84,32 +139,11 @@ And add the dependency:
 </dependency>
 ```
 
-### Gradle
-
-Add JitPack to your root `build.gradle` at the end of the repositories:
-
-```groovy
-allprojects {
-    repositories {
-        // ...
-        maven { url 'https://jitpack.io' }
-    }
-}
-```
-
-And add the dependency:
-
-```groovy
-dependencies {
-    implementation 'io.github.gdejohn:procrastination:master-SNAPSHOT'
-}
-```
-
 See instructions for other build tools at [JitPack](https://jitpack.io/#io.github.gdejohn/procrastination).
 
 ### jshell
 
 The included jshell script `procrastination.jsh` makes it easy to play around with this library, assuming JDK 10 and a
-recent version of Maven are installed and present on your `PATH`. Just clone the repository, and from the root directory
-run `mvn compile` and `jshell procrastination.jsh`. The script sets up the jshell environment and imports all of the
-types and static members.
+recent version of Maven are installed and present on your `PATH`. Just clone the repository, and from the root
+directory run `mvn compile` and `jshell procrastination.jsh`. The script sets up the jshell environment and imports all
+of the types and static members.
