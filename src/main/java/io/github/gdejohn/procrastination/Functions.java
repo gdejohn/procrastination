@@ -493,9 +493,9 @@ public final class Functions {
      * @see Functions#uncheck(Callable)
      * @see RuntimeException#RuntimeException(Throwable)
      *
-     * @throws RuntimeException if the callable throws an exception
+     * @throws X if the callable throws an exception
      */
-    public static <T> T uncheck(Callable<T> callable, Function<? super Exception, ? extends RuntimeException> wrap) {
+    public static <T, X extends RuntimeException> T uncheck(Callable<T> callable, Function<? super Exception, ? extends X> wrap) {
         requireNonNull(wrap);
         try {
             return callable.call();
