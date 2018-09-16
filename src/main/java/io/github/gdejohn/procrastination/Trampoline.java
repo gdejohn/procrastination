@@ -10,7 +10,7 @@ import static io.github.gdejohn.procrastination.Functions.fix;
 import static io.github.gdejohn.procrastination.Unit.unit;
 
 /**
- * Stack-safe tail recursion via tail call elimination.
+ * Stack-safe tail recursion via tail-call elimination.
  *
  * <p>Use the static factory methods {@link Trampoline#call(Supplier) call} and
  * {@link Trampoline#terminate(Object) terminate} to create trampolines, and the instance method
@@ -20,14 +20,16 @@ import static io.github.gdejohn.procrastination.Unit.unit;
  *
  * <ol>
  * <li>change the return type to {@code Trampoline<T>};
- * <li>for base cases, wrap the returned expression with {@code terminate()};
- * <li>suspend recursive calls in lambdas and wrap with {@code call()}.
+ * <li>for each base case, wrap the returned expression with {@code terminate()};
+ * <li>suspend each recursive call in a {@link Supplier} lambda expression and wrap with {@code call()}.
  * </ol>
  *
  * <p>This approach cleanly extends to mutual recursion.
  *
- * <p>Or skip the auxiliary method and do it inline with the static helper methods
- * {@link Trampoline#evaluate(Object, UnaryOperator)} and {@link Trampoline#execute(Object, UnaryOperator)}.
+ * <p>Instead of delegating to a private trampolined helper method to avoid exposing to client code the implementation
+ * details of tail recursion and trampolining, tail-recursive computations can be performed inline with the static
+ * helper methods {@link Trampoline#evaluate(Object, UnaryOperator)} and
+ * {@link Trampoline#execute(Object, UnaryOperator)}.
  *
  * @param <T> the type of the value that this trampoline computes
  */
