@@ -2117,7 +2117,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
      */
-    public <R> R foldRight(R initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
+    public <R> R foldRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
             fold -> sequence -> reversed -> sequence.match(
                 (head, tail) -> function.apply(head).match(
@@ -2137,7 +2137,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
      */
-    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
+    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Maybe.lazy(
             () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
                 fold -> sequence -> reversed -> sequence.match(
@@ -3086,7 +3086,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         return this.reverse().scanLeft(flip(operator)).reverse();
     }
 
-    public <R> Sequence<R> scanRight(R initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
+    public <R> Sequence<R> scanRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Sequence.lazy(
             () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
@@ -3105,7 +3105,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, Function<? super T, Either<? extends R, Function<R, R>>> function) {
+    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Sequence.lazy(
             () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
