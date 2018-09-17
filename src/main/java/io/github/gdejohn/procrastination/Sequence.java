@@ -775,7 +775,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @param function takes a seed and returns the next element of the sequence and a new seed
      */
-    public static <T, R> Sequence<R> unfold(T seed, Function<? super T, ? extends Pair<? extends R, ? extends T>> function) {
+    public static <T, R> Sequence<R> unfold(T seed, Function<T, ? extends Pair<? extends R, T>> function) {
         return Sequence.lazy(
             () -> function.apply(seed).match(
                 (element, next) -> Sequence.cons(element, Sequence.unfold(next, function))
@@ -791,7 +791,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @param function takes a seed accepted by the predicate and returns the next element of the sequence and a new
      *                 seed
      */
-    public static <T, R> Sequence<R> unfold(T seed, Predicate<? super T> predicate, Function<? super T, ? extends Pair<? extends R, ? extends T>> function) {
+    public static <T, R> Sequence<R> unfold(T seed, Predicate<? super T> predicate, Function<T, ? extends Pair<? extends R, T>> function) {
         return Sequence.lazy(
             () -> {
                 if (predicate.test(seed)) {
