@@ -958,7 +958,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Pattern match on this sequence if non-empty, eagerly evaluating the head.
      *
      * <p>If non-empty, apply a binary function to the head and tail of this sequence and
-     * return an optional describing the result. Otherwise, return an empty optional.
+     * return a {@code Maybe} describing the result. Otherwise, return an empty {@code Maybe}.
      *
      * @param <R> the type of the result if this sequence is non-empty
      *
@@ -1057,8 +1057,8 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Pattern match on this sequence if non-empty, deferring evaluation of the head.
      *
-     * <p>If non-empty, apply a binary function to the unevaluated head and the tail of this sequence and return an
-     * optional describing the result. Otherwise, return an empty optional.
+     * <p>If non-empty, apply a binary function to the unevaluated head and the tail of this sequence and return a
+     * {@code Maybe} describing the result. Otherwise, return an empty {@code Maybe}.
      *
      * @param <R> the type of the result if this sequence is non-empty
      *
