@@ -939,7 +939,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#match(BiFunction)
      * @see Sequence#matchOrThrow(BiFunction)
      * @see Sequence#matchOrThrow(BiFunction,Supplier)
-     * @see Sequence#flatMatch(BiFunction)
      */
     public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
         return this.matchLazy(
@@ -969,7 +968,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#match(BiFunction,Supplier)
      * @see Sequence#matchOrThrow(BiFunction)
      * @see Sequence#matchOrThrow(BiFunction,Supplier)
-     * @see Sequence#flatMatch(BiFunction)
      */
     public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
         return Maybe.lazy(() -> this.match((head, tail) -> Maybe.of(function.apply(head, tail)), Maybe.empty()));
@@ -989,7 +987,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazyOrThrow(BiFunction)
      * @see Sequence#matchOrThrow(BiFunction,Supplier)
      * @see Sequence#match(BiFunction)
-     * @see Sequence#flatMatch(BiFunction)
      * @see Sequence#match(BiFunction,Supplier)
      */
     public <R> R matchOrThrow(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
@@ -1016,7 +1013,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      * @see Sequence#matchOrThrow(BiFunction)
      * @see Sequence#match(BiFunction)
-     * @see Sequence#flatMatch(BiFunction)
      * @see Sequence#match(BiFunction,Supplier)
      */
     public <R, X extends Throwable> R matchOrThrow(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<X> exception) throws X {
@@ -1025,26 +1021,6 @@ public abstract class Sequence<T> implements Iterable<T> {
         } catch (Undefined e) {
             throw exception.get();
         }
-    }
-
-    /**
-     * Optionally pattern match on this sequence, eagerly evaluating the head.
-     *
-     * <p>If non-empty, apply a binary function to the head and tail of this sequence and return the resulting optional
-     * if a value is present. Otherwise, return an empty optional.
-     *
-     * @param <R> the type of the result
-     *
-     * @see Sequence#head()
-     * @see Sequence#tail()
-     * @see Sequence#flatMatchLazy(BiFunction)
-     * @see Sequence#match(BiFunction,Supplier)
-     * @see Sequence#match(BiFunction)
-     * @see Sequence#matchOrThrow(BiFunction)
-     * @see Sequence#matchOrThrow(BiFunction,Supplier)
-     */
-    public <R> Maybe<R> flatMatch(BiFunction<? super T, ? super Sequence<T>, ? extends Maybe<? extends R>> function) {
-        return Maybe.join(this.match(function));
     }
 
     /**
@@ -1073,7 +1049,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazy(BiFunction)
      * @see Sequence#matchLazyOrThrow(BiFunction)
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
-     * @see Sequence#flatMatchLazy(BiFunction)
      */
     public abstract <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise);
 
@@ -1093,7 +1068,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazy(BiFunction,Supplier)
      * @see Sequence#matchLazyOrThrow(BiFunction)
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
-     * @see Sequence#flatMatchLazy(BiFunction)
      */
     public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
         return Maybe.lazy(() -> this.matchLazy((head, tail) -> Maybe.of(function.apply(head, tail)), Maybe.empty()));
@@ -1114,7 +1088,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchOrThrow(BiFunction)
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      * @see Sequence#matchLazy(BiFunction)
-     * @see Sequence#flatMatchLazy(BiFunction)
      * @see Sequence#matchLazy(BiFunction,Supplier)
      */
     public <R> R matchLazyOrThrow(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
@@ -1142,7 +1115,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchOrThrow(BiFunction, Supplier)
      * @see Sequence#matchLazyOrThrow(BiFunction)
      * @see Sequence#matchLazy(BiFunction)
-     * @see Sequence#flatMatchLazy(BiFunction)
      * @see Sequence#matchLazy(BiFunction,Supplier)
      */
     public <R, X extends Throwable> R matchLazyOrThrow(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<X> exception) throws X {
@@ -1151,26 +1123,6 @@ public abstract class Sequence<T> implements Iterable<T> {
         } catch (Undefined e) {
             throw exception.get();
         }
-    }
-
-    /**
-     * Optionally pattern match on this sequence, deferring evaluation of the head.
-     *
-     * <p>If non-empty, apply a binary function to the unevaluated head and the tail of this sequence and return the
-     * resulting optional if a value is present. Otherwise, return an empty optional.
-     *
-     * @param <R> the type of the result
-     *
-     * @see Sequence#head()
-     * @see Sequence#tail()
-     * @see Sequence#flatMatch(BiFunction)
-     * @see Sequence#matchLazy(BiFunction,Supplier)
-     * @see Sequence#matchLazy(BiFunction)
-     * @see Sequence#matchLazyOrThrow(BiFunction)
-     * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
-     */
-    public <R> Maybe<R> flatMatchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends Maybe<? extends R>> function) {
-        return Maybe.join(this.matchLazy(function));
     }
 
     public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
@@ -1198,7 +1150,7 @@ public abstract class Sequence<T> implements Iterable<T> {
                 var sequence = this.match(Sequence::cons, Sequence.<T>empty());
                 if (!sequence.isEmpty()) {
                     for (BiFunction<? super T, ? super Sequence<T>, ? extends Maybe<? extends R>> function : patterns) {
-                        Maybe<R> result = sequence.flatMatch(function);
+                        var result = Maybe.join(sequence.match(function));
                         if (!result.isEmpty()) {
                             return result;
                         }
@@ -2001,7 +1953,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#of(Supplier)
      */
     public Maybe<T> only() {
-        return this.flatMatchLazy((head, tail) -> when(tail.isEmpty(), head));
+        return Maybe.join(this.matchLazy((head, tail) -> when(tail.isEmpty(), head)));
     }
 
     /** The element of this sequence at a given index, if the index is in bounds. */
@@ -2716,8 +2668,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#uncons()
      */
     public Maybe<Sequence<T>> initial() {
-        return Maybe.lazy(
-            () -> this.flatMatchLazy(
+        return Maybe.join(
+            this.matchLazy(
                 (head, tail) -> tail.matchNonEmpty(
                     rest -> Sequence.cons(head, () -> rest.initial().or(Sequence.empty()))
                 )
