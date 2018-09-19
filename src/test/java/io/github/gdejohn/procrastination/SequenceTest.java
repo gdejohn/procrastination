@@ -426,14 +426,16 @@ class SequenceTest {
         var fiveChooseThree = 10;
         var sequence = Sequences.range(1, n);
         var combinations = sequence.combinations(k);
-        assertThat(combinations).hasSize(fiveChooseThree);
-        assertThat(combinations).doesNotHaveDuplicates();
-        assertThat(combinations).allSatisfy(
-            combination -> {
-                assertThat(combination.length()).isEqualTo(k);
-                assertThat(combination).doesNotHaveDuplicates();
-                assertThat(sequence).containsSubsequence(combination);
-            }
+        assertAll(
+            () -> assertThat(combinations).hasSize(fiveChooseThree),
+            () -> assertThat(combinations).doesNotHaveDuplicates(),
+            () -> assertThat(combinations).allSatisfy(
+                combination -> assertAll(
+                    () -> assertThat(combination).hasSize(k),
+                    () -> assertThat(combination).doesNotHaveDuplicates(),
+                    () -> assertThat(sequence).containsSubsequence(combination)
+                )
+            )
         );
     }
 
