@@ -2680,11 +2680,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#uncons()
      */
     public Maybe<Sequence<T>> initial() {
-        return Maybe.join(
-            this.matchLazy(
-                (head, tail) -> tail.matchNonEmpty(
-                    rest -> Sequence.cons(head, () -> rest.initial().or(Sequence.empty()))
-                )
+        return this.matchLazy(
+            (head, tail) -> Sequence.lazy(
+                () -> tail.initial().map(Functions.apply(Sequence::cons, head)).or(Sequence.empty())
             )
         );
     }
