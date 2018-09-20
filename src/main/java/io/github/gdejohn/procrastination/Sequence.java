@@ -970,7 +970,12 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchOrThrow(BiFunction,Supplier)
      */
     public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
-        return Maybe.lazy(() -> this.matchLazy((head, tail) -> Maybe.of(() -> function.apply(head.get(), tail)), Maybe.empty()));
+        return Maybe.lazy(
+            () -> this.matchLazy(
+                (head, tail) -> Maybe.of(() -> function.apply(head.get(), tail)),
+                Maybe.empty()
+            )
+        );
     }
 
     /**
@@ -1070,7 +1075,12 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      */
     public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
-        return Maybe.lazy(() -> this.matchLazy((head, tail) -> Maybe.of(() -> function.apply(head, tail)), Maybe.empty()));
+        return Maybe.lazy(
+            () -> this.matchLazy(
+                (head, tail) -> Maybe.of(() -> function.apply(head, tail)),
+                Maybe.empty()
+            )
+        );
     }
 
     /**
