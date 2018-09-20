@@ -1923,7 +1923,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#uncons()
      */
     public Maybe<T> head() {
-        return Maybe.lazy(() -> this.match((head, tail) -> Maybe.of(head), Maybe.empty()));
+        return this.match((head, tail) -> head);
     }
 
     /**
@@ -2658,7 +2658,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#uncons()
      */
     public Maybe<Sequence<T>> tail() {
-        return Maybe.lazy(() -> this.matchLazy((head, tail) -> Maybe.of(tail), Maybe.empty()));
+        return this.matchLazy((head, tail) -> tail);
     }
 
     /**
