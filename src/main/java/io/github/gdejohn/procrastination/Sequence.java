@@ -1748,7 +1748,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#strictlyDecreasing(Comparator)
      */
     public boolean increasing(Comparator<? super T> comparator) {
-        return and(this.slide(Predicates.increasing(comparator)::test));
+        return and(this.zip(Predicates.increasing(comparator)::test));
     }
 
     /**
@@ -1762,7 +1762,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#strictlyDecreasing(Comparator)
      */
     public boolean strictlyIncreasing(Comparator<? super T> comparator) {
-        return and(this.slide(Predicates.strictlyIncreasing(comparator)::test));
+        return and(this.zip(Predicates.strictlyIncreasing(comparator)::test));
     }
 
     /**
@@ -2825,7 +2825,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @see Sequence#zip(Sequence)
      * @see Sequence#map(Function)
-     * @see Sequence#slide(BiFunction)
+     * @see Sequence#zip(BiFunction)
      */
     public <U, R> Sequence<R> zip(Sequence<? extends U> sequence, BiFunction<? super T, ? super U, ? extends R> function) {
         return Sequence.lazy(
@@ -2851,6 +2851,56 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public <U, R> Sequence<R> zip(Sequence<? extends U> sequence, BiPredicate<? super T, ? super U> predicate, BiFunction<? super T, ? super U, ? extends R> function) {
         return Sequences.zip(this, sequence).filter(gather(predicate)).map(gather(function));
+    }
+
+    /**
+     * Zip this sequence with its tail (i.e., view this sequence through a sliding window, two elements at a time).
+     *
+     * <p>The resulting sequence is empty if this sequence is empty. Otherwise, the
+     * length of the resulting sequence is one less than the length of this sequence.
+     *
+     * @see Sequences#zip(Sequence, Sequence)
+     * @see Sequence#zip(Sequence)
+     * @see Sequence#zip(BiFunction)
+     * @see Sequence#zip(BiPredicate, BiFunction)
+     * @see Sequence#slide(long)
+     * @see Sequence#slide(long, long)
+     */
+    public Sequence<Pair<T, T>> zip() {
+        return this.zip(Pair::of);
+    }
+
+    /**
+     * Zip this sequence with its tail, mapping over the pairs.
+     *
+     * @see Sequence#zip(Sequence)
+     * @see Sequence#zip(Sequence, BiPredicate, BiFunction)
+     * @see Sequence#slide(long)
+     * @see Sequence#slide(long, long)
+     */
+    public <R> Sequence<R> zip(BiFunction<? super T, ? super T, ? extends R> function) {
+        return Sequence.lazy(
+            () -> this.matchLazy(
+                (head, tail) -> Sequence.cons(head, tail).zip(tail, function),
+                Sequence.empty()
+            )
+        );
+    }
+
+    /**
+     * Zip this sequence with its tail, filtering and mapping over the pairs.
+     *
+     * @see Sequence#zip(Sequence)
+     * @see Sequence#zip(Sequence, BiPredicate, BiFunction)
+     * @see Sequence#slide(long, long)
+     */
+    public <R> Sequence<R> zip(BiPredicate<? super T, ? super T> predicate, BiFunction<? super T, ? super T, ? extends R> function) {
+        return Sequence.lazy(
+            () -> this.matchLazy(
+                (head, tail) -> Sequence.cons(head, tail).zip(tail, predicate, function),
+                Sequence.empty()
+            )
+        );
     }
 
     /**
@@ -2880,7 +2930,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequences#longs()
      */
     public <R> Sequence<R> index(BiFunction<? super Long, ? super T, ? extends R> function) {
-
         return Sequences.longs().zip(this, function);
     }
 
@@ -3217,56 +3266,6 @@ public abstract class Sequence<T> implements Iterable<T> {
                     sequence.take(window),
                     sequence.skip(step).slide(window, step)
                 ),
-                Sequence.empty()
-            )
-        );
-    }
-
-    /**
-     * Zip this sequence with its tail (i.e., view this sequence through a sliding window, two elements at a time).
-     *
-     * <p>The resulting sequence is empty if this sequence is empty. Otherwise, the
-     * length of the resulting sequence is one less than the length of this sequence.
-     *
-     * @see Sequences#zip(Sequence, Sequence)
-     * @see Sequence#zip(Sequence)
-     * @see Sequence#slide(BiFunction)
-     * @see Sequence#slide(BiPredicate, BiFunction)
-     * @see Sequence#slide(long)
-     * @see Sequence#slide(long, long)
-     */
-    public Sequence<Pair<T, T>> slide() {
-        return this.slide(Pair::of);
-    }
-
-    /**
-     * Zip this sequence with its tail, mapping over the pairs.
-     *
-     * @see Sequence#zip(Sequence)
-     * @see Sequence#zip(Sequence, BiPredicate, BiFunction)
-     * @see Sequence#slide(long)
-     * @see Sequence#slide(long, long)
-     */
-    public <R> Sequence<R> slide(BiFunction<? super T, ? super T, ? extends R> function) {
-        return Sequence.lazy(
-            () -> this.matchLazy(
-                (head, tail) -> Sequence.cons(head, tail).zip(tail, function),
-                Sequence.empty()
-            )
-        );
-    }
-
-    /**
-     * Zip this sequence with its tail, filtering and mapping over the pairs.
-     *
-     * @see Sequence#zip(Sequence)
-     * @see Sequence#zip(Sequence, BiPredicate, BiFunction)
-     * @see Sequence#slide(long, long)
-     */
-    public <R> Sequence<R> slide(BiPredicate<? super T, ? super T> predicate, BiFunction<? super T, ? super T, ? extends R> function) {
-        return Sequence.lazy(
-            () -> this.matchLazy(
-                (head, tail) -> Sequence.cons(head, tail).zip(tail, predicate, function),
                 Sequence.empty()
             )
         );
