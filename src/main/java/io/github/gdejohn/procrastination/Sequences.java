@@ -19,7 +19,6 @@ import static io.github.gdejohn.procrastination.Functions.let;
 import static io.github.gdejohn.procrastination.Pair.duplicate;
 import static io.github.gdejohn.procrastination.Predicates.compose;
 import static io.github.gdejohn.procrastination.Predicates.gather;
-import static io.github.gdejohn.procrastination.Predicates.lessThanOrEqualTo;
 import static io.github.gdejohn.procrastination.Trampoline.call;
 import static io.github.gdejohn.procrastination.Trampoline.terminate;
 import static java.util.Objects.requireNonNull;
@@ -679,7 +678,11 @@ public final class Sequences {
      * @see Sequences#rationals()
      */
     public static Sequence<Float> floats() {
-        return Sequence.iterate(Float.MIN_VALUE, lessThanOrEqualTo(Float.MAX_VALUE), Math::nextUp);
+        return floats(Float.MIN_VALUE);
+    }
+
+    private static Sequence<Float> floats(float f) {
+        return Sequence.cons(f, () -> f < Float.MAX_VALUE ? floats(Math.nextUp(f)) : Sequence.empty());
     }
 
     /**
@@ -691,7 +694,11 @@ public final class Sequences {
      * @see Sequences#rationals()
      */
     public static Sequence<Double> doubles() {
-        return Sequence.iterate(Double.MIN_VALUE, lessThanOrEqualTo(Double.MAX_VALUE), Math::nextUp);
+        return doubles(Double.MIN_VALUE);
+    }
+
+    private static Sequence<Double> doubles(double d) {
+        return Sequence.cons(d, () -> d < Double.MAX_VALUE ? doubles(Math.nextUp(d)) : Sequence.empty());
     }
 
     /**
