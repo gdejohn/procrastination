@@ -1949,7 +1949,7 @@ public abstract class Sequence<T> implements Iterable<T> {
                 last -> sequence -> sequence.matchLazy(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> call(last, rest),
-                        () -> terminate(Maybe.of(head.get()))
+                        () -> terminate(Maybe.of(head))
                     ),
                     () -> terminate(Maybe.empty())
                 )
@@ -1972,7 +1972,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     public Maybe<T> element(long index) {
         return index < 0 ? Maybe.empty() : Maybe.lazy(
             () -> Trampoline.evaluate(this, index,
-                element -> sequence -> n -> sequence.match(
+                element -> sequence -> n -> sequence.matchLazy(
                     (head, tail) -> n == 0 ? terminate(Maybe.of(head)) : call(element, tail, n - 1),
                     () -> terminate(Maybe.empty())
                 )
@@ -2107,10 +2107,12 @@ public abstract class Sequence<T> implements Iterable<T> {
                 fold -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> function.apply(head).match(
-                            left -> terminate(Maybe.of(reversed.foldLeft(left, uncurry(Functions::apply)))),
+                            left -> terminate(Maybe.of(() -> reversed.foldLeft(left, uncurry(Functions::apply)))),
                             right -> call(fold, rest, Sequence.cons(right, reversed))
                         ),
-                        () -> terminate(Maybe.of(reversed.foldLeft(initial.apply(head), uncurry(Functions::apply))))
+                        () -> terminate(
+                            Maybe.of(() -> reversed.foldLeft(initial.apply(head), uncurry(Functions::apply)))
+                        )
                     ),
                     () -> terminate(Maybe.empty())
                 )
@@ -2131,10 +2133,10 @@ public abstract class Sequence<T> implements Iterable<T> {
                 fold -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> operator.apply(head).match(
-                            left -> terminate(Maybe.of(reversed.foldLeft(left, uncurry(Functions::apply)))),
+                            left -> terminate(Maybe.of(() -> reversed.foldLeft(left, uncurry(Functions::apply)))),
                             right -> call(fold, rest, Sequence.cons(right, reversed))
                         ),
-                        () -> terminate(Maybe.of(reversed.foldLeft(head, uncurry(Functions::apply))))
+                        () -> terminate(Maybe.of(() -> reversed.foldLeft(head, uncurry(Functions::apply))))
                     ),
                     () -> terminate(Maybe.empty())
                 )
