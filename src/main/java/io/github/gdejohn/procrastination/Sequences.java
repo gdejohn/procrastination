@@ -654,7 +654,11 @@ public final class Sequences {
      * @see Sequences#rationals()
      */
     public static Sequence<Integer> ints() {
-        return count(0);
+        return ints(0);
+    }
+
+    private static Sequence<Integer> ints(int origin) {
+        return Sequence.cons(origin, () -> origin < Integer.MAX_VALUE ? ints(origin + 1) : Sequence.empty());
     }
 
     /**
@@ -666,7 +670,11 @@ public final class Sequences {
      * @see Sequences#rationals()
      */
     public static Sequence<Long> longs() {
-        return count(0L);
+        return longs(0);
+    }
+
+    static Sequence<Long> longs(long origin) {
+        return Sequence.cons(origin, () -> origin < Long.MAX_VALUE ? longs(origin + 1) : Sequence.empty());
     }
 
     /**
@@ -739,16 +747,6 @@ public final class Sequences {
      */
     public static <R> Sequence<R> rationals(BiPredicate<? super Long, ? super Long> predicate, BiFunction<? super Long, ? super Long, ? extends R> function) {
         return rationals().filter(gather(predicate)).map(gather(function));
-    }
-
-    /** Enumerate the 32-bit signed integers, starting from an inclusive lower bound. */
-    public static Sequence<Integer> count(int origin) {
-        return Sequence.cons(origin, () -> origin < Integer.MAX_VALUE ? count(origin + 1) : Sequence.empty());
-    }
-
-    /** Enumerate the 64-bit signed integers, starting from an inclusive lower bound. */
-    public static Sequence<Long> count(long origin) {
-        return Sequence.cons(origin, () -> origin < Long.MAX_VALUE ? count(origin + 1) : Sequence.empty());
     }
 
     /**

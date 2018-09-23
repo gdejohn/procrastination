@@ -727,7 +727,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#iterate(Object, Object, BiFunction)
      */
     public static <T> Sequence<T> iterate(T initial, BiFunction<? super Long, T, T> next) {
-        return Sequences.count(1L).scanLeft(initial, flip(next));
+        return Sequences.longs(1).scanLeft(initial, flip(next));
     }
 
     /**
