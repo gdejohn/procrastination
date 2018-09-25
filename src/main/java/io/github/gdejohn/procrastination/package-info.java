@@ -1,5 +1,5 @@
 /**
- * Lazily evaluated, memoizing, persistent, purely functional data structures; anonymous, stack-safe tail recursion via
- * trampolines and fixed-point combinators; and helper classes.
+ * Lazily evaluated, memoizing, persistent, purely functional data structures; stack-safe tail-recursive lambda
+ * expressions via trampolines and fixed points; and utility classes.
  */
 package io.github.gdejohn.procrastination;
