@@ -3039,11 +3039,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     public <R> Sequence<R> scanLeft(R initial, BiFunction<R, ? super T, R> function) {
         return Sequence.cons(
             initial,
-            Sequence.lazy(
-                () -> this.match(
-                    (head, tail) -> tail.scanLeft(function.apply(initial, head), function),
-                    Sequence.empty()
-                )
+            () -> this.match(
+                (head, tail) -> tail.scanLeft(function.apply(initial, head), function),
+                Sequence.empty()
             )
         );
     }
