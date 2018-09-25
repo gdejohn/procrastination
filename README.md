@@ -4,9 +4,9 @@
 
 # procrastination
 
-**procrastination** is a modular library for Java 10 that provides
+**procrastination** is a modular library for Java 11 that provides
 * lazily evaluated, memoizing, persistent, purely functional data structures;
-* and stack-safe tail-recursive lambda expressions via trampolines and fixed points of higher-order functions.
+* and stack-safe tail-recursive lambda expressions via trampolines and fixed points.
 
 ## Data Structures
 
@@ -34,7 +34,7 @@ and over.
 
 `Maybe` represents a value that may or may not exist. It can be thought of as a sequence with at most one element and
 is often used to model potential failure. `Maybe` is a lazy alternative to
-[`Optional`](https://docs.oracle.com/javase/10/docs/api/java/util/Optional.html).
+[`Optional`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Optional.html).
 
 ### Either
 
@@ -45,7 +45,8 @@ attached to the failure case (e.g., an exception, or a string error message).
 ### Pair
 
 `Pair` is an ordered collection with exactly two elements which may have different types (i.e., a 2-tuple). `Pair` is a
-lazy, purely functional alternative to [`Entry`](https://docs.oracle.com/javase/10/docs/api/java/util/Map.Entry.html).
+lazy, purely functional alternative to
+[`Entry`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html).
 
 ## Trampolines and Fixed Points
 
@@ -99,7 +100,7 @@ static int length(Sequence<?> sequence) {
 
 Add JitPack to your root `build.gradle` at the end of the repositories:
 
-```groovy
+```gradle
 allprojects {
     repositories {
         // ...
@@ -110,7 +111,7 @@ allprojects {
 
 And add the dependency:
 
-```groovy
+```gradle
 dependencies {
     implementation 'io.github.gdejohn:procrastination:master-SNAPSHOT'
 }
@@ -120,7 +121,7 @@ dependencies {
 
 Add the JitPack repository to your `pom.xml`:
 
-```xml
+```maven-pom
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -131,7 +132,7 @@ Add the JitPack repository to your `pom.xml`:
 
 And add the dependency:
 
-```xml
+```maven-pom
 <dependency>
     <groupId>io.github.gdejohn</groupId>
     <artifactId>procrastination</artifactId>
@@ -143,7 +144,7 @@ See instructions for other build tools at [JitPack](https://jitpack.io/#io.githu
 
 ### jshell
 
-The included jshell script `procrastination.jsh` makes it easy to play around with this library, assuming JDK 10 and a
+The included jshell script `procrastination.jsh` makes it easy to play around with this library, assuming JDK 11 and a
 recent version of Maven are installed and present on your `PATH`. Just clone the repository, and from the root
 directory run `mvn compile` and `jshell procrastination.jsh`. The script sets up the jshell environment and imports all
 of the types and static members.

@@ -2,7 +2,7 @@ dist: trusty
 sudo: false
 
 language: java
-jdk: openjdk10
+jdk: openjdk11
 
 cache:
   directories:
