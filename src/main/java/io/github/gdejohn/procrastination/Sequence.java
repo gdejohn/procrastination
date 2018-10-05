@@ -1836,7 +1836,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @see Sequence#containsAny(Sequence)
      * @see Sequence#containsAll(Sequence)
-     * @see Sequence#disjoint(Sequence)
      */
     public boolean contains(T element) {
         return this.any(Predicate.isEqual(element));
@@ -1847,7 +1846,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @see Sequence#contains(Object)
      * @see Sequence#containsAll(Sequence)
-     * @see Sequence#disjoint(Sequence)
      */
     public boolean containsAny(Sequence<? extends T> sequence) {
         return sequence.any(in(this));
@@ -1858,7 +1856,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * @see Sequence#contains(Object)
      * @see Sequence#containsAny(Sequence)
-     * @see Sequence#disjoint(Sequence)
      */
     public boolean containsAll(Sequence<? extends T> sequence) {
         return sequence.all(in(this));
@@ -1952,17 +1949,6 @@ public abstract class Sequence<T> implements Iterable<T> {
                 () -> terminate(true)
             )
         );
-    }
-
-    /**
-     * True if and only if none of the given elements are elements of this sequence.
-     *
-     * @see Sequence#contains(Object)
-     * @see Sequence#containsAny(Sequence)
-     * @see Sequence#containsAll(Sequence)
-     */
-    public boolean disjoint(Sequence<? extends T> sequence) {
-        return !this.containsAny(sequence);
     }
 
     /**
