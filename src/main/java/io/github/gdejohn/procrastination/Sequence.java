@@ -1607,7 +1607,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public long length() {
         return Trampoline.evaluate(this, 0L,
-            length -> sequence -> n -> sequence.match(
+            length -> sequence -> n -> sequence.matchLazy(
                 (head, tail) -> call(length, tail, Math.incrementExact(n)),
                 () -> terminate(n)
             )
@@ -1652,8 +1652,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public boolean longerThan(Sequence<?> sequence) {
         return Trampoline.evaluate(this, sequence,
-            longer -> seq -> other -> seq.match(
-                (x, xs) -> other.match(
+            longer -> seq -> other -> seq.matchLazy(
+                (x, xs) -> other.matchLazy(
                     (y, ys) -> call(longer, xs, ys),
                     () -> terminate(true)
                 ),
@@ -1869,9 +1869,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public boolean hasPrefix(Sequence<? extends T> prefix) {
         return Trampoline.evaluate(this, prefix,
-            hasPrefix -> sequence -> other -> other.match(
+            hasPrefix -> sequence -> other -> other.matchLazy(
                 (y, ys) -> sequence.match(
-                    (x, xs) -> x.equals(y) ? call(hasPrefix, xs, ys) : terminate(false),
+                    (x, xs) -> x.equals(y.get()) ? call(hasPrefix, xs, ys) : terminate(false),
                     () -> terminate(false)
                 ),
                 () -> terminate(true)
@@ -1899,9 +1899,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** True if and only if all of the given elements appear somewhere in this sequence in their same order. */
     public boolean hasSubsequence(Sequence<? extends T> subsequence) {
         return Trampoline.evaluate(this, subsequence,
-            hasSubsequence -> sequence -> other -> other.match(
+            hasSubsequence -> sequence -> other -> other.matchLazy(
                 (y, ys) -> sequence.match(
-                    (x, xs) -> x.equals(y) ? call(hasSubsequence, xs, ys) : call(
+                    (x, xs) -> x.equals(y.get()) ? call(hasSubsequence, xs, ys) : call(
                         hasSubsequence,
                         xs,
                         other
@@ -2475,7 +2475,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     public Sequence<T> skip(long length) {
         return length <= 0 ? this : Sequence.lazy(
             () -> Trampoline.evaluate(this, length,
-                skip -> sequence -> n -> n == 0 ? terminate(sequence) : sequence.match(
+                skip -> sequence -> n -> n == 0 ? terminate(sequence) : sequence.matchLazy(
                     (head, tail) -> call(skip, tail, n - 1),
                     () -> terminate(Sequence.empty())
                 )
