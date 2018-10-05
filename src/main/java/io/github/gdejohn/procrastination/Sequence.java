@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.TreeSet;
@@ -1849,7 +1850,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#disjoint(Sequence)
      */
     public boolean containsAny(Sequence<? extends T> sequence) {
-        return sequence.any(this.memoize()::contains);
+        return sequence.any(in(this));
     }
 
     /**
@@ -1860,7 +1861,47 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#disjoint(Sequence)
      */
     public boolean containsAll(Sequence<? extends T> sequence) {
-        return sequence.all(this.memoize()::contains);
+        return sequence.all(in(this));
+    }
+
+    private static <T> Predicate<T> in(Sequence<T> sequence) {
+        class In implements Predicate<T> {
+            private final Set<T> seen = new HashSet<>();
+
+            private Sequence<T> rest;
+
+            In(Sequence<T> sequence) {
+                this.rest = sequence;
+            }
+
+            @Override
+            public boolean test(T element) {
+                if (this.seen.contains(element)) {
+                    return true;
+                } else {
+                    return Trampoline.evaluate(
+                        this.rest,
+                        contains -> seq -> seq.match(
+                            (head, tail) -> {
+                                this.seen.add(head);
+                                if (head.equals(element)) {
+                                    this.rest = tail;
+                                    return terminate(true);
+                                } else {
+                                    return call(contains, tail);
+                                }
+                            },
+                            () -> {
+                                this.rest = Sequence.empty();
+                                return terminate(false);
+                            }
+                        )
+                    );
+                }
+            }
+        }
+
+        return new In(sequence);
     }
 
     /**
