@@ -348,16 +348,14 @@ public abstract class Pair<T, U> {
 
     @Override
     public boolean equals(Object object) {
-        if (object instanceof Pair) {
-            if (this == object) {
-                return true;
-            } else {
-                return this.matchLazy(
-                    (a, b) -> ((Pair<?, ?>) object).matchLazy(
-                        (c, d) -> Objects.equals(a.get(), c.get()) && Objects.equals(b.get(), d.get())
-                    )
-                );
-            }
+        if (this == object) {
+            return true;
+        } else if (object instanceof Pair) {
+            return this.matchLazy(
+                (a, b) -> ((Pair<?, ?>) object).matchLazy(
+                    (c, d) -> Objects.equals(a.get(), c.get()) && Objects.equals(b.get(), d.get())
+                )
+            );
         } else {
             return false;
         }

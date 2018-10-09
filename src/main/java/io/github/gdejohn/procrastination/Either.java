@@ -597,22 +597,20 @@ public abstract class Either<A, B> {
      */
     @Override
     public boolean equals(Object object) {
-        if (object instanceof Either) {
-            if (this == object) {
-                return true;
-            } else {
-                var that = (Either<?, ?>) object;
-                return this.matchLazy(
-                    left -> that.matchLazy(
-                        Functions.apply(on(Objects::equals, Supplier::get), left),
-                        constant(false)
-                    ),
-                    right -> that.matchLazy(
-                        constant(false),
-                        Functions.apply(on(Objects::equals, Supplier::get), right)
-                    )
-                );
-            }
+        if (this == object) {
+            return true;
+        } else if (object instanceof Either) {
+            var that = (Either<?, ?>) object;
+            return this.matchLazy(
+                left -> that.matchLazy(
+                    Functions.apply(on(Objects::equals, Supplier::get), left),
+                    constant(false)
+                ),
+                right -> that.matchLazy(
+                    constant(false),
+                    Functions.apply(on(Objects::equals, Supplier::get), right)
+                )
+            );
         } else {
             return false;
         }

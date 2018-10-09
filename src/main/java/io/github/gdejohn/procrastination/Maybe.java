@@ -655,19 +655,17 @@ public abstract class Maybe<T> implements Iterable<T> {
      */
     @Override
     public boolean equals(Object object) {
-        if (object instanceof Maybe) {
-            if (this == object) {
-                return true;
-            } else {
-                var that = (Maybe<?>) object;
-                return this.matchLazy(
-                    value -> that.matchLazy(
-                        Functions.apply(on(Objects::equals, Supplier::get), value),
-                        false
-                    ),
-                    that::isEmpty
-                );
-            }
+        if (this == object) {
+            return true;
+        } else if (object instanceof Maybe) {
+            var that = (Maybe<?>) object;
+            return this.matchLazy(
+                value -> that.matchLazy(
+                    Functions.apply(on(Objects::equals, Supplier::get), value),
+                    false
+                ),
+                that::isEmpty
+            );
         } else {
             return false;
         }

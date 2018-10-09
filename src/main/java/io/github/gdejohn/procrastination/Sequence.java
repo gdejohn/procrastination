@@ -1558,21 +1558,19 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     @Override
     public boolean equals(Object object) {
-        if (object instanceof Sequence) {
-            if (this == object) {
-                return true;
-            } else {
-                //noinspection RedundantCast
-                return Trampoline.evaluate(this, (Sequence<?>) object,
-                    equal -> sequence -> other -> sequence.matchLazy(
-                        (x, xs) -> other.match(
-                            (y, ys) -> x.get().equals(y) ? call(equal, xs, ys) : terminate(false),
-                            () -> terminate(false)
-                        ),
-                        () -> terminate(other.isEmpty())
-                    )
-                );
-            }
+        if (this == object) {
+            return true;
+        } else if (object instanceof Sequence) {
+            //noinspection RedundantCast
+            return Trampoline.evaluate(this, (Sequence<?>) object,
+                equal -> sequence -> other -> sequence.matchLazy(
+                    (x, xs) -> other.match(
+                        (y, ys) -> x.get().equals(y) ? call(equal, xs, ys) : terminate(false),
+                        () -> terminate(false)
+                    ),
+                    () -> terminate(other.isEmpty())
+                )
+            );
         } else {
             return false;
         }
