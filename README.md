@@ -1,6 +1,7 @@
 [![JitPack repository](https://img.shields.io/jitpack/v/gdejohn/procrastination.svg?colorB=4EC820)](https://jitpack.io/#io.github.gdejohn/procrastination)
 [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)](https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/)
 [![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)](https://travis-ci.com/gdejohn/procrastination)
+[![Code coverage](https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg)](https://codecov.io/gh/gdejohn/procrastination)
 
 # procrastination
 
