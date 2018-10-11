@@ -108,8 +108,8 @@ class EitherTest {
         assertAll(
             () -> assertThat(Either.left("foo").leftOrThrow(IllegalStateException::new)).isEqualTo("foo"),
             () -> assertThatThrownBy(
-                () -> Either.right("foo").leftOrThrow(IllegalStateException::new)
-            ).isInstanceOf(IllegalStateException.class)
+                () -> Either.right("foo").leftOrThrow(() -> new Exception("foo"))
+            ).hasMessage("foo")
         );
     }
 
@@ -166,8 +166,8 @@ class EitherTest {
         assertAll(
             () -> assertThat(Either.right("foo").rightOrThrow(IllegalStateException::new)).isEqualTo("foo"),
             () -> assertThatThrownBy(
-                () -> Either.left("foo").rightOrThrow(IllegalStateException::new)
-            ).isInstanceOf(IllegalStateException.class)
+                () -> Either.left("foo").rightOrThrow(() -> new Exception("foo"))
+            ).hasMessage("foo")
         );
     }
 

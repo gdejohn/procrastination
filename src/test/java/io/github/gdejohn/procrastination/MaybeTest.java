@@ -47,7 +47,7 @@ class MaybeTest {
     @Test
     void fromCallable() {
         assertAll(
-            () -> assertThat(Maybe.from(() -> { throw new RuntimeException(); })).isEmpty(),
+            () -> assertThat(Maybe.from(() -> { throw new Exception(); })).isEmpty(),
             () -> assertThat(Maybe.from(() -> "foo")).containsExactly("foo")
         );
     }
@@ -55,7 +55,7 @@ class MaybeTest {
     @Test
     void fromCompletableFuture() {
         assertAll(
-            () -> assertThat(Maybe.from(failedFuture(new RuntimeException()))).isEmpty(),
+            () -> assertThat(Maybe.from(failedFuture(new Exception()))).isEmpty(),
             () -> assertThat(Maybe.from(completedFuture("foo"))).containsExactly("foo")
         );
     }
@@ -199,7 +199,7 @@ class MaybeTest {
             () -> assertThat(Maybe.empty().apply(Maybe.empty())).isEmpty(),
             () -> assertThat(Maybe.empty().apply(Maybe.of(identity()))).isEmpty(),
             () -> assertThat(Maybe.of("foo").apply(Maybe.empty())).isEmpty(),
-            () -> assertThat(Maybe.of("burger").apply(Maybe.of(s -> "ham" + s))).containsExactly("hamburger")
+            () -> assertThat(Maybe.of("burger").apply(Maybe.of("ham"::concat))).containsExactly("hamburger")
         );
     }
 
