@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 import static io.github.gdejohn.procrastination.Functions.compose;
 import static io.github.gdejohn.procrastination.Functions.constant;
 import static io.github.gdejohn.procrastination.Unit.unit;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,6 +34,24 @@ class EitherTest {
             () -> assertThat(either.match(constant(false), "foo"::equals)).isTrue(),
             () -> assertThat(either.matchLazy(constant(false), constant(true))).isTrue(),
             () -> assertThat(either.matchLazy(constant(false), compose("foo"::equals, Supplier::get))).isTrue()
+        );
+    }
+
+    @Test
+    void fromCallable() {
+        assertAll(
+            () -> assertThat(Either.from(() -> { throw new Exception("foo"); }).leftOrThrow()).hasMessage("foo"),
+            () -> assertThat(Either.from(() -> "foo").rightOrThrow()).isEqualTo("foo")
+        );
+    }
+
+    @Test
+    void fromCompletableFuture() {
+        assertAll(
+            () -> assertThat(
+                Either.from(failedFuture(new Exception("foo"))).leftOrThrow()
+            ).hasCause(new Exception("foo")),
+            () -> assertThat(Either.from(completedFuture("foo")).rightOrThrow()).isEqualTo("foo")
         );
     }
 
