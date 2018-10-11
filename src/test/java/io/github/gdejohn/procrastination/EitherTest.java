@@ -228,6 +228,30 @@ class EitherTest {
     }
 
     @Test
+    void applyLeft() {
+        assertAll(
+            () -> assertThat(Either.right("foo").applyLeft(Either.right("bar")).rightOr("baz")).isEqualTo("bar"),
+            () -> assertThat(Either.right("foo").applyLeft(Either.left(x -> unit())).rightOr("baz")).isEqualTo("foo"),
+            () -> assertThat(Either.left("foo").applyLeft(Either.right("bar")).rightOr("baz")).isEqualTo("bar"),
+            () -> assertThat(
+                Either.left("burger").applyLeft(Either.left("ham"::concat)).leftOr("baz")
+            ).isEqualTo("hamburger")
+        );
+    }
+
+    @Test
+    void applyRight() {
+        assertAll(
+            () -> assertThat(Either.left("foo").applyRight(Either.left("bar")).leftOr("baz")).isEqualTo("bar"),
+            () -> assertThat(Either.left("foo").applyRight(Either.right(x -> unit())).leftOr("baz")).isEqualTo("foo"),
+            () -> assertThat(Either.right("foo").applyRight(Either.left("bar")).leftOr("baz")).isEqualTo("bar"),
+            () -> assertThat(
+                Either.right("burger").applyRight(Either.right("ham"::concat)).rightOr("baz")
+            ).isEqualTo("hamburger")
+        );
+    }
+
+    @Test
     void equals() {
         assertAll(
             () -> assertThat(Either.left("foo")).isEqualTo(Either.left("foo")),

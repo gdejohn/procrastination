@@ -567,8 +567,7 @@ public abstract class Either<A, B> {
 
     /** Lazily apply a lifted function to this, biased on the right. */
     public <C> Either<A, C> applyRight(Either<? extends A, ? extends Function<? super B, ? extends C>> function) {
-        requireNonNull(function);
-        return this.flatMapRight(value -> function.mapRight(Functions.apply(value)));
+        return Either.<A, Function<? super B, ? extends C>>cast(function).flatMapRight(this::mapRight);
     }
 
     /** Lift a binary function and lazily apply it to this and another {@code Either}, biased on the right. */
@@ -580,8 +579,7 @@ public abstract class Either<A, B> {
 
     /** Lazily apply a lifted function to this, biased on the left. */
     public <C> Either<C, B> applyLeft(Either<? extends Function<? super A, ? extends C>, ? extends B> function) {
-        requireNonNull(function);
-        return this.flatMapLeft(value -> function.mapLeft(Functions.apply(value)));
+        return Either.<Function<? super A, ? extends C>, B>cast(function).flatMapLeft(this::mapLeft);
     }
 
     /** Lift a binary function and lazily apply it to this and another {@code Either}, biased on the left. */
