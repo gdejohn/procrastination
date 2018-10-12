@@ -2,14 +2,32 @@
 [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)](https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/)
 [![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)](https://travis-ci.com/gdejohn/procrastination)
 [![Code coverage](https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg)](https://codecov.io/gh/gdejohn/procrastination)
+[![License](https://img.shields.io/github/license/gdejohn/procrastination.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # procrastination
 
-**procrastination** is a modular library for Java 11 that provides
-* lazily evaluated, memoizing, persistent, purely functional data structures;
+**procrastination** is a modular, zero-dependency library for Java 11 that provides
+* lazily evaluated, memoizing, purely functional data structures;
+* ad hoc pattern matching;
+* an extensible, reusable alternative to Java 8's
+[`Stream`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/Stream.html);
 * and stack-safe tail-recursive lambda expressions via trampolines and fixed points.
 
 ## Data Structures
+
+All of the included data structures are designed to emulate algebraic data types, with basic "data constructor" static
+factory methods mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general
+pattern-matching facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply
+makes it possible to distinguish which data constructor was used and extract the components.
+
+The rest of the operations on these data structures are all ultimately defined in terms of these `match()` methods and
+the corresponding data constructors. None of the data structure classes hide anything interesting. They don't declare
+any instance fields. They each have just one constructor (in the Java sense), declared private, taking no arguments,
+with an empty body. If some useful operation is missing, anyone can define it externally as a static method.
+
+While it is easy to define new operations on these types, it is impossible to add new cases. Since the classes don't
+expose their (Java) constructors, they are effectively sealed types, so the `match()` methods will always exhaustively
+cover every case.
 
 ### Sequence
 
@@ -31,6 +49,11 @@ This is achieved efficiently via *structural sharing*, which is safe because seq
 set of versions of a sequence can simply be referenced by all of those versions, rather than defensively copied over
 and over.
 
+`Sequence` is an alternative to
+[`Stream`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/Stream.html). Unlike streams,
+sequences can be traversed any number of times. The trade-off is that sequences derived from one-shot sources (e.g.,
+iterators, streams) *must* be memoized.
+
 ### Maybe
 
 `Maybe` represents a value that may or may not exist. It can be thought of as a sequence with at most one element and
@@ -41,20 +64,21 @@ is often used to model potential failure. `Maybe` is a lazy alternative to
 
 `Either` is a container with exactly one element that can take on one of two possible values, labeled *left* and
 *right*, which may have different types. Like `Maybe`, it can be used to model failure, but it allows information to be
-attached to the failure case (e.g., an exception, or a string error message).
+attached to the failure case (e.g., an exception, or a string error message). In this sense, it is the data-structure
+analogue of Java's checked exceptions.
 
 ### Pair
 
-`Pair` is an ordered collection with exactly two elements which may have different types (i.e., a 2-tuple). `Pair` is a
-lazy, purely functional alternative to
-[`Entry`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html).
+`Pair` is an ordered collection with exactly two elements which may have different types (i.e., a 2-tuple). `Pair` is
+similar to [`Entry`](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html), but by
+contrast it is lazy and purely functional.
 
-## Trampolines and Fixed Points
+## Trampolines
 
 Applying imperative idioms to sequences is ugly and error-prone; recursive data types call for recursive algorithms.
 Unfortunately, Java isn't very recursion-friendly: deep call stacks quickly run afoul of stack overflow exceptions, and
 tail recursion doesn't help because there's no tail-call elimination. This isn't a problem for recursive algorithms
-working with sequences as long as they are lazy with respect to the tail, but whenever an unknown number of elements
+working with sequences so long as they are lazy with respect to the tail, but whenever a large number of elements
 must be traversed all at once, stack overflow is waiting to pounce. Enter trampolines.
 
 `Trampoline` converts tail recursion into a stack-safe loop. To trampoline a tail-recursive method with return type
@@ -63,14 +87,16 @@ method `Trampoline.terminate()`, suspend recursive calls in `Supplier` lambda ex
 recursive calls with the static factory method `Trampoline.call()`. To get the result from a trampoline, invoke the
 instance method `evaluate()`.
 
-Tail recursion often means restructuring algorithms such that additional parameters are required, and trampolining
-means that the result must be unwrapped. These are irrelevant and burdensome implementation details that should not be
-exposed to client code. So, the usual practice is to delegate to a private helper method. Alternatively, the recursive
-computation can be performed inline via anonymous recursion!
+## Anonymous Recursion
 
-`Functions.fix()` computes the fixed point of a higher-order function, enabling recursive lambda expressions. Lambda
-expressions by definition are unnamed, making explicit recursion impossible. The trick here is to abstract the
-recursive call by accepting the function itself as another argument and letting `fix()` tie the knot. For example:
+Tail recursion often requires additional "accumulator" parameters, and trampolining means that the result must be
+unwrapped. These are irrelevant and burdensome implementation details that shouldn't be exposed to client code, so the
+usual practice is to delegate to a private helper method. Alternatively, the recursive computation can be defined
+inline!
+
+`Functions.fix()` returns the fixed point of a unary operator on functions, enabling recursive lambda expressions.
+Lambda expressions by definition are unnamed, making explicit recursion impossible. The trick here is to abstract the
+recursive call by accepting the function itself as an argument and letting `fix()` tie the knot. For example:
 
 ```java
 Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
@@ -78,9 +104,9 @@ Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n 
 
 This also works for trampolined functions and curried functions of arbitrarily many arguments. `Trampoline.evaluate()`
 isn't just an instance method, it's also overloaded as an all-in-one static helper method that accepts a trampolined
-recursive lambda expression and matching arguments, fixes the lambda expression, applies it to the arguments, evaluates
-the resulting trampoline, and returns the unwrapped value. And the static factory method `Trampoline.call()` is
-overloaded to accept curried functions and matching arguments. For example:
+recursive lambda expression and an appropriate number of arguments, fixes the lambda expression, applies it to the
+arguments, evaluates the resulting trampoline, and returns the unwrapped value. And the static factory method
+`Trampoline.call()` is overloaded to accept curried functions and matching arguments. For example:
 
 ```java
 static int length(Sequence<?> sequence) {
@@ -94,6 +120,8 @@ static int length(Sequence<?> sequence) {
     );
 }
 ```
+
+In the above code, `call(f, tail, n + 1)` is equivalent to `call(() -> f.apply(tail).apply(n + 1))`.
 
 ## Getting Started
 
