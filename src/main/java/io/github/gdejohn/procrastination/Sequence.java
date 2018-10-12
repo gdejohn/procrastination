@@ -2057,16 +2057,6 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Combine the elements of this sequence into a single result, accumulating from the left, using the first element
-     * projected through a function as the initial value if this sequence is non-empty.
-     *
-     * @param <R> the type of the result
-     */
-    public <R> Maybe<R> foldLeft(Function<? super T, ? extends R> initial, BiFunction<R, ? super T, R> function) {
-        return this.match((head, tail) -> tail.foldLeft(initial.apply(head), function));
-    }
-
-    /**
      * Combine the elements of this sequence into a single result of the same type with a binary operator, accumulating
      * from the left, using the first element as the initial value if this sequence is non-empty.
      */
@@ -2080,14 +2070,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @param <R> the type of the result
      */
     public <R> R foldRight(R initial, BiFunction<? super T, R, R> function) {
-        return this.reverse().foldLeft(initial, flip(function));
-    }
-
-    /**
-     * Combine the elements of this sequence into a single result, accumulating from the right, using the last element
-     * projected through a function as the initial value if this sequence is non-empty.
-     */
-    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, BiFunction<? super T, R, R> function) {
         return this.reverse().foldLeft(initial, flip(function));
     }
 
@@ -2114,33 +2096,6 @@ public abstract class Sequence<T> implements Iterable<T> {
                     right -> call(fold, tail, Sequence.cons(right, reversed))
                 ),
                 () -> terminate(reversed.foldLeft(initial, uncurry(Functions::apply)))
-            )
-        );
-    }
-
-    /**
-     * Combine the elements of this sequence into a single element, accumulating from the right, using the last element
-     * projected through a function as the initial value if this sequence is non-empty, deferring evaluation of the
-     * partial results.
-     *
-     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
-     * result, allowing it to work on infinite sequences.
-     */
-    public <R> Maybe<R> foldRight(Function<? super T, ? extends R> initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
-        return Maybe.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
-                fold -> sequence -> reversed -> sequence.match(
-                    (head, tail) -> tail.matchNonEmpty(
-                        rest -> function.apply(head).match(
-                            left -> terminate(Maybe.of(() -> reversed.foldLeft(left, uncurry(Functions::apply)))),
-                            right -> call(fold, rest, Sequence.cons(right, reversed))
-                        ),
-                        () -> terminate(
-                            Maybe.of(() -> reversed.foldLeft(initial.apply(head), uncurry(Functions::apply)))
-                        )
-                    ),
-                    () -> terminate(Maybe.empty())
-                )
             )
         );
     }
@@ -2173,15 +2128,6 @@ public abstract class Sequence<T> implements Iterable<T> {
         return this.match(
             (head, tail) -> function.apply(head, () -> tail.foldRightLazy(initial, function)),
             initial
-        );
-    }
-
-    public <R> Maybe<R> foldRightLazy(Function<? super T, ? extends R> initial, BiFunction<? super T, Supplier<R>, R> function) {
-        return this.match(
-            (head, tail) -> tail.matchNonEmpty(
-                rest -> function.apply(head, () -> rest.foldRightLazy(initial, function).orThrow()),
-                () -> initial.apply(head)
-            )
         );
     }
 
@@ -3072,19 +3018,6 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * The sequence of intermediate results of a left fold over this sequence, using the first element projected
-     * through a function as the initial value if this sequence is non-empty.
-     */
-    public <R> Sequence<R> scanLeft(Function<? super T, ? extends R> initial, BiFunction<R, ? super T, R> function) {
-        return Sequence.lazy(
-            () -> this.match(
-                (head, tail) -> tail.scanLeft(initial.apply(head), function),
-                Sequence.empty()
-            )
-        );
-    }
-
-    /**
      * The sequence of intermediate results of a left fold over this sequence, using the first element as the initial
      * value.
      */
@@ -3099,14 +3032,6 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /** The sequence of intermediate results of a right fold over this sequence. */
     public <R> Sequence<R> scanRight(R initial, BiFunction<? super T, R, R> function) {
-        return this.reverse().scanLeft(initial, flip(function)).reverse();
-    }
-
-    /**
-     * The sequence of intermediate results of a right fold over this sequence, using the last element projected
-     * through a function as the initial value if this sequence is non-empty.
-     */
-    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, BiFunction<? super T, R, R> function) {
         return this.reverse().scanLeft(initial, flip(function)).reverse();
     }
 
@@ -3136,28 +3061,6 @@ public abstract class Sequence<T> implements Iterable<T> {
                         right -> call(scan, tail, Sequence.cons(right, reversed))
                     ),
                     () -> terminate(reversed.scanLeft(initial, uncurry(Functions::apply)).reverse())
-                )
-            )
-        );
-    }
-
-    public <R> Sequence<R> scanRight(Function<? super T, ? extends R> initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
-        return Sequence.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
-                scan -> sequence -> reversed -> sequence.match(
-                    (head, tail) -> tail.matchNonEmpty(
-                        rest -> function.apply(head).match(
-                            left -> terminate(
-                                Sequences.concatenate(
-                                    reversed.scanLeft(left, uncurry(Functions::apply)).reverse(),
-                                    rest.scanRight(initial, function)
-                                )
-                            ),
-                            right -> call(scan, rest, Sequence.cons(right, reversed))
-                        ),
-                        () -> terminate(reversed.scanLeft(initial.apply(head), uncurry(Functions::apply)).reverse())
-                    ),
-                    () -> terminate(Sequence.empty())
                 )
             )
         );
