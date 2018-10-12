@@ -999,7 +999,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         return this.match(
             function,
             () -> {
-                throw new AssertionError("sequence is not nonempty");
+                throw new AssertionError("sequence is not non-empty");
             }
         );
     }
@@ -1105,7 +1105,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         return this.matchLazy(
             function,
             () -> {
-                throw new AssertionError("sequence is not nonempty");
+                throw new AssertionError("sequence is not non-empty");
             }
         );
     }
