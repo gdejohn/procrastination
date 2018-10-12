@@ -20,10 +20,10 @@ factory methods mirrored by abstract `match()` instance methods simulating patte
 pattern-matching facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply
 makes it possible to distinguish which data constructor was used and extract the components.
 
-The rest of the operations on these data structures are all ultimately defined in terms of these `match()` methods and
-the corresponding data constructors. None of the data structure classes hide anything interesting. They don't declare
-any instance fields. They each have just one constructor (in the Java sense), declared private, taking no arguments,
-with an empty body. If some useful operation is missing, anyone can define it externally as a static method.
+The rest of the operations on these data structures are all ultimately defined in terms of the `match()` methods and
+data constructors. None of the data structure classes hide anything interesting. They don't declare any instance
+fields. They each have just one constructor (in the Java sense), declared private, taking no arguments, with an empty
+body. If some useful operation is missing, anyone can define it externally as a static method.
 
 While it is easy to define new operations on these types, it is impossible to add new cases. Since the classes don't
 expose their (Java) constructors, they are effectively sealed types, so the `match()` methods will always exhaustively
