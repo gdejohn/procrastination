@@ -213,6 +213,15 @@ class MaybeTest {
     }
 
     @Test
+    void narrow() {
+        assertAll(
+            () -> assertThat(Maybe.<Number>empty().narrow(Integer.class)).isEmpty(),
+            () -> assertThat(Maybe.<Number>of(0).narrow(Long.class)).isEmpty(),
+            () -> assertThat(Maybe.<Number>of(0).narrow(Integer.class)).containsExactly(0)
+        );
+    }
+
+    @Test
     void equals() {
         assertAll(
             () -> assertThat(Maybe.empty()).isEqualTo(Maybe.empty()),
