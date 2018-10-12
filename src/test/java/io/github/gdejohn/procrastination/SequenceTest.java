@@ -24,6 +24,9 @@ import static io.github.gdejohn.procrastination.Sequence.cons;
 import static io.github.gdejohn.procrastination.Undefined.undefined;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Collections.enumeration;
+import static java.util.concurrent.CompletableFuture.delayedExecutor;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -62,6 +65,15 @@ class SequenceTest {
     @Test
     void nullable() {
         var sequence = Sequence.nullable((Object) null);
+        assertAll(
+            () -> assertThat(sequence.match((head, tail) -> false, true)).isTrue(),
+            () -> assertThat(sequence.matchLazy((head, tail) -> false, true)).isTrue()
+        );
+    }
+
+    @Test
+    void nullableLazy() {
+        var sequence = Sequence.nullable(() -> null);
         assertAll(
             () -> assertThat(sequence.match((head, tail) -> false, true)).isTrue(),
             () -> assertThat(sequence.matchLazy((head, tail) -> false, true)).isTrue()
@@ -593,10 +605,22 @@ class SequenceTest {
     }
 
     @Test
+    void foldRightEagerNoInitial() {
+        assertThat(Sequences.range(1, 100).foldRight(Integer::sum)).containsExactly(5_050);
+    }
+
+    @Test
     void foldRight() {
         assertThat(
             Sequences.ints().replace(100_000, 0).foldRight(1, x -> x == 0 ? left(0) : right(y -> x * y))
         ).isEqualTo(0);
+    }
+
+    @Test
+    void foldRightNoInitial() {
+        assertThat(
+            Sequences.ints().replace(100_000, 0).foldRight(x -> x == 0 ? left(0) : right(y -> x * y))
+        ).containsExactly(0);
     }
 
     @Test
@@ -984,22 +1008,41 @@ class SequenceTest {
     }
 
     @Test
-    void scanRight() {
+    void scanLeftNoInitial() {
+        assertAll(
+            () -> assertThat(Sequence.<Integer>empty().scanLeft(Integer::sum)).isEmpty(),
+            () -> assertThat(Sequence.of(1).scanLeft(Integer::sum)).containsExactly(1),
+            () -> assertThat(Sequences.range(1, 4).scanLeft(Integer::sum)).containsExactly(1, 3, 6, 10)
+        );
+    }
+
+    @Test
+    void scanRightEager() {
         assertThat(Sequences.range(5, 1).scanRight(0, Integer::sum)).containsExactly(15, 10, 6, 3, 1, 0);
     }
 
     @Test
-    void scanRightNoInitial() {
+    void scanRightEagerNoInitial() {
         assertThat(Sequences.range(5, 0).scanRight(Integer::sum)).containsExactly(15, 10, 6, 3, 1, 0);
     }
 
     @Test
-    void scanRightLazy() {
+    void scanRight() {
         assertAll(
             () -> assertThat(Sequence.<Integer>empty().scanRight(1, n -> right(x -> x + n))).containsExactly(1),
             () -> assertThat(
                 Sequence.of(6, 5, 4, 0, 3, 2, 1).scanRight(1, n -> n == 0 ? left(0) : right(m -> n * m))
             ).containsExactly(0, 0, 0, 0, 6, 2, 1, 1)
+        );
+    }
+
+    @Test
+    void scanRightNoInitial() {
+        assertAll(
+            () -> assertThat(Sequence.<Integer>empty().scanRight(n -> right(x -> x + n))).isEmpty(),
+            () -> assertThat(
+                Sequence.of(6, 5, 4, 0, 3, 2, 1).scanRight(n -> n == 0 ? left(0) : right(m -> n * m))
+            ).containsExactly(0, 0, 0, 0, 6, 2, 1)
         );
     }
 
@@ -1304,6 +1347,17 @@ class SequenceTest {
     }
 
     @Test
+    void sequenceFuture() {
+        assertThat(
+            Sequences.future(
+                supplyAsync(() -> "foo", delayedExecutor(25, MILLISECONDS)),
+                supplyAsync(() -> "bar", delayedExecutor(75, MILLISECONDS)),
+                supplyAsync(() -> "baz", delayedExecutor(50, MILLISECONDS))
+            ).join()
+        ).containsExactly("foo", "bar", "baz");
+    }
+
+    @Test
     void sequenceMaybe() {
         assertThat(Sequences.maybe(Sequences.ints().map(Maybe::of).insert(100_000, Maybe.empty()))).isEmpty();
     }
@@ -1311,14 +1365,14 @@ class SequenceTest {
     @Test
     void sequenceRight() {
         assertThat(
-            Either.merge(Sequences.right(Sequences.ints().map(Either::right).insert(100_000, Either.left("foo"))))
+            Sequences.right(Sequences.ints().map(Either::right).insert(100_000, Either.left("foo"))).leftOr("bar")
         ).isEqualTo("foo");
     }
 
     @Test
     void sequenceLeft() {
         assertThat(
-            Either.merge(Sequences.left(Sequences.ints().map(Either::left).insert(100_000, Either.right("foo"))))
+            Sequences.left(Sequences.ints().map(Either::left).insert(100_000, Either.right("foo"))).rightOr("bar")
         ).isEqualTo("foo");
     }
 
