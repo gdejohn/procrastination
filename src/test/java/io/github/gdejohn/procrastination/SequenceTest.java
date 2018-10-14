@@ -107,6 +107,46 @@ class SequenceTest {
     }
 
     @Test
+    void fromIntArray() {
+        assertThat(Sequence.from(new int[] {1, 2, 3})).containsExactly(1, 2, 3);
+    }
+
+    @Test
+    void fromLongArray() {
+        assertThat(Sequence.from(new long[] {1, 2, 3})).containsExactly(1L, 2L, 3L);
+    }
+
+    @Test
+    void fromShortArray() {
+        assertThat(Sequence.from(new short[] {1, 2, 3})).containsExactly((short) 1, (short) 2, (short) 3);
+    }
+
+    @Test
+    void fromByteArray() {
+        assertThat(Sequence.from(new byte[] {1, 2, 3})).containsExactly((byte) 1, (byte) 2, (byte) 3);
+    }
+
+    @Test
+    void fromCharArray() {
+        assertThat(Sequence.from(new char[] {'a', 'b', 'c'})).containsExactly('a', 'b', 'c');
+    }
+
+    @Test
+    void fromBooleanArray() {
+        assertThat(Sequence.from(new boolean[] {true, false})).containsExactly(true, false);
+    }
+
+    @Test
+    void fromFloatArray() {
+        assertThat(Sequence.from(new float[] {1, 2, 4})).containsExactly(1f, 2f, 4f);
+    }
+
+    @Test
+    void fromDoubleArray() {
+        assertThat(Sequence.from(new double[] {1, 2, 4})).containsExactly(1d, 2d, 4d);
+    }
+
+    @Test
     void fromIterable() {
         assertAll(
             () -> assertThat(Sequence.from(List.of())).isEmpty(),

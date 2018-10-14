@@ -1,7 +1,6 @@
 package io.github.gdejohn.procrastination;
 
 import java.util.AbstractSequentialList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -121,12 +120,6 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
     }
 
-    /**
-     * The only constructor of this class, declared private so that the static factory methods declared inside of this
-     * class can see it, but nothing else can.
-     */
-    private Sequence() {}
-
     private static final Sequence<?> EMPTY = new Sequence<>() {
         @Override
         public <R> R matchLazy(BiFunction<? super Supplier<Object>, ? super Sequence<Object>, ? extends R> uncons, R otherwise) {
@@ -168,6 +161,28 @@ public abstract class Sequence<T> implements Iterable<T> {
             return Stream.empty();
         }
     };
+
+    /**
+     * The only constructor of this class, declared private so that the static factory methods declared inside of this
+     * class can see it, but nothing else can.
+     */
+    private Sequence() {}
+
+    /**
+     * A sequence that delegates pattern matching to a lazily evaluated sequence.
+     */
+    public static <T> Sequence<T> lazy(Supplier<? extends Sequence<? extends T>> sequence) {
+        return new Sequence.Proxy<>() {
+            @Override
+            protected Sequence<T> principal() {
+                Sequence<T> principal = cast(sequence.get());
+                while (principal instanceof Sequence.Proxy) {
+                    principal = ((Sequence.Proxy<T>) principal).principal();
+                }
+                return principal.memoize();
+            }
+        };
+    }
 
     /**
      * The empty sequence.
@@ -488,27 +503,74 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A sequence that delegates pattern matching to a lazily evaluated sequence.
-     *
-     */
-    public static <T> Sequence<T> lazy(Supplier<? extends Sequence<? extends T>> sequence) {
-        return new Sequence.Proxy<>() {
-            @Override
-            protected Sequence<T> principal() {
-                Sequence<T> principal = cast(sequence.get());
-                while (principal instanceof Sequence.Proxy) {
-                    principal = ((Sequence.Proxy<T>) principal).principal();
-                }
-                return principal.memoize();
-            }
-        };
-    }
-
-    /**
      * A lazy view of an array as a sequence.
      */
     public static <T> Sequence<T> from(T[] array) {
-        return Sequence.from(Arrays.asList(array));
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of ints as a sequence.
+     */
+    public static Sequence<Integer> from(int[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of longs as a sequence.
+     */
+    public static Sequence<Long> from(long[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of shorts as a sequence.
+     */
+    public static Sequence<Short> from(short[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of bytes as a sequence.
+     */
+    public static Sequence<Byte> from(byte[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of chars as a sequence.
+     */
+    public static Sequence<Character> from(char[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of booleans as a sequence.
+     */
+    public static Sequence<Boolean> from(boolean[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of floats as a sequence.
+     */
+    public static Sequence<Float> from(float[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    /**
+     * A lazy view of an array of doubles as a sequence.
+     */
+    public static Sequence<Double> from(double[] array) {
+        return Sequence.from(index -> array[index], array.length, 0);
+    }
+
+    private static <T> Sequence<T> from(IntFunction<T> array, int length, int index) {
+        if (index < length) {
+            return Sequence.cons(() -> array.apply(index), () -> Sequence.from(array, length, index + 1));
+        } else {
+            return Sequence.empty();
+        }
     }
 
     /**
