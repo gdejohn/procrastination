@@ -1,4 +1,4 @@
-[![JitPack repository](https://jitpack.io/v/io.github.gdejohn/procrastination.svg)](https://jitpack.io/#io.github.gdejohn/procrastination)
+[![Artifact repository](https://img.shields.io/badge/jitpack-SNAPSHOT-blue.svg)](https://jitpack.io/#io.github.gdejohn/procrastination/master-SNAPSHOT)
 [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)](https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/)
 [![License](https://img.shields.io/github/license/gdejohn/procrastination.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)](https://travis-ci.com/gdejohn/procrastination)
@@ -29,13 +29,15 @@ While it is easy to define new operations on these types, it is impossible to ad
 expose their (Java) constructors, they are effectively sealed types, so the `match()` methods will always exhaustively
 cover every case.
 
+lazy evaluation, memoization, persistent
+
 ### Sequence
 
 `Sequence` is an ordered, homogeneous collection of zero or more non-null elements (duplicates allowed), implemented as
 the classic functional singly-linked list. It is *recursively defined*: a sequence is either empty, or constructed from
 a head element and a tail sequence. Conversely, the instance method `Sequence.match(BiFunction,Supplier)` pulls a
-sequence apart, simulating *pattern matching*: if the sequence is non-empty, its head and tail are passed as arguments
-to the given binary function to produce a result, otherwise the given supplier is invoked to produce a default result.
+sequence apart: if the sequence is non-empty, its head and tail are passed as arguments to the given binary function to
+produce a result, otherwise the given supplier is invoked to produce a default result.
 
 Sequences are *lazily evaluated*. They procrastinate, putting off work for as long as possible, only computing each
 element on demand. They can also be *memoized* such that each element is computed at most once, the first time it is
