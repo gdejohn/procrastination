@@ -29,8 +29,6 @@ While it is easy to define new operations on these types, it is impossible to ad
 expose their (Java) constructors, they are effectively sealed types, so the `match()` methods will always exhaustively
 cover every case.
 
-lazy evaluation, memoization, persistent
-
 ### Sequence
 
 `Sequence` is an ordered, homogeneous collection of zero or more non-null elements (duplicates allowed), implemented as
