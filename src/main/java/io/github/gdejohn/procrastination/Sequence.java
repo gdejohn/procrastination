@@ -37,6 +37,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static io.github.gdejohn.procrastination.Functions.compose;
 import static io.github.gdejohn.procrastination.Functions.curry;
 import static io.github.gdejohn.procrastination.Functions.fix;
 import static io.github.gdejohn.procrastination.Functions.flip;
@@ -1908,7 +1909,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#containsAll(Sequence)
      */
     public boolean containsAny(Sequence<? extends T> sequence) {
-        return sequence.any(in(this));
+        return this.matchNonEmpty(compose(sequence::any, Sequence::in), false);
     }
 
     /**
@@ -1922,12 +1923,12 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     private static <T> Predicate<T> in(Sequence<T> sequence) {
-        class In implements Predicate<T> {
+        class Membership implements Predicate<T> {
             private final Set<T> seen = new HashSet<>();
 
             private Sequence<T> rest;
 
-            In(Sequence<T> sequence) {
+            Membership(Sequence<T> sequence) {
                 this.rest = sequence;
             }
 
@@ -1958,7 +1959,7 @@ public abstract class Sequence<T> implements Iterable<T> {
             }
         }
 
-        return new In(sequence);
+        return new Membership(sequence);
     }
 
     /**

@@ -576,7 +576,10 @@ class SequenceTest {
     void containsAny() {
         assertAll(
             () -> assertThat(Sequences.range(0, 100_000).containsAny(Sequences.range(-1, -5))).isFalse(),
-            () -> assertThat(Sequences.range(0, 100_000).containsAny(Sequence.of(-1, -2, 10_000))).isTrue()
+            () -> assertThat(Sequences.range(0, 100_000).containsAny(Sequence.of(-1, -2, 10_000))).isTrue(),
+            () -> assertThat(Sequence.empty().containsAny(Sequence.empty())).isFalse(),
+            () -> assertThat(Sequence.empty().containsAny(Sequence.repeat(unit()))).isFalse(),
+            () -> assertThat(Sequence.repeat(unit()).containsAny(Sequence.empty())).isFalse()
         );
     }
 
@@ -587,7 +590,10 @@ class SequenceTest {
             () -> assertThat(Sequences.range(0, 100_000).containsAll(Sequence.of(-1, -2, 10_000))).isFalse(),
             () -> assertThat(
                 Sequences.range(0, 100_000).containsAll(Sequence.of(0, 1, 10, 100, 1_000, 10_000, 100_000))
-            ).isTrue()
+            ).isTrue(),
+            () -> assertThat(Sequence.empty().containsAll(Sequence.empty())).isTrue(),
+            () -> assertThat(Sequence.empty().containsAll(Sequence.repeat(unit()))).isFalse(),
+            () -> assertThat(Sequence.repeat(unit()).containsAll(Sequence.empty())).isTrue()
         );
     }
 
