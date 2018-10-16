@@ -316,12 +316,9 @@ public final class Sequences {
      * @see Sequences#left(Sequence)
      */
     public static <A, B> Pair<Sequence<A>, Sequence<B>> partition(Sequence<? extends Either<? extends A, ? extends B>> eithers) {
-        return Pair.lazy(
-            () -> Pair.fanout(
-                eithers.memoize(),
-                sequence -> sequence.flatMap(either -> either.matchLazy(Sequence::of, constant(Sequence.empty()))),
-                sequence -> sequence.flatMap(either -> either.matchLazy(constant(Sequence.empty()), Sequence::of))
-            )
+        return Pair.duplicate(eithers::memoize).mapBoth(
+            sequence -> sequence.flatMap(either -> either.matchLazy(Sequence::of, constant(Sequence.empty()))),
+            sequence -> sequence.flatMap(either -> either.matchLazy(constant(Sequence.empty()), Sequence::of))
         );
     }
 

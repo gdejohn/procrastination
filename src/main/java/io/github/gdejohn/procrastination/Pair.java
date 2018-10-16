@@ -158,33 +158,6 @@ public abstract class Pair<T, U> {
         return Pair.lazy(() -> let(Functions.memoize(value), memoized -> Pair.of(memoized, memoized)));
     }
 
-    /**
-     * Lazily apply two functions to an argument.
-     *
-     * @see Pair#fanout(Supplier, Function, Function)
-     * @see Pair#duplicate(Object)
-     * @see Functions#join(BiFunction)
-     */
-    public static <T, U, V> Pair<U, V> fanout(T argument, Function<? super T, ? extends U> first, Function<? super T, ? extends V> second) {
-        return Pair.of(() -> first.apply(argument), () -> second.apply(argument));
-    }
-
-    /**
-     * Lazily apply two functions to a lazily evaluated argument.
-     *
-     * @see Pair#fanout(Object, Function, Function)
-     * @see Pair#duplicate(Supplier)
-     * @see Functions#join(BiFunction)
-     */
-    public static <T, U, V> Pair<U, V> fanout(Supplier<? extends T> argument, Function<? super T, ? extends U> first, Function<? super T, ? extends V> second) {
-        return Pair.lazy(
-            () -> let(
-                Functions.memoize(argument),
-                memoized -> Pair.of(() -> first.apply(memoized.get()), () -> second.apply(memoized.get()))
-            )
-        );
-    }
-
     /** Safe covariant cast. */
     public static <T, U> Pair<T, U> cast(Pair<? extends T, ? extends U> pair) {
         requireNonNull(pair);
@@ -236,9 +209,7 @@ public abstract class Pair<T, U> {
      *
      * @param <R> the type of the resulting value
      */
-    public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
-        return this.matchLazy((first, second) -> function.apply(first.get(), second.get()));
-    }
+    public abstract<R> R match(BiFunction<? super T, ? super U, ? extends R> function);
 
     /**
      * Define a value in terms of the two lazily evaluated elements of this pair.
