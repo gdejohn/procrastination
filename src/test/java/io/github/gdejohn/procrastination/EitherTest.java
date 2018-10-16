@@ -56,6 +56,42 @@ class EitherTest {
     }
 
     @Test
+    void join() {
+        assertAll(
+            () -> assertThat(Either.join(Either.left(Either.left(unit())))).isEqualTo(Either.left(unit())),
+            () -> assertThat(Either.join(Either.left(Either.right(unit())))).isEqualTo(Either.right(unit())),
+            () -> assertThat(Either.join(Either.right(Either.left(unit())))).isEqualTo(Either.left(unit())),
+            () -> assertThat(Either.join(Either.right(Either.right(unit())))).isEqualTo(Either.right(unit()))
+        );
+    }
+
+    @Test
+    void joinLeft() {
+        assertAll(
+            () -> assertThat(Either.joinLeft(Either.left(Either.left("foo")))).isEqualTo(Either.left("foo")),
+            () -> assertThat(Either.joinLeft(Either.left(Either.right("bar")))).isEqualTo(Either.right("bar")),
+            () -> assertThat(Either.joinLeft(Either.right("bar"))).isEqualTo(Either.right("bar"))
+        );
+    }
+
+    @Test
+    void joinRight() {
+        assertAll(
+            () -> assertThat(Either.joinRight(Either.right(Either.left("foo")))).isEqualTo(Either.left("foo")),
+            () -> assertThat(Either.joinRight(Either.right(Either.right("bar")))).isEqualTo(Either.right("bar")),
+            () -> assertThat(Either.joinRight(Either.left("bar"))).isEqualTo(Either.left("bar"))
+        );
+    }
+
+    @Test
+    void merge() {
+        assertAll(
+            () -> assertThat(Either.merge(Either.left("foo"))).isEqualToIgnoringCase("foo"),
+            () -> assertThat(Either.merge(Either.right("bar"))).isEqualToIgnoringCase("bar")
+        );
+    }
+
+    @Test
     void isLeft() {
         assertAll(
             () -> assertThat(Either.left("foo").isLeft()).isTrue(),
@@ -253,7 +289,10 @@ class EitherTest {
 
     @Test
     void equals() {
+        var either = Either.right("foo");
         assertAll(
+            () -> assertThat(either).isEqualTo(either),
+            () -> assertThat(either).isNotEqualTo("foo"),
             () -> assertThat(Either.left("foo")).isEqualTo(Either.left("foo")),
             () -> assertThat(Either.left("foo")).isNotEqualTo(Either.left("bar")),
             () -> assertThat(Either.left("foo")).isNotEqualTo(Either.right("foo")),
