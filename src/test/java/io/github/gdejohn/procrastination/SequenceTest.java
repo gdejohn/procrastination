@@ -2,12 +2,15 @@ package io.github.gdejohn.procrastination;
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -497,42 +500,42 @@ class SequenceTest {
     }
 
     @Test
-    void increasing() {
+    void increasingNaturalOrder() {
         assertAll(
-            () -> assertThat(Sequence.of(1, 2, 3, 4).increasing(Integer::compare)).isTrue(),
-            () -> assertThat(Sequence.of(1, 2, 2, 4).increasing(Integer::compare)).isTrue(),
-            () -> assertThat(Sequence.of(1, 3, 2, 4).increasing(Integer::compare)).isFalse(),
-            () -> assertThat(Sequence.<Integer>empty().increasing(Integer::compare)).isTrue()
+            () -> assertThat(Sequences.increasing(Sequence.of(1, 2, 3, 4))).isTrue(),
+            () -> assertThat(Sequences.increasing(Sequence.of(1, 2, 2, 4))).isTrue(),
+            () -> assertThat(Sequences.increasing(Sequence.of(1, 3, 2, 4))).isFalse(),
+            () -> assertThat(Sequences.increasing(Sequence.<Integer>empty())).isTrue()
         );
     }
 
     @Test
-    void strictlyIncreasing() {
+    void strictlyIncreasingNaturalOrder() {
         assertAll(
-            () -> assertThat(Sequence.of(1, 2, 3, 4).strictlyIncreasing(Integer::compare)).isTrue(),
-            () -> assertThat(Sequence.of(1, 2, 2, 4).strictlyIncreasing(Integer::compare)).isFalse(),
-            () -> assertThat(Sequence.of(1, 3, 2, 4).strictlyIncreasing(Integer::compare)).isFalse(),
-            () -> assertThat(Sequence.<Integer>empty().strictlyIncreasing(Integer::compare)).isTrue()
+            () -> assertThat(Sequences.strictlyIncreasing(Sequence.of(1, 2, 3, 4))).isTrue(),
+            () -> assertThat(Sequences.strictlyIncreasing(Sequence.of(1, 2, 2, 4))).isFalse(),
+            () -> assertThat(Sequences.strictlyIncreasing(Sequence.of(1, 3, 2, 4))).isFalse(),
+            () -> assertThat(Sequences.strictlyIncreasing(Sequence.<Integer>empty())).isTrue()
         );
     }
 
     @Test
-    void decreasing() {
+    void decreasingNaturalOrder() {
         assertAll(
-            () -> assertThat(Sequence.of(4, 3, 2, 1).decreasing(Integer::compare)).isTrue(),
-            () -> assertThat(Sequence.of(4, 3, 3, 1).decreasing(Integer::compare)).isTrue(),
-            () -> assertThat(Sequence.of(4, 2, 3, 1).decreasing(Integer::compare)).isFalse(),
-            () -> assertThat(Sequence.<Integer>empty().decreasing(Integer::compare)).isTrue()
+            () -> assertThat(Sequences.decreasing(Sequence.of(4, 3, 2, 1))).isTrue(),
+            () -> assertThat(Sequences.decreasing(Sequence.of(4, 3, 3, 1))).isTrue(),
+            () -> assertThat(Sequences.decreasing(Sequence.of(4, 2, 3, 1))).isFalse(),
+            () -> assertThat(Sequences.decreasing(Sequence.<Integer>empty())).isTrue()
         );
     }
 
     @Test
-    void strictlyDecreasing() {
+    void strictlyDecreasingNaturalOrder() {
         assertAll(
-            () -> assertThat(Sequence.of(4, 3, 2, 1).strictlyDecreasing(Integer::compare)).isTrue(),
-            () -> assertThat(Sequence.of(4, 3, 3, 1).strictlyDecreasing(Integer::compare)).isFalse(),
-            () -> assertThat(Sequence.of(4, 2, 3, 1).strictlyDecreasing(Integer::compare)).isFalse(),
-            () -> assertThat(Sequence.<Integer>empty().strictlyDecreasing(Integer::compare)).isTrue()
+            () -> assertThat(Sequences.strictlyDecreasing(Sequence.of(4, 3, 2, 1))).isTrue(),
+            () -> assertThat(Sequences.strictlyDecreasing(Sequence.of(4, 3, 3, 1))).isFalse(),
+            () -> assertThat(Sequences.strictlyDecreasing(Sequence.of(4, 2, 3, 1))).isFalse(),
+            () -> assertThat(Sequences.strictlyDecreasing(Sequence.<Integer>empty())).isTrue()
         );
     }
 
@@ -557,10 +560,10 @@ class SequenceTest {
     }
 
     @Test
-    void pairwiseDistinctComparator() {
+    void pairwiseDistinctNaturalOrder() {
         assertAll(
-            () -> assertThat(Sequences.range(0, 100_000).pairwiseDistinct(Integer::compare)).isTrue(),
-            () -> assertThat(Sequences.longs().insert(50_000, 0L).pairwiseDistinct(Long::compare)).isFalse()
+            () -> assertThat(Sequences.pairwiseDistinct(Sequences.range(0, 100_000))).isTrue(),
+            () -> assertThat(Sequences.pairwiseDistinct(Sequences.longs().insert(50_000, 0L))).isFalse()
         );
     }
 
@@ -608,7 +611,7 @@ class SequenceTest {
     }
 
     @Test
-    void maximum() {
+    void maximumNaturalOrder() {
         assertAll(
             () -> assertThat(Sequences.maximum(Sequence.<Integer>empty())).isEmpty(),
             () -> assertThat(
@@ -618,7 +621,7 @@ class SequenceTest {
     }
 
     @Test
-    void minimum() {
+    void minimumNaturalOrder() {
         assertAll(
             () -> assertThat(Sequences.minimum(Sequence.<Integer>empty())).isEmpty(),
             () -> assertThat(
@@ -909,15 +912,22 @@ class SequenceTest {
     @Test
     void deduplicateFunction() {
         assertThat(
-            Sequence.of("foo", "bar", "BAR", "Foo").deduplicate((UnaryOperator<String>) String::toLowerCase)
-        ).containsExactly("foo", "bar");
+            Sequence.of("one", "two", "three", "four", "five").deduplicate(String::length)
+        ).containsExactly("one", "three", "four");
     }
 
     @Test
     void deduplicateComparator() {
         assertThat(
-            Sequence.of("foo", "bar", "BAR", "Foo").deduplicate(String::compareToIgnoreCase)
+            Sequence.of("foo", "FOO", "bar", "BAR", "Foo", "Bar").deduplicate(String::compareToIgnoreCase)
         ).containsExactly("foo", "bar");
+    }
+
+    @Test
+    void deduplicateNaturalOrder() {
+        assertThat(
+            Sequences.deduplicate(Sequence.of("1.0", "1.00", "2.00", "2.0").map(BigDecimal::new)).map(Object::toString)
+        ).containsExactly("1.0", "2.00");
     }
 
     @Test
@@ -1393,6 +1403,13 @@ class SequenceTest {
     }
 
     @Test
+    void sequenceCollector() {
+        assertThat(
+            new TreeSet<>(Set.of(1, 2, 3, 4, 5)).parallelStream().collect(Sequences.toSequence())
+        ).containsExactly(1, 2, 3, 4, 5);
+    }
+
+    @Test
     void sequenceFuture() {
         assertThat(
             Sequences.future(
@@ -1427,5 +1444,49 @@ class SequenceTest {
         assertThat(Sequences.zip(Sequence.empty())).isEqualTo(Sequence.of(Sequence.empty()));
         assertThat(Sequences.zip(Sequence.of(Sequence.empty()))).isEmpty();
         assertThat(Sequences.zip(Sequence.of(Sequences.range(0, 4)))).isEqualTo(Sequences.range(0, 4).map(Sequence::of));
+    }
+
+    @Test
+    void nFoldCartesianProduct() {
+        assertThat(
+            Sequences.product(Sequence.of(1, 2, 3), Sequence.of(4, 5, 6), Sequence.of(7, 8, 9))
+        ).containsExactly(
+            Sequence.of(1, 4, 7),
+            Sequence.of(1, 4, 8),
+            Sequence.of(1, 4, 9),
+            Sequence.of(1, 5, 7),
+            Sequence.of(1, 5, 8),
+            Sequence.of(1, 5, 9),
+            Sequence.of(1, 6, 7),
+            Sequence.of(1, 6, 8),
+            Sequence.of(1, 6, 9),
+            Sequence.of(2, 4, 7),
+            Sequence.of(2, 4, 8),
+            Sequence.of(2, 4, 9),
+            Sequence.of(2, 5, 7),
+            Sequence.of(2, 5, 8),
+            Sequence.of(2, 5, 9),
+            Sequence.of(2, 6, 7),
+            Sequence.of(2, 6, 8),
+            Sequence.of(2, 6, 9),
+            Sequence.of(3, 4, 7),
+            Sequence.of(3, 4, 8),
+            Sequence.of(3, 4, 9),
+            Sequence.of(3, 5, 7),
+            Sequence.of(3, 5, 8),
+            Sequence.of(3, 5, 9),
+            Sequence.of(3, 6, 7),
+            Sequence.of(3, 6, 8),
+            Sequence.of(3, 6, 9)
+        );
+    }
+
+    @Test
+    void interleaveN() {
+        assertAll(
+            () -> assertThat(
+                Sequences.interleave(Sequence.of(1, 4, 7), Sequence.of(2, 5, 8, 11, 14), Sequence.of(3, 6, 9, 12))
+            ).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9)
+        );
     }
 }
