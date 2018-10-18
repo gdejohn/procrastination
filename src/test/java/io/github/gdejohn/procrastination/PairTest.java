@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 class PairTest {
@@ -140,16 +141,17 @@ class PairTest {
 
     @Test
     void forBoth() {
-        Supplier<String> next = List.of("foo", "bar", "baz").iterator()::next;
-        assertAll(
+        assertThatThrownBy(
             () -> Pair.of("foo", "bar").forBoth(
                 (first, second) -> {
-                    assertThat(first).isEqualTo(next.get());
-                    assertThat(second).isEqualTo(next.get());
+                    assertAll(
+                        () -> assertThat(first).isEqualTo("foo"),
+                        () -> assertThat(second).isEqualTo("bar")
+                    );
+                    throw new RuntimeException("baz");
                 }
-            ),
-            () -> assertThat(next.get()).isEqualTo("baz")
-        );
+            )
+        ).hasMessage("baz");
     }
 
     @Test
