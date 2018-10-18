@@ -660,32 +660,42 @@ class SequenceTest {
 
     @Test
     void foldRight() {
-        assertThat(
-            Sequences.ints().replace(100_000, 0).foldRight(1, x -> x == 0 ? left(0) : right(y -> x * y))
-        ).isEqualTo(0);
+        assertAll(
+            () -> assertThat(
+                Sequences.ints().replace(100_000, 0).foldRight(1, x -> x == 0 ? left(0) : right(y -> x * y))
+            ).isEqualTo(0),
+            () -> assertThat(Sequences.range(1, 10_000).foldRight(0, x -> right(y -> x + y))).isEqualTo(50_005_000)
+        );
     }
 
     @Test
     void foldRightNoInitial() {
-        assertThat(
-            Sequences.ints().replace(100_000, 0).foldRight(x -> x == 0 ? left(0) : right(y -> x * y))
-        ).containsExactly(0);
+        assertAll(
+            () -> assertThat(
+                Sequences.ints().replace(100_000, 0).foldRight(x -> x == 0 ? left(0) : right(y -> x * y))
+            ).containsExactly(0),
+            () -> assertThat(Sequences.range(1, 10_000).foldRight(x -> right(y -> x + y)).optional()).hasValue(
+                50_005_000
+            ),
+            () -> assertThat(Sequence.of(2).foldRight(x -> right(y -> x + y)).optional()).hasValue(2),
+            () -> assertThat(Sequence.<Integer>empty().foldRight(x -> right(y -> x + y))).isEmpty()
+        );
     }
 
     @Test
     void foldRightGuarded() {
         assertThat(
-            Sequences.ints().foldRightLazy(Sequence.empty(), Sequence::cons).element(100_000).optional()
-        ).hasValue(100_000);
+            Sequences.ints().cycle().foldRightLazy(Sequence.empty(), Sequence::cons)
+        ).startsWith(0, 1, 2, 3, 4);
     }
 
     @Test
     void foldRightGuardedNoInitial() {
         assertThat(
-            Sequence.repeat(Sequence.of(1)).foldRightLazy(Sequence::concatenate).map(
+            Sequences.ints().cycle().map(Sequence::of).foldRightLazy(Sequence::concatenate).map(
                 sequence -> sequence.take(3)
             ).optional()
-        ).hasValueSatisfying(sequence -> assertThat(sequence).containsExactly(1, 1, 1));
+        ).hasValueSatisfying(sequence -> assertThat(sequence).containsExactly(0, 1, 2));
     }
 
     @Test
@@ -1108,6 +1118,51 @@ class SequenceTest {
             () -> assertThat(
                 Sequence.of(6, 5, 4, 0, 3, 2, 1).scanRight(n -> n == 0 ? left(0) : right(m -> n * m))
             ).containsExactly(0, 0, 0, 0, 6, 2, 1)
+        );
+    }
+
+    @Test
+    void scanRightGuarded() {
+        assertAll(
+            () -> assertThat(
+                Sequences.ints().cycle().scanRightLazy(Sequence.empty(), Sequence::cons).map(
+                    sequence -> sequence.take(3)
+                )
+            ).startsWith(
+                Sequence.of(0, 1, 2),
+                Sequence.of(1, 2, 3),
+                Sequence.of(2, 3, 4)
+            ),
+            () -> assertThat(Sequences.range(0, 3).scanRightLazy(Sequence.empty(), Sequence::cons)).containsExactly(
+                Sequence.of(0, 1, 2, 3),
+                Sequence.of(1, 2, 3),
+                Sequence.of(2, 3),
+                Sequence.of(3),
+                Sequence.empty()
+            )
+        );
+    }
+
+    @Test
+    void scanRightGuardedNoInitial() {
+        assertAll(
+            () -> assertThat(
+                Sequences.ints().cycle().map(Sequence::of).scanRightLazy(Sequence::concatenate).map(
+                    sequence -> sequence.take(3)
+                )
+            ).startsWith(
+                Sequence.of(0, 1, 2),
+                Sequence.of(1, 2, 3),
+                Sequence.of(2, 3, 4)
+            ),
+            () -> assertThat(
+                Sequences.range(0, 3).map(Sequence::of).scanRightLazy(Sequence::concatenate)
+            ).containsExactly(
+                Sequence.of(0, 1, 2, 3),
+                Sequence.of(1, 2, 3),
+                Sequence.of(2, 3),
+                Sequence.of(3)
+            )
         );
     }
 

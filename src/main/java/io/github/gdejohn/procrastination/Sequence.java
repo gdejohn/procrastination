@@ -3257,10 +3257,10 @@ public abstract class Sequence<T> implements Iterable<T> {
         return Sequence.lazy(
             () -> this.matchLazy(
                 (x, xs) -> let(
-                    xs.scanRightLazy(operator),
-                    scan -> scan.matchLazy(
-                        (y, ys) -> Sequence.cons(operator.apply(x.get(), y), Sequence.cons(y, ys)),
-                        () -> Sequence.of(x)
+                    xs.scanRightLazy(operator).memoize(),
+                    scan -> Sequence.cons(
+                        () -> scan.matchLazy((y, ys) -> operator.apply(x.get(), y), x),
+                        scan
                     )
                 ),
                 Sequence.empty()
