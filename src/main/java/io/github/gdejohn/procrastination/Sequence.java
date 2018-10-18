@@ -584,7 +584,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A lazy view of a CharSequence as a sequence of code points represented as Strings.
+     * A lazy view of a CharSequence as a sequence of code points, each represented as a string.
      *
      * @see CharSequence#codePoints()
      * @see Character#toChars(int)
