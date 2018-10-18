@@ -59,6 +59,8 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
 import static java.util.Spliterator.NONNULL;
 import static java.util.Spliterator.ORDERED;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
 
 /**
  * A lazily evaluated, persistent, ordered, homogeneous collection of zero or more non-null elements, possibly infinite,
@@ -1619,6 +1621,13 @@ public abstract class Sequence<T> implements Iterable<T> {
         return new SequenceIterator(sequence);
     }
 
+    /**
+     * Return true if and only if the argument is a sequence and contains the same elements as this sequence in the
+     * same order.
+     *
+     * If this sequence is infinite and the argument is also an infinite sequence, they must not be equal, or this
+     * method will never return.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -1639,11 +1648,24 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
     }
 
+    /**
+     * Return the hash code of this sequence, following the contract of {@code List.hashCode()}.
+     *
+     * If this sequence is infinite, this method will never return.
+     *
+     * @see List#hashCode()
+     */
     @Override
     public int hashCode() {
         return this.foldLeft(1, (hash, element) -> 31 * hash + element.hashCode());
     }
 
+    /**
+     * Return the string representation of this sequence, truncating if there are more than thirty elements.
+     *
+     * @see Sequence#toString(String)
+     * @see Sequence#toString(String, String, String)
+     */
     @Override
     public String toString() {
         var sequence = this.memoize();
@@ -1654,8 +1676,30 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
     }
 
+    /**
+     * Concatenate the string representations of the elements of this sequence, separating the elements with a
+     * delimiter.
+     *
+     * If this sequence is infinite, this method will never return.
+     *
+     * @see Sequence#toString(String, String, String)
+     * @see Collectors#joining(CharSequence)
+     */
+    public String toString(String delimiter) {
+        return this.collect(mapping(Object::toString, joining(delimiter)));
+    }
+
+    /**
+     * Concatenate the string representations of the elements of this sequence, with a given delimiter, prefix, and
+     * suffix.
+     *
+     * If this sequence is infinite, this method will never return.
+     *
+     * @see Sequence#toString(String)
+     * @see Collectors#joining(CharSequence, CharSequence, CharSequence)
+     */
     public String toString(String delimiter, String prefix, String suffix) {
-        return this.collect(Collectors.mapping(Object::toString, Collectors.joining(delimiter, prefix, suffix)));
+        return this.collect(mapping(Object::toString, joining(delimiter, prefix, suffix)));
     }
 
     /**
