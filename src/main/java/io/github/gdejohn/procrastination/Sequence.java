@@ -2190,7 +2190,7 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * Combine the elements of this sequence into a single result, accumulating from the right, deferring evaluation of
-     * the partial results.
+     * partial results.
      *
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
@@ -2209,7 +2209,7 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * Combine the elements of this sequence into a single result of the same type, accumulating from the right, using
-     * the last element as the initial value if this sequence is non-empty, deferring evaluation of the partial results.
+     * the last element as the initial value if this sequence is non-empty, deferring evaluation of partial results.
      *
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
@@ -2231,6 +2231,14 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
+    /**
+     * Lazily combine the elements of this sequence into a single result, accumulating from the right, deferring
+     * evaluation of partial results.
+     *
+     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
+     * result, allowing it to work on infinite sequences. Unlike {@link Sequence#foldRight(Object, Function)}, this
+     * method is not stack safe if the reducing function eagerly evaluates the partial results.
+     */
     public <R> R foldRightLazy(R initial, BiFunction<? super T, Supplier<R>, R> function) {
         return this.match(
             (head, tail) -> function.apply(head, () -> tail.foldRightLazy(initial, function)),
@@ -2238,6 +2246,14 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
+    /**
+     * Lazily combine the elements of this sequence into a single element, accumulating from the right, using the last
+     * element as the initial value if this sequence is non-empty, deferring evaluation of partial results.
+     *
+     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
+     * result, allowing it to work on infinite sequences. Unlike {@link Sequence#foldRight(Function)}, this method is
+     * not stack safe if the reducing function eagerly evaluates the partial results.
+     */
     public Maybe<T> foldRightLazy(BiFunction<T, Supplier<T>, T> operator) {
         return this.match(
             (head, tail) -> tail.foldRightLazy(operator).matchLazy(
@@ -3113,7 +3129,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    /** The sequence of intermediate results of a left fold over this sequence. */
+    /** The sequence of partial results of a left fold over this sequence. */
     public <R> Sequence<R> scanLeft(R initial, BiFunction<R, ? super T, R> function) {
         return Sequence.cons(
             initial,
@@ -3125,8 +3141,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * The sequence of intermediate results of a left fold over this sequence, using the first element as the initial
-     * value.
+     * The sequence of partial results of a left fold over this sequence, using the first element as the initial value.
      */
     public Sequence<T> scanLeft(BiFunction<T, T, T> operator) {
         return Sequence.lazy(
@@ -3137,14 +3152,13 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    /** The sequence of intermediate results of a right fold over this sequence. */
+    /** The sequence of partial results of a right fold over this sequence. */
     public <R> Sequence<R> scanRight(R initial, BiFunction<? super T, R, R> function) {
         return this.reverse().scanLeft(initial, flip(function)).reverse();
     }
 
     /**
-     * The sequence of intermediate results of a right fold over this sequence, using the last element as the initial
-     * value.
+     * The sequence of partial results of a right fold over this sequence, using the last element as the initial value.
      *
      * @see Sequence#foldRight(BiFunction)
      * @see Sequence#scanRight(Object, BiFunction)
@@ -3154,6 +3168,12 @@ public abstract class Sequence<T> implements Iterable<T> {
         return this.reverse().scanLeft(flip(operator)).reverse();
     }
 
+    /**
+     * The sequence of partial results of a right fold over this sequence, deferring evaluation of the partial results.
+     *
+     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
+     * result, allowing it to work on infinite sequences.
+     */
     public <R> Sequence<R> scanRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Sequence.lazy(
             () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
@@ -3173,6 +3193,13 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
+    /**
+     * The sequence of partial results of a right fold over this sequence, using the last element as the initial value
+     * if this sequence is non-empty, deferring evaluation of the partial results.
+     *
+     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
+     * result, allowing it to work on infinite sequences.
+     */
     public Sequence<T> scanRight(Function<T, Either<T, Function<T, T>>> operator) {
         return Sequence.lazy(
             () -> Trampoline.evaluate(this, Sequence.<Function<T, T>>empty(),
@@ -3195,6 +3222,14 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
+    /**
+     * The sequence of partial results of a lazy right fold over this sequence, deferring evaluation of the partial
+     * results.
+     *
+     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
+     * result, allowing it to work on infinite sequences. Unlike {@link Sequence#scanRight(Object, Function)}, this
+     * method is not stack safe if the reducing function eagerly evaluates the partial results.
+     */
     public <R> Sequence<R> scanRightLazy(R initial, BiFunction<? super T, Supplier<R>, R> function) {
         return Sequence.lazy(
             () -> this.matchLazy(
@@ -3210,6 +3245,14 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
+    /**
+     * The sequence of partial results of a lazy right fold over this sequence, using the last element as the initial
+     * value if this sequence is non-empty, deferring evaluation of the partial results.
+     *
+     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
+     * result, allowing it to work on infinite sequences. Unlike {@link Sequence#scanRight(Function)}, this method is
+     * not stack safe if the reducing function eagerly evaluates the partial results.
+     */
     public Sequence<T> scanRightLazy(BiFunction<T, Supplier<T>, T> operator) {
         return Sequence.lazy(
             () -> this.matchLazy(
