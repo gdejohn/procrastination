@@ -323,16 +323,65 @@ public abstract class Maybe<T> implements Iterable<T> {
         return (x, y) -> x.apply(y, function);
     }
 
+    /**
+     * Define a result in terms of the eagerly evaluated element contained in this Maybe if it exists, otherwise return
+     * a lazy default value.
+     *
+     * <p>This method simulates pattern matching on this Maybe, forcing evaluation of the contained element.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Maybe#match(Function, Object)
+     * @see Maybe#matchLazy(Function, Supplier)
+     * @see Maybe#or(Supplier)
+     */
     public <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise) {
         return this.matchLazy(function.compose(Supplier::get), otherwise);
     }
 
+    /**
+     * Define a result in terms of the eagerly evaluated element contained in this Maybe if it exists, otherwise return
+     * an eager default value.
+     *
+     * <p>This method simulates pattern matching on this Maybe, forcing evaluation of the contained element.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Maybe#match(Function, Supplier)
+     * @see Maybe#matchLazy(Function, Object)
+     * @see Maybe#or(Object)
+     */
     public <R> R match(Function<? super T, ? extends R> function, R otherwise) {
         return this.matchLazy(function.compose(Supplier::get), otherwise);
     }
 
+    /**
+     * Define a result in terms of the lazily evaluated element contained in this Maybe if it exists, otherwise return
+     * a lazy default value.
+     *
+     * <p>This method simulates pattern matching on this Maybe, deferring evaluation of the contained element.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Maybe#matchLazy(Function, Object)
+     * @see Maybe#match(Function, Supplier)
+     * @see Maybe#or(Supplier)
+     */
     public abstract <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise);
 
+
+    /**
+     * Define a result in terms of the lazily evaluated element contained in this Maybe if it exists, otherwise return
+     * an eager default value.
+     *
+     * <p>This method simulates pattern matching on this Maybe, deferring evaluation of the contained element.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Maybe#matchLazy(Function, Supplier)
+     * @see Maybe#match(Function, Object)
+     * @see Maybe#or(Object)
+     */
     public abstract <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise);
 
     /** If non-empty, rewrap the contained value, otherwise return another {@code Maybe}. */
