@@ -2196,8 +2196,8 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     public Maybe<T> foldRightLazy(BiFunction<T, Supplier<T>, T> operator) {
         return this.match(
-            (head, tail) -> tail.matchNonEmpty(
-                rest -> operator.apply(head, () -> rest.foldRightLazy(operator).orThrow()),
+            (head, tail) -> tail.foldRightLazy(operator).matchLazy(
+                result -> operator.apply(head, result),
                 head
             )
         );

@@ -680,6 +680,15 @@ class SequenceTest {
     }
 
     @Test
+    void foldRightGuardedNoInitial() {
+        assertThat(
+            Sequence.repeat(Sequence.of(1)).foldRightLazy(Sequence::concatenate).map(
+                sequence -> sequence.take(3)
+            ).optional()
+        ).hasValueSatisfying(sequence -> assertThat(sequence).containsExactly(1, 1, 1));
+    }
+
+    @Test
     void collectToCollection() {
         var list = Sequences.range(1, 5).collect(ArrayList::new);
         assertAll(
