@@ -18,7 +18,7 @@
 All of the included data structures are designed to emulate algebraic data types, with basic "data constructor" static
 factory methods mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general
 pattern-matching facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply
-makes it possible to distinguish which data constructor was used and extract the components.
+makes it possible to distinguish which data constructor was used and extract the components in a single step.
 
 The rest of the operations on these data structures are all ultimately defined in terms of the `match()` methods and
 data constructors. None of the data structure classes hide anything interesting. They don't declare any instance
@@ -96,8 +96,8 @@ inline!
 
 `Functions.fix()` returns the fixed point of a unary operator on functions, enabling recursive lambda expressions
 (i.e., anonymous recursion). Lambda expressions by definition are unnamed, making explicit recursion impossible. The
-trick here is to abstract the recursive call by accepting the function itself as an argument and letting `fix()` tie
-the knot. For example:
+trick here is to abstract the recursive call by taking the function itself as an argument and letting `fix()` tie the
+knot. For example:
 
 ```java
 Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
@@ -176,5 +176,5 @@ See instructions for other build tools at [JitPack](https://jitpack.io/#io.githu
 
 The included jshell script `procrastination.jsh` makes it easy to play around with this library, assuming JDK 11 and a
 recent version of Maven are installed and present on your `PATH`. Just clone the repository, and from the root
-directory run `mvn compile` and `jshell procrastination.jsh`. The script sets up the jshell environment and imports all
-of the types and static members.
+directory run `mvn compile` and `jshell procrastination.jsh`. The script adds the module to the jshell environment and
+imports all of the types and static members.
