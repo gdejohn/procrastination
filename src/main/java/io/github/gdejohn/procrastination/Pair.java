@@ -42,6 +42,20 @@ public abstract class Pair<T, U> {
 
     private Pair() {}
 
+    /** A lazily evaluated pair. */
+    public static <T, U> Pair<T, U> lazy(Supplier<? extends Pair<? extends T, ? extends U>> pair) {
+        return new Pair.Proxy<>() {
+            @Override
+            protected Pair<T, U> principal() {
+                Pair<T, U> principal = cast(pair.get());
+                while (principal instanceof Pair.Proxy) {
+                    principal = ((Pair.Proxy<T, U>) principal).principal();
+                }
+                return principal.memoize();
+            }
+        };
+    }
+
     /** A pair of eagerly evaluated elements. */
     public static <T, U> Pair<T, U> of(T first, U second) {
         return new Pair<>() {
@@ -129,20 +143,6 @@ public abstract class Pair<T, U> {
         };
     }
 
-    /** A lazily evaluated pair. */
-    public static <T, U> Pair<T, U> lazy(Supplier<? extends Pair<? extends T, ? extends U>> pair) {
-        return new Pair.Proxy<>() {
-            @Override
-            protected Pair<T, U> principal() {
-                Pair<T, U> principal = cast(pair.get());
-                while (principal instanceof Pair.Proxy) {
-                    principal = ((Pair.Proxy<T, U>) principal).principal();
-                }
-                return principal.memoize();
-            }
-        };
-    }
-
     /** A lazy view of a map entry as a pair. */
     public static <T, U> Pair<T, U> from(Map.Entry<? extends T, ? extends U> entry) {
         return Pair.of(entry::getKey, entry::getValue);
@@ -209,7 +209,7 @@ public abstract class Pair<T, U> {
      *
      * @param <R> the type of the resulting value
      */
-    public abstract<R> R match(BiFunction<? super T, ? super U, ? extends R> function);
+    public abstract <R> R match(BiFunction<? super T, ? super U, ? extends R> function);
 
     /**
      * Define a value in terms of the two lazily evaluated elements of this pair.

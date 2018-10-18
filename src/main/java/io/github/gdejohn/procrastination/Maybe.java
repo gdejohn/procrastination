@@ -66,8 +66,6 @@ public abstract class Maybe<T> implements Iterable<T> {
         }
     }
 
-    private Maybe() {}
-
     private static final Maybe<?> EMPTY = new Maybe<>() {
         @Override
         public <R> R matchLazy(Function<? super Supplier<Object>, ? extends R> function, R otherwise) {
@@ -104,6 +102,31 @@ public abstract class Maybe<T> implements Iterable<T> {
             return Stream.empty();
         }
     };
+
+    private Maybe() {}
+
+    /**
+     * A lazily evaluated {@code Maybe}.
+     *
+     * <p>This is useful for deferring the decision as to whether or not a {@code Maybe} is empty.
+     */
+    public static <T> Maybe<T> lazy(Supplier<? extends Maybe<? extends T>> maybe) {
+        return new Maybe.Proxy<>() {
+            @Override
+            protected Maybe<T> principal() {
+                Maybe<T> principal = cast(maybe.get());
+                while (principal instanceof Maybe.Proxy) {
+                    principal = ((Maybe.Proxy<T>) principal).principal();
+                }
+                return principal.memoize();
+            }
+
+            @Override
+            public Maybe<T> memoize() {
+                return Maybe.memoize(this);
+            }
+        };
+    }
 
     /**
      * The empty {@code Maybe}.
@@ -178,29 +201,6 @@ public abstract class Maybe<T> implements Iterable<T> {
     /** Wrap a lazily evaluated nullable value. */
     public static <T> Maybe<T> nullable(Supplier<? extends T> value) {
         return Maybe.lazy(() -> nullable(value.get()));
-    }
-
-    /**
-     * A lazily evaluated {@code Maybe}.
-     *
-     * <p>This is useful for deferring the decision as to whether or not a {@code Maybe} is empty.
-     */
-    public static <T> Maybe<T> lazy(Supplier<? extends Maybe<? extends T>> maybe) {
-        return new Maybe.Proxy<>() {
-            @Override
-            protected Maybe<T> principal() {
-                Maybe<T> principal = cast(maybe.get());
-                while (principal instanceof Maybe.Proxy) {
-                    principal = ((Maybe.Proxy<T>) principal).principal();
-                }
-                return principal.memoize();
-            }
-
-            @Override
-            public Maybe<T> memoize() {
-                return Maybe.memoize(this);
-            }
-        };
     }
 
     /** Eagerly convert an Optional to a Maybe. */

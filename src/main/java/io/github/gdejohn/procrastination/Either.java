@@ -53,6 +53,24 @@ public abstract class Either<A, B> {
 
     private Either() {}
 
+    /**
+     * A lazily evaluated {@code Either}.
+     *
+     * <p>This is useful for deferring the decision as to whether the value is on the left or the right.
+     */
+    public static <A, B> Either<A, B> lazy(Supplier<? extends Either<? extends A, ? extends B>> either) {
+        return new Either.Proxy<>() {
+            @Override
+            protected Either<A, B> principal() {
+                Either<A, B> principal = cast(either.get());
+                while (principal instanceof Either.Proxy) {
+                    principal = ((Either.Proxy<A, B>) principal).principal();
+                }
+                return principal.memoize();
+            }
+        };
+    }
+
     /** Put an eager value on the right. */
     public static <A, B> Either<A, B> right(B value) {
         requireNonNull(value);
@@ -125,24 +143,6 @@ public abstract class Either<A, B> {
             public Either<A, B> memoize() {
                 Supplier<? extends A> memoized = Functions.memoize(value);
                 return memoized == value ? this : Either.left(memoized);
-            }
-        };
-    }
-
-    /**
-     * A lazily evaluated {@code Either}.
-     *
-     * <p>This is useful for deferring the decision as to whether the value is on the left or the right.
-     */
-    public static <A, B> Either<A, B> lazy(Supplier<? extends Either<? extends A, ? extends B>> either) {
-        return new Either.Proxy<>() {
-            @Override
-            protected Either<A, B> principal() {
-                Either<A, B> principal = cast(either.get());
-                while (principal instanceof Either.Proxy) {
-                    principal = ((Either.Proxy<A, B>) principal).principal();
-                }
-                return principal.memoize();
             }
         };
     }
