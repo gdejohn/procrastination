@@ -3273,16 +3273,16 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public <R> Sequence<R> scanRightLazy(R initial, BiFunction<? super T, Supplier<R>, R> function) {
         return Sequence.lazy(
-            () -> this.matchLazy(
-                (x, xs) -> let(
-                    xs.scanRightLazy(initial, function).memoize(),
-                    scan -> Sequence.cons(
-                        () -> function.apply(x.get(), () -> scan.matchOrThrow((y, ys) -> y)),
-                        scan
+            () -> this.foldRightLazy(
+                Pair.of(initial, Sequence.<R>empty()),
+                (element, results) -> let(
+                    Functions.memoize(results),
+                    rest -> Pair.of(
+                        function.apply(element, () -> rest.get().first()),
+                        () -> rest.get().matchLazy(Sequence::cons)
                     )
-                ),
-                () -> Sequence.of(initial)
-            )
+                )
+            ).match(Sequence::cons)
         );
     }
 
@@ -3299,9 +3299,9 @@ public abstract class Sequence<T> implements Iterable<T> {
             () -> this.matchLazy(
                 (x, xs) -> let(
                     xs.scanRightLazy(operator).memoize(),
-                    scan -> Sequence.cons(
-                        () -> scan.matchLazy((y, ys) -> operator.apply(x.get(), y), x),
-                        scan
+                    results -> Sequence.cons(
+                        () -> results.matchLazy((y, ys) -> operator.apply(x.get(), y), x),
+                        results
                     )
                 ),
                 Sequence.empty()
