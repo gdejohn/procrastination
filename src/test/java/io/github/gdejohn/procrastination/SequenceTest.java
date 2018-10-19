@@ -338,10 +338,15 @@ class SequenceTest {
         assertThat(list).containsExactly(1, 2, -1, 4, 5);
         assertThat(list.add(6)).isTrue();
         assertThat(list).containsExactly(1, 2, -1, 4, 5, 6);
-        list.add(3, 0);
-        assertThat(list).containsExactly(1, 2, -1, 0, 4, 5, 6);
+        assertThat(list.lastIndexOf(2)).isEqualTo(1);
+        list.add(3, 2);
+        assertThat(list).containsExactly(1, 2, -1, 2, 4, 5, 6);
+        assertThat(list.lastIndexOf(2)).isEqualTo(3);
         assertThat(list.remove(2)).isEqualTo(-1);
-        assertThat(list).containsExactly(1, 2, 0, 4, 5, 6);
+        assertThat(list).containsExactly(1, 2, 2, 4, 5, 6);
+        assertThat(list.subList(1, 4)).containsExactly(2, 2, 4);
+        list.subList(1, 4).clear();
+        assertThat(list).containsExactly(1, 5, 6);
         list.clear();
         assertThat(list.size()).isEqualTo(0);
         assertThat(list.isEmpty()).isTrue();
