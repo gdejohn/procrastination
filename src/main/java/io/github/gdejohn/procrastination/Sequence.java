@@ -1280,24 +1280,6 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    @SafeVarargs
-    public final <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends Maybe<? extends R>>... patterns) {
-        return Maybe.lazy(
-            () -> {
-                var sequence = this.match(Sequence::cons, Sequence.<T>empty());
-                if (!sequence.isEmpty()) {
-                    for (BiFunction<? super T, ? super Sequence<T>, ? extends Maybe<? extends R>> function : patterns) {
-                        var result = Maybe.join(sequence.match(function));
-                        if (!result.isEmpty()) {
-                            return result;
-                        }
-                    }
-                }
-                return Maybe.empty();
-            }
-        );
-    }
-
     /**
      * The head and tail of this sequence, if this sequence is non-empty.
      *
