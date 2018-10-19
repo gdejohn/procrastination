@@ -43,7 +43,7 @@
         <url>https://travis-ci.com/gdejohn/procrastination</url>
     </ciManagement>
     <distributionManagement>
-        <downloadUrl>https://jitpack.io/#io.github.gdejohn/procrastination</downloadUrl>
+        <downloadUrl>https://github.com/gdejohn/procrastination/releases</downloadUrl>
     </distributionManagement>
 
     <properties>
