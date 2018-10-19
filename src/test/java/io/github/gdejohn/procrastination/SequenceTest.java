@@ -332,11 +332,16 @@ class SequenceTest {
     void toList() {
         var sequence = Sequences.range(1, 5);
         var list = sequence.list();
+        assertThat(list.isEmpty()).isFalse();
+        assertThat(list.size()).isEqualTo(5);
         list.set(2, -1);
-        assertAll(
-            () -> assertThat(list).containsExactly(1, 2, -1, 4, 5),
-            () -> assertThat(sequence).containsExactly(1, 2, 3, 4, 5)
-        );
+        assertThat(list).containsExactly(1, 2, -1, 4, 5);
+        list.add(6);
+        assertThat(list).containsExactly(1, 2, -1, 4, 5, 6);
+        list.clear();
+        assertThat(list.size()).isEqualTo(0);
+        assertThat(list.isEmpty()).isTrue();
+        assertThat(sequence).containsExactly(1, 2, 3, 4, 5);
     }
 
     @Test
