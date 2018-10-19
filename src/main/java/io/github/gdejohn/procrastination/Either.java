@@ -309,20 +309,27 @@ public abstract class Either<A, B> {
     }
 
     /**
-     * Define a value in terms of either of the possible eagerly evaluated values.
+     * Return a value defined in terms of either of the possible eagerly evaluated elements contained in this Either.
      *
-     * <p>This method simulates pattern matching on this {@code Either}, forcing evaluation of its element. It takes
-     * two functions: one for each of the possible values the contained element can take on.
+     * <p>This method simulates pattern matching on this Either, forcing evaluation of its element. The element is
+     * passed to the first function if it's on the left, or to the second function if it's on the right, and the result
+     * of whichever function was called is returned.
      */
     public <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right) {
         return this.matchLazy(left.compose(Supplier::get), right.compose(Supplier::get));
     }
 
     /**
-     * Define a value in terms of either of the possible lazily evaluated values.
+     * Return a value defined in terms of either of the possible lazily evaluated elements contained in this Either.
      *
-     * <p>This method simulates pattern matching on this {@code Either}, deferring evaluation of its element. It takes
-     * two functions: one for each of the possible values the contained element can take on.
+     * <p>This method simulates pattern matching on this Either, deferring evaluation of its element. A supplier of the
+     * element is passed to the first function if it's on the left, or to the second function if it's on the right, and
+     * the result of whichever function was called is returned.
+     *
+     * <p>In contrast to {@link Either#match(Function,Function) Either.match()}, this method is lazy with respect to
+     * the element of this Either. The caller of this method decides if and when to force evaluation of the element.
+     * This is useful, for example, to preserve the laziness of an underlying Either in terms of which another value is
+     * lazily defined.
      */
     public abstract <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right);
 

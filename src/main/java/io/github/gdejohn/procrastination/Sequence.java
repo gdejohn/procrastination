@@ -985,26 +985,21 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Decompose this sequence if non-empty into a value defined in terms of the eagerly evaluated head and the tail,
-     * or else a default value.
+     * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise return a lazy default value.
      *
-     * <p>This method simulates pattern matching on this sequence, forcing evaluation of the head. It takes a binary
-     * function and a supplier. If this sequence is non-empty, the function defines the return value of this method in
-     * terms of the head and tail. Otherwise, the supplier defines a default return value.
-     *
-     * <p>In contrast to {@link Sequence#matchLazy(BiFunction, Supplier) Sequence.matchLazy(BiFunction,Supplier)}, this
-     * method is eager with respect to the head of this sequence: evaluation of the head is forced, the result of which
-     * is passed to the binary function. For the sake of convenience, this spares the caller from working with a
-     * supplier if the head will definitely be needed to define the return value.
+     * <p>This method simulates pattern matching on this sequence, forcing evaluation of the head. If this sequence is
+     * non-empty, apply the given binary function to the head and tail and return the result. Otherwise, return the
+     * default value produced by the given supplier.
      *
      * @param <R> the type of the result
      *
      * @see Sequence#head()
      * @see Sequence#tail()
      * @see Sequence#matchLazy(BiFunction,Supplier)
+     * @see Sequence#match(BiFunction,Object)
      * @see Sequence#match(BiFunction)
      * @see Sequence#matchOrThrow(BiFunction)
-     * @see Sequence#matchOrThrow(BiFunction,Supplier)
      */
     public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
         return this.matchLazy(
@@ -1013,6 +1008,21 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
+    /**
+     * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise return an eager default value.
+     *
+     * <p>This method simulates pattern matching on this sequence, forcing evaluation of the head. If this sequence is
+     * non-empty, apply the given binary function to the head and tail and return the result. Otherwise, return the
+     * given default value.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Sequence#matchLazy(BiFunction,Object)
+     * @see Sequence#match(BiFunction,Supplier)
+     * @see Sequence#match(BiFunction)
+     * @see Sequence#matchOrThrow(BiFunction)
+     */
     public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, R otherwise) {
         return this.matchLazy(
             (head, tail) -> function.apply(head.get(), tail),
@@ -1021,19 +1031,18 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Pattern match on this sequence if non-empty, eagerly evaluating the head.
+     * Return a {@code Maybe} containing a value defined in terms of the eagerly evaluated head and the tail of this
+     * sequence if it is non-empty.
      *
-     * <p>If non-empty, apply a binary function to the head and tail of this sequence and
-     * return a {@code Maybe} describing the result. Otherwise, return an empty {@code Maybe}.
+     * <p>If this sequence is non-empty, apply the given binary function to the head and tail and return a
+     * {@link Maybe} containing the result. Otherwise, return an empty {@code Maybe}.
      *
      * @param <R> the type of the result if this sequence is non-empty
      *
-     * @see Sequence#head()
-     * @see Sequence#tail()
      * @see Sequence#matchLazy(BiFunction)
      * @see Sequence#match(BiFunction,Supplier)
+     * @see Sequence#match(BiFunction,Object)
      * @see Sequence#matchOrThrow(BiFunction)
-     * @see Sequence#matchOrThrow(BiFunction,Supplier)
      */
     public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
         return Maybe.lazy(
@@ -1045,20 +1054,18 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Pattern match on this sequence, eagerly evaluating the head, throwing an error if empty.
-     *
-     * <p>If non-empty, apply a binary function to the head and tail of this sequence and return the result.
+     * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise throw an assertion error.
      *
      * @param <R> the type of the result
      *
      * @throws AssertionError if this sequence is empty
      *
-     * @see Sequence#head()
-     * @see Sequence#tail()
      * @see Sequence#matchLazyOrThrow(BiFunction)
      * @see Sequence#matchOrThrow(BiFunction,Supplier)
      * @see Sequence#match(BiFunction)
      * @see Sequence#match(BiFunction,Supplier)
+     * @see Sequence#match(BiFunction,Object)
      */
     public <R> R matchOrThrow(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
         return this.match(
@@ -1070,21 +1077,19 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Pattern match on this sequence, eagerly evaluating the head, throwing a given throwable if empty.
-     *
-     * <p>If non-empty, apply a binary function to the head and tail of this sequence and return the result.
+     * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise throw a supplied exception.
      *
      * @param <R> the type of the result
-     * @param <X> the exception type
+     * @param <X> the type of the exception
      *
      * @throws X if this sequence is empty
      *
-     * @see Sequence#head()
-     * @see Sequence#tail()
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      * @see Sequence#matchOrThrow(BiFunction)
      * @see Sequence#match(BiFunction)
      * @see Sequence#match(BiFunction,Supplier)
+     * @see Sequence#match(BiFunction,Object)
      */
     public <R, X extends Throwable> R matchOrThrow(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<X> exception) throws X {
         try {
@@ -1095,50 +1100,62 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Decompose this sequence if non-empty into a value defined in terms of the lazily evaluated head and the tail, or
-     * else a default value.
+     * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise return a lazy default value.
      *
-     * <p>This method simulates pattern matching on this sequence, deferring evaluation of the head. It takes a binary
-     * function and a supplier. If this sequence is non-empty, the function defines the return value of this method in
-     * terms of the head and tail. Otherwise, the supplier defines a default return value.
+     * <p>This method simulates pattern matching on this sequence, deferring evaluation of the head. If this sequence
+     * is non-empty, apply the given binary function to a supplier of the head and to the tail and return the result.
+     * Otherwise, return the default value produced by the given supplier.
      *
-     * <p>In contrast to {@link Sequence#match(BiFunction, Supplier) Sequence.match(BiFunction,Supplier)}, this method
-     * is lazy with respect to the head of this sequence: a supplier of the head is passed to the given binary
-     * function, not the head itself. The caller of this method decides if and when to force evaluation of the head.
-     * This is useful, for example, to preserve the laziness of some underlying sequence in terms of which another lazy
-     * value is defined.
-     *
-     * <p>This is the only abstract method in this class. All operations on sequences are ultimately defined in terms
-     * of  {@link Sequence#empty() Sequence.empty()}, {@link Sequence#cons(Object, Sequence)
-     * Sequence.cons(Object,Sequence)}, and this method.
+     * <p>In contrast to {@link Sequence#match(BiFunction,Supplier) Sequence.match()}, this method is lazy with
+     * respect to the head of this sequence. The caller of this method decides if and when to force evaluation of the
+     * head. This is useful, for example, to preserve the laziness of an underlying sequence in terms of which another
+     * value is lazily defined.
      *
      * @param <R> the type of the result
      *
-     * @see Sequence#head()
-     * @see Sequence#tail()
-     * @see Sequence#match(BiFunction, Supplier)
+     * @see Sequence#match(BiFunction,Supplier)
+     * @see Sequence#matchLazy(BiFunction,Object)
      * @see Sequence#matchLazy(BiFunction)
      * @see Sequence#matchLazyOrThrow(BiFunction)
-     * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      */
     public abstract <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise);
 
+    /**
+     * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise return an eager default value.
+     *
+     * <p>This method simulates pattern matching on this sequence, deferring evaluation of the head. If this sequence
+     * is non-empty, apply the given binary function to a supplier of the head and to the tail and return the result.
+     * Otherwise, return the given default value.
+     *
+     * <p>In contrast to {@link Sequence#match(BiFunction,Object) Sequence.match()}, this method is lazy with
+     * respect to the head of this sequence. The caller of this method decides if and when to force evaluation of the
+     * head. This is useful, for example, to preserve the laziness of an underlying sequence in terms of which another
+     * value is lazily defined.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Sequence#match(BiFunction,Object)
+     * @see Sequence#matchLazy(BiFunction,Supplier)
+     * @see Sequence#matchLazy(BiFunction)
+     * @see Sequence#matchLazyOrThrow(BiFunction)
+     */
     public abstract <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise);
 
     /**
-     * Pattern match on this sequence if non-empty, deferring evaluation of the head.
+     * Return a {@code Maybe} containing a value defined in terms of the lazily evaluated head and the tail of this
+     * sequence if it is non-empty.
      *
-     * <p>If non-empty, apply a binary function to the unevaluated head and the tail of this sequence and return a
-     * {@code Maybe} describing the result. Otherwise, return an empty {@code Maybe}.
+     * <p>If this sequence is non-empty, apply the given binary function to a supplier of the head and to the tail and
+     * return a {@link Maybe} containing the result. Otherwise, return an empty {@code Maybe}.
      *
      * @param <R> the type of the result if this sequence is non-empty
      *
-     * @see Sequence#head()
-     * @see Sequence#tail()
      * @see Sequence#match(BiFunction)
      * @see Sequence#matchLazy(BiFunction,Supplier)
+     * @see Sequence#matchLazy(BiFunction,Object)
      * @see Sequence#matchLazyOrThrow(BiFunction)
-     * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      */
     public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
         return Maybe.lazy(
@@ -1150,21 +1167,18 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Pattern match on this sequence, deferring evaluation of the head, throwing an error if empty.
-     *
-     * <p>If non-empty, apply a binary function to the unevaluated head and the tail of this sequence and return the
-     * result.
+     * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise throw an assertion error.
      *
      * @param <R> the type of the result
      *
      * @throws AssertionError if this sequence is empty
      *
-     * @see Sequence#head()
-     * @see Sequence#tail()
      * @see Sequence#matchOrThrow(BiFunction)
      * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
      * @see Sequence#matchLazy(BiFunction)
      * @see Sequence#matchLazy(BiFunction,Supplier)
+     * @see Sequence#matchLazy(BiFunction,Object)
      */
     public <R> R matchLazyOrThrow(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
         return this.matchLazy(
@@ -1176,22 +1190,19 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Pattern match on this sequence, deferring evaluation of the head, throwing a given throwable if empty.
-     *
-     * <p>If non-empty, apply a binary function to the unevaluated head and the tail of this sequence and return the
-     * result.
+     * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
+     * otherwise throw a supplied exception.
      *
      * @param <R> the type of the result
-     * @param <X> the exception type
+     * @param <X> the type of the exception
      *
      * @throws X if this sequence is empty
      *
-     * @see Sequence#head()
-     * @see Sequence#tail()
      * @see Sequence#matchOrThrow(BiFunction, Supplier)
      * @see Sequence#matchLazyOrThrow(BiFunction)
      * @see Sequence#matchLazy(BiFunction)
      * @see Sequence#matchLazy(BiFunction,Supplier)
+     * @see Sequence#matchLazy(BiFunction,Object)
      */
     public <R, X extends Throwable> R matchLazyOrThrow(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<X> exception) throws X {
         try {
@@ -1201,13 +1212,22 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
     }
 
-    public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
-        return this.matchLazy(
-            (head, tail) -> function.apply(Sequence.cons(head, tail)),
-            otherwise
-        );
-    }
-
+    /**
+     * Return the result of applying a function to this sequence if it is non-empty, otherwise return a lazy default
+     * value.
+     *
+     * <p>Use this method to distinguish between empty and non-empty sequences instead of
+     * {@link Sequence#match(BiFunction,Supplier) Sequence.match()} or
+     * {@link Sequence#matchLazy(BiFunction,Supplier) Sequence.matchLazy()} when extracting the head and tail isn't
+     * required.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Sequence#match(BiFunction,Supplier)
+     * @see Sequence#matchLazy(BiFunction,Supplier)
+     * @see Sequence#matchNonEmpty(Function,Object)
+     * @see Sequence#matchNonEmpty(Function)
+     */
     public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
         return this.matchLazy(
             (head, tail) -> function.apply(Sequence.cons(head, tail)),
@@ -1215,6 +1235,45 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
+    /**
+     * Return the result of applying a function to this sequence if it is non-empty, otherwise return an eager default
+     * value.
+     *
+     * <p>Use this method to distinguish between empty and non-empty sequences instead of
+     * {@link Sequence#match(BiFunction,Object) Sequence.match()} or
+     * {@link Sequence#matchLazy(BiFunction,Object) Sequence.matchLazy()} when extracting the head and tail isn't
+     * required.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Sequence#match(BiFunction,Object)
+     * @see Sequence#matchLazy(BiFunction,Object)
+     * @see Sequence#matchNonEmpty(Function,Supplier)
+     * @see Sequence#matchNonEmpty(Function)
+     */
+    public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
+        return this.matchLazy(
+            (head, tail) -> function.apply(Sequence.cons(head, tail)),
+            otherwise
+        );
+    }
+
+    /**
+     * Return a {@code Maybe} containing the result of applying a function to this sequence if it is non-empty,
+     * otherwise return an empty {@code Maybe}.
+     *
+     * <p>Use this method to distinguish between empty and non-empty sequences instead of
+     * {@link Sequence#match(BiFunction) Sequence.match()} or
+     * {@link Sequence#matchLazy(BiFunction) Sequence.matchLazy()} when extracting the head and tail isn't
+     * required.
+     *
+     * @param <R> the type of the result
+     *
+     * @see Sequence#match(BiFunction)
+     * @see Sequence#matchLazy(BiFunction)
+     * @see Sequence#matchNonEmpty(Function,Supplier)
+     * @see Sequence#matchNonEmpty(Function,Object)
+     */
     public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
         return Maybe.lazy(
             () -> this.matchNonEmpty(sequence -> Maybe.of(() -> function.apply(sequence)), Maybe.empty())

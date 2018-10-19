@@ -324,10 +324,12 @@ public abstract class Maybe<T> implements Iterable<T> {
     }
 
     /**
-     * Define a result in terms of the eagerly evaluated element contained in this Maybe if it exists, otherwise return
-     * a lazy default value.
+     * Return a value defined in terms of the eagerly evaluated element contained in this Maybe if it exists, otherwise
+     * return a lazy default value.
      *
-     * <p>This method simulates pattern matching on this Maybe, forcing evaluation of the contained element.
+     * <p>This method simulates pattern matching on this Maybe, forcing evaluation of the contained element. If the
+     * element exists, it is passed to the given function and the result is returned. Otherwise, the result of invoking
+     * the given supplier is returned.
      *
      * @param <R> the type of the result
      *
@@ -340,10 +342,12 @@ public abstract class Maybe<T> implements Iterable<T> {
     }
 
     /**
-     * Define a result in terms of the eagerly evaluated element contained in this Maybe if it exists, otherwise return
-     * an eager default value.
+     * Return a value defined in terms of the eagerly evaluated element contained in this Maybe if it exists, otherwise
+     * return an eager default value.
      *
-     * <p>This method simulates pattern matching on this Maybe, forcing evaluation of the contained element.
+     * <p>This method simulates pattern matching on this Maybe, forcing evaluation of the contained element. If the
+     * element exists, it is passed to the given function and the result is returned. Otherwise, the given default
+     * value is returned.
      *
      * @param <R> the type of the result
      *
@@ -356,10 +360,17 @@ public abstract class Maybe<T> implements Iterable<T> {
     }
 
     /**
-     * Define a result in terms of the lazily evaluated element contained in this Maybe if it exists, otherwise return
-     * a lazy default value.
+     * Return a value defined in terms of the lazily evaluated element contained in this Maybe if it exists, otherwise
+     * return a lazy default value.
      *
-     * <p>This method simulates pattern matching on this Maybe, deferring evaluation of the contained element.
+     * <p>This method simulates pattern matching on this Maybe, deferring evaluation of the contained element. If the
+     * element exists, it is passed to the given function, and the result is returned. Otherwise, the result of
+     * invoking the given supplier is returned.
+     *
+     * <p>In contrast to {@link Maybe#match(Function,Supplier) Maybe.match()}, this method is lazy with respect to the
+     * element of this Maybe. The caller of this method decides if and when to force evaluation of the element. This is
+     * useful, for example, to preserve the laziness of an underlying Maybe in terms of which another value is
+     * lazily defined.
      *
      * @param <R> the type of the result
      *
@@ -371,10 +382,17 @@ public abstract class Maybe<T> implements Iterable<T> {
 
 
     /**
-     * Define a result in terms of the lazily evaluated element contained in this Maybe if it exists, otherwise return
-     * an eager default value.
+     * Return a value defined in terms of the lazily evaluated element contained in this Maybe if it exists, otherwise
+     * return an eager default value.
      *
-     * <p>This method simulates pattern matching on this Maybe, deferring evaluation of the contained element.
+     * <p>This method simulates pattern matching on this Maybe, deferring evaluation of the contained element. A
+     * supplier of the element is passed to the given function if it exists, and the result is returned. Otherwise, the
+     * given default value is returned.
+     *
+     * <p>In contrast to {@link Maybe#match(Function,Object) Maybe.match()}, this method is lazy with respect to the
+     * element of this Maybe. The caller of this method decides if and when to force evaluation of the element. This is
+     * useful, for example, to preserve the laziness of an underlying Maybe in terms of which another value is
+     * lazily defined.
      *
      * @param <R> the type of the result
      *

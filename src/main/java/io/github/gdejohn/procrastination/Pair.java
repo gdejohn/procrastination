@@ -202,25 +202,26 @@ public abstract class Pair<T, U> {
     }
 
     /**
-     * Define a value in terms of the two eagerly evaluated elements of this pair.
+     * Return a value defined in terms of the two eagerly evaluated elements of this pair.
      *
-     * <p>This method simulates pattern matching on this pair, forcing evaluation of its elements. It takes a binary
-     * function that defines the return value in terms of the two elements of this pair.
+     * <p>This method simulates pattern matching on this pair, forcing evaluation of its elements. The first element is
+     * passed as the first argument to the given binary function, the second element is passed as the second argument,
+     * and the result is returned.
      *
      * @param <R> the type of the resulting value
      */
     public abstract <R> R match(BiFunction<? super T, ? super U, ? extends R> function);
 
     /**
-     * Define a value in terms of the two lazily evaluated elements of this pair.
+     * Return a value defined in terms of the two lazily evaluated elements of this pair.
      *
-     * <p>This method simulates pattern matching on this pair, deferring evaluation of its elements. It takes a binary
-     * function that defines the return value in terms of the two elements of this pair.
+     * <p>This method simulates pattern matching on this pair, deferring evaluation of its elements. A supplier of the
+     * first element is passed as the first argument to the given binary function, a supplier of the second element is
+     * passed as the second argument, and the result is returned.
      *
-     * <p>In contrast to {@link Pair#match(BiFunction) Pair.match(BiFunction)}, this method is lazy with respect to the
-     * elements of this pair: suppliers of the elements are passed to the given binary function, not the elements
-     * themselves. The caller of this method decides if and when to force evaluation of the elements. This is useful,
-     * for example, to preserve the laziness of some underlying pair in terms of which a new pair is defined.
+     * <p>In contrast to {@link Pair#match(BiFunction) Pair.match()}, this method is lazy with respect to the elements
+     * of this pair. The caller of this method decides if and when to force evaluation of the elements. This is useful,
+     * for example, to preserve the laziness of an underlying pair in terms of which another value is lazily defined.
      *
      * @param <R> the type of the resulting value
      */
