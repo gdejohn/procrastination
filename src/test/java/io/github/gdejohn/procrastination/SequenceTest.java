@@ -334,10 +334,14 @@ class SequenceTest {
         var list = sequence.list();
         assertThat(list.isEmpty()).isFalse();
         assertThat(list.size()).isEqualTo(5);
-        list.set(2, -1);
+        assertThat(list.set(2, -1)).isEqualTo(3);
         assertThat(list).containsExactly(1, 2, -1, 4, 5);
-        list.add(6);
+        assertThat(list.add(6)).isTrue();
         assertThat(list).containsExactly(1, 2, -1, 4, 5, 6);
+        list.add(3, 0);
+        assertThat(list).containsExactly(1, 2, -1, 0, 4, 5, 6);
+        assertThat(list.remove(2)).isEqualTo(-1);
+        assertThat(list).containsExactly(1, 2, 0, 4, 5, 6);
         list.clear();
         assertThat(list.size()).isEqualTo(0);
         assertThat(list.isEmpty()).isTrue();
