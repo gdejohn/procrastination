@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -308,6 +309,18 @@ class SequenceTest {
             () -> assertThat(Sequence.sum(Sequence.empty())).isEqualTo(0L),
             () -> assertThat(Sequence.sum(Sequences.range(1L, 100_000L))).isEqualTo(5_000_050_000L)
         );
+    }
+
+    @Test
+    void eager() {
+        var list = new LinkedList<>(List.of(1, 2, 3));
+        var lazySequence = Sequence.from(list);
+        var eagerSequence = lazySequence.eager();
+        assertThat(lazySequence).containsExactly(1, 2, 3);
+        assertThat(eagerSequence).containsExactly(1, 2, 3);
+        list.clear();
+        assertThat(lazySequence).isEmpty();
+        assertThat(eagerSequence).containsExactly(1, 2, 3);
     }
 
     @Test
