@@ -2612,9 +2612,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         return Sequence.lazy(
             () -> Trampoline.evaluate(this,
                 skip -> sequence -> sequence.match(
-                    (head, tail) -> predicate.test(head) ? call(skip, tail) : terminate(
-                        Sequence.cons(head, tail)
-                    ),
+                    (head, tail) -> predicate.test(head) ? call(skip, tail) : terminate(Sequence.cons(head, tail)),
                     () -> terminate(Sequence.empty())
                 )
             )
