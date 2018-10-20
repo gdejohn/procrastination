@@ -2522,7 +2522,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    /** Remove elements rejected by a predicate. */
+    /** The elements of this sequence that satisfy a predicate. */
     public Sequence<T> filter(Predicate<? super T> predicate) {
         return Sequence.lazy(
             () -> this.skipWhile(predicate.negate()).matchLazy(
