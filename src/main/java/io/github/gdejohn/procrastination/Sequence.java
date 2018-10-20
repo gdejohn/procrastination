@@ -1580,7 +1580,7 @@ public abstract class Sequence<T> implements Iterable<T> {
 
             @Override
             public int characteristics() {
-                return NONNULL | ORDERED;
+                return NONNULL;
             }
         }
 
