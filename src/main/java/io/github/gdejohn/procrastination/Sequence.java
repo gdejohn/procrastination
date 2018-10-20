@@ -155,11 +155,6 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
 
         @Override
-        public List<Object> list() {
-            return Collections.emptyList();
-        }
-
-        @Override
         public Stream<Object> stream() {
             return Stream.empty();
         }
