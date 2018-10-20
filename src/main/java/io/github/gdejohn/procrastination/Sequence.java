@@ -1569,12 +1569,6 @@ public abstract class Sequence<T> implements Iterable<T> {
             }
 
             @Override
-            public void forEachRemaining(Consumer<? super T> action) {
-                //noinspection StatementWithEmptyBody
-                while (this.tryAdvance(action));
-            }
-
-            @Override
             public Spliterator<T> trySplit() {
                 return null;
             }
