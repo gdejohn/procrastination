@@ -1713,9 +1713,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     public String toString() {
         var sequence = this.memoize();
         if (sequence.longerThan(30)) {
-            return sequence.take(30).toString(", ", "(", ", ...)");
+            return sequence.take(30).toString(", ", "[", ", ...]");
         } else {
-            return sequence.toString(", ", "(", ")");
+            return sequence.toString(", ", "[", "]");
         }
     }
 
