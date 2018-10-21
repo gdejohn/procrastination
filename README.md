@@ -242,7 +242,7 @@ imports all of the types and static members.
 
 [1]: https://jitpack.io/#io.github.gdejohn/procrastination/master-SNAPSHOT
 [2]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
-[3]: https://github.com/gdejohn/procrastination/blob/master/LICENSE
+[3]: http://www.apache.org/licenses/LICENSE-2.0
 [4]: https://travis-ci.com/gdejohn/procrastination
 [5]: https://codecov.io/gh/gdejohn/procrastination
 [6]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/Stream.html

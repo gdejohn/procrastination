@@ -18,7 +18,7 @@
     <licenses>
         <license>
             <name>Apache License 2.0</name>
-            <url>https://github.com/gdejohn/procrastination/blob/master/LICENSE</url>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
 
@@ -183,5 +183,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
