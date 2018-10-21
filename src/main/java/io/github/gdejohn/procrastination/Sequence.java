@@ -63,8 +63,8 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 
 /**
- * A lazily evaluated, persistent, ordered, homogeneous collection of zero or more non-null elements, possibly infinite,
- * allowing duplicates.
+ * A lazily evaluated, persistent, ordered collection of zero or more non-null elements, possibly infinite, allowing
+ * duplicates.
  *
  * <p>Sequences are recursively defined: they are either {@link Sequence#empty() empty}, or
  * {@link Sequence#cons(Object, Sequence) constructed} from a head element and a tail sequence. Conversely, the
