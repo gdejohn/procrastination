@@ -70,13 +70,13 @@ similar to [`Entry`][8], but by contrast it is lazy and purely functional.
 ## Sequences vs. Streams
 
 `Sequence` offers an alternative to the [`Stream`][6] API introduced in Java 8. Unlike streams, sequences can be
-traversed any number of times; the trade-off is that sequences derived from one-shot sources (e.g., iterators, streams)
-*must* be memoized. It's also far easier to define new functionality for sequences. One of the biggest goals of the
+traversed any number of times (although this does mean that sequences derived from one-shot sources like iterators
+*must* be memoized). It's also much easier to define new functionality for sequences. One of the biggest goals of the
 Stream API was parallel processing, which is why streams were designed around spliterators. Processing a given stream
 in a way that isn't covered by the API means working directly with its spliterator, and creating a new stream in a way
-that isn't covered by the API means implementing it in terms of a spliterator. Consider the instance method
+that isn't covered by the API means implementing a spliterator. Consider the instance method
 [`Sequence.scanLeft(Object,BiFunction)`][9], which returns the lazy sequence of intermediate results of a left fold.
-Defining this for streams looks like this:
+Here's a basic implementation for streams:
 
 ```java
 import java.util.Spliterator;
@@ -129,18 +129,19 @@ static <T, R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R
 }
 ```
 
-Compared to the stream implementation, it's declarative, pure, and a lot less code; not bad! The trade-off is that
-sequences are, as the name suggests, sequential; there is no parallel processing. The priority here is developer
-ergonomics. If you ever find yourself reaching for something in the Stream API that isn't there, and your workload
-doesn't benefit from parallelism, give `Sequence` a try!
+Compared to the stream implementation, it's declarative, pure, and a lot less code; not bad! (With a little bit of code
+golfing, the method body could even fit comfortably on a single line!) The trade-off is that sequences are, as the name 
+suggests, sequential; there is no parallel processing. The priority here is developer ergonomics. If you ever find
+yourself reaching for something in the Stream API that isn't there, and your workload doesn't benefit from parallelism,
+give `Sequence` a try!
 
 ## Trampolines
 
 Applying imperative idioms to sequences is ugly and error-prone; recursive data types call for recursive algorithms.
 Unfortunately, Java isn't very recursion friendly: deep call stacks quickly run afoul of stack overflow exceptions, and
-tail recursion doesn't help because there's no tail-call elimination. This isn't a problem for recursive algorithms
-working with sequences so long as they are lazy with respect to the tail, but whenever a large number of elements
-must be traversed all at once, stack overflow is waiting to pounce. Enter trampolines.
+tail recursion doesn't help because there's no tail-call elimination. This isn't a problem for lazy operations like
+`Sequence.map(Function)`, but whenever a potentially large number of elements must be eagerly traversed, as in
+`Sequence.filter(Predicate)`, stack overflow is waiting to pounce. Enter trampolines.
 
 `Trampoline` converts tail recursion into a stack-safe loop. To trampoline a tail-recursive method with return type
 `T`, change the return type to `Trampoline<T>`, wrap the expressions returned in base cases with the static factory
@@ -148,7 +149,7 @@ method `Trampoline.terminate()`, suspend recursive calls in `Supplier` lambda ex
 recursive calls with the static factory method `Trampoline.call()`. To get the result from a trampoline, invoke the
 instance method `evaluate()`.
 
-## Anonymous Recursion
+### Anonymous Recursion
 
 Tail recursion often requires additional "accumulator" parameters, and trampolining means that the result must be
 unwrapped. These are irrelevant and burdensome implementation details that shouldn't be exposed to client code, so the
