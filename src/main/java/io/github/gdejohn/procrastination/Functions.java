@@ -241,17 +241,17 @@ public final class Functions {
     }
 
     /**
-     * Compute the fixed point of a higher-order function, enabling recursive lambda expressions (i.e., anonymous
+     * Return the fixed point of a unary operator on functions, enabling recursive lambda expressions (i.e., anonymous
      * recursion).
      *
      * <p>Lambda expressions by definition are unnamed, making explicit recursion impossible. The trick here is to
-     * abstract the recursive call by accepting the function itself as another argument and letting {@code fix()} tie
-     * the knot. For example:
+     * abstract the recursive call by taking the function itself as another argument and letting {@code fix()} tie the
+     * knot. For example:
      *
      * <pre>    {@code Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));}</pre>
      *
      * <p>If more than one parameter is needed, just keep currying ({@link Functions#apply(Function, Object, Object)
-     * Functions.apply} simplifies passing arguments to curried functions). For example:
+     * Functions.apply()} simplifies passing arguments to curried functions). For example:
      *
      * <pre>    {@code BiFunction<Integer, Integer, Integer> ackermann = uncurry(
      *        fix(
