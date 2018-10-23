@@ -15,10 +15,19 @@
 
 ## Data Structures
 
-All of the included data structures are designed to emulate algebraic data types, with basic "data constructor" static
-factory methods mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general
-pattern-matching facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply
-makes it possible to distinguish which data constructor was used and extract the components in a single step.
+The included data structures are lazily evaluated. They procrastinate, doing the absolute minimum amount of work
+required and putting it off for as long as possible, only computing each of their elements on demand. They can also be
+memoized such that each element is computed at most once, the first time it's asked for, and then cached.
+
+Because the data structures are purely functional, they are also fully persistent. Instead of mutators, methods are
+provided that return a new version of a given data structure reflecting the desired changes, leaving the previous
+version intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe
+because the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced). 
+
+The data structures are designed to emulate algebraic data types, with basic "data constructor" static factory methods
+mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general pattern-matching
+facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply makes it possible
+to distinguish which data constructor was used and extract the components in a single step.
 
 The rest of the operations on these data structures are all ultimately defined in terms of the `match()` methods and
 data constructors. None of the classes hide anything interesting. They don't declare any instance fields. They each
@@ -32,24 +41,12 @@ cover every case.
 
 ### Sequence
 
-[`Sequence`][sequence] is an ordered collection of zero or more non-null elements (duplicates allowed), implemented as
-the classic functional singly-linked list. It is *recursively defined*: a sequence is either [empty][empty], or
-[constructed][cons] from a head element and a tail sequence. Conversely, the instance method
-[`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequence is non-empty, its head and tail
-are passed as arguments to the given binary function to produce a result, otherwise the given supplier is invoked to
-produce a default result.
-
-Sequences are *lazily evaluated*. They procrastinate, putting off work for as long as possible, only computing each
-element on demand. They can also be [*memoized*][memoize] such that each element is computed at most once, the first
-time it is asked for, and then cached. Because sequences are lazy, it is perfectly natural to work with infinite
-sequences. (Just be careful not to fully evaluate them!)
-
-Sequences are *fully persistent*. Instead of mutators, methods are provided that return a new version of a sequence
-reflecting the desired changes, leaving the previous version intact. Every version of a sequence remains accessible.
-This is achieved efficiently via *structural sharing*, which is safe because sequences are *structurally immutable*
-(i.e., elements cannot be added, removed, or replaced). Because sequences never change, the longest common suffix of a
-set of versions of a sequence can simply be referenced by all of those versions, rather than defensively copied over
-and over.
+[`Sequence`][sequence] is an ordered collection of zero or more non-null elements (duplicates allowed). It is
+recursively defined: a sequence is either [`empty`][empty], or it's [`constructed`][cons] from a head element and a
+tail sequence. Conversely, the instance method [`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart:
+if the sequence is non-empty, it applies the given binary function to the head and tail and returns the result,
+otherwise it returns a default value produced by the given supplier. Because sequences are lazy, it is perfectly
+natural to work with infinite sequences. (Just be careful not to fully evaluate them!)
 
 ### Maybe
 
@@ -60,7 +57,7 @@ element and is often used to model potential failure. `Maybe` is a lazy alternat
 
 [`Either`][either] is a container with exactly one element that can take on one of two possible values, labeled *left*
 and *right*, which may have different types. Like `Maybe`, it can be used to model failure, but it allows information
-to be attached to the failure case (e.g., an exception, or a string error message). In this sense, it is the
+to be attached to the failure case (e.g., an exception, or a string error message). In that sense, it is the
 data-structure analogue of Java's checked exceptions.
 
 ### Pair
@@ -73,7 +70,7 @@ data-structure analogue of Java's checked exceptions.
 `Sequence` offers an alternative to the Stream API introduced in Java 8. Unlike streams, sequences can be traversed any
 number of times (although this does mean that sequences derived from one-shot sources like iterators *must* be
 memoized). It's also much easier to define new functionality for sequences. One of the biggest goals of the Stream API
-was parallel processing, which is why streams were designed around [spliterators][spliterator]. Processing a given
+was parallel processing, which is why streams were designed around [`spliterators`][spliterator]. Processing a given
 stream in a way that isn't covered by the API means working directly with its spliterator, and creating a new stream in
 a way that isn't covered by the API means implementing a spliterator. Consider the instance method
 [`Sequence.scanLeft(Object,BiFunction)`][scan], which returns the lazy sequence of intermediate results of a left fold.
@@ -130,11 +127,11 @@ static <T, R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R
 }
 ```
 
-Compared to the stream implementation, it's declarative, pure, and a lot less code; not bad! (With a little bit of code
-golfing, the method body could even fit comfortably on a single line!) The trade-off is that sequences are, as the name 
-suggests, sequential; there is no parallel processing. The priority here is developer ergonomics. If you ever find
-yourself reaching for something in the Stream API that isn't there, and your workload doesn't benefit from parallelism,
-give `Sequence` a try!
+Compared to the stream implementation, it's declarative, straightforward, and a lot less code; not bad! (With a little
+bit of code golfing, the method body could even fit comfortably on a single line!) The trade-off is that sequences are,
+as the name suggests, sequential; there is no parallel processing. The priority here is developer ergonomics. If you
+ever find yourself reaching for something in the Stream API that isn't there, and your workload doesn't benefit from
+parallelism, give `Sequence` a try!
 
 ## Trampolines
 
@@ -144,7 +141,7 @@ tail recursion doesn't help because there's no tail-call elimination. This isn't
 [`Sequence.map(Function)`][map], but whenever a potentially large number of elements must be eagerly traversed, as in
 [`Sequence.filter(Predicate)`][filter], stack overflow is waiting to pounce. Enter trampolines.
 
-[`Trampoline`][trampoline] converts tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
+[`Trampoline`][trampoline] transforms tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
 return type `T`, change the return type to `Trampoline<T>`, wrap the expressions returned in base cases with the static
 factory method [`terminate()`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and
 wrap the suspended recursive calls with the static factory method [`call()`][callSupplier]. To get the result from a
