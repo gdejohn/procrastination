@@ -70,9 +70,9 @@ data-structure analogue of Java's checked exceptions.
 `Sequence` offers an alternative to the Stream API introduced in Java 8. Unlike streams, sequences can be traversed any
 number of times (although this does mean that sequences derived from one-shot sources like iterators *must* be
 memoized). It's also much easier to define new functionality for sequences. One of the biggest goals of the Stream API
-was parallel processing, which is why streams were designed around [`spliterators`][spliterator]. Processing a given
-stream in a way that isn't covered by the API means working directly with its spliterator, and creating a new stream in
-a way that isn't covered by the API means implementing a spliterator. Consider the instance method
+was parallel processing, which is why streams were designed around [`spliterators`][spliterator]. So, processing a
+given stream in a way that isn't covered by the API means working directly with its spliterator, and creating a new
+stream in a way that isn't covered by the API means implementing a spliterator. Consider the instance method
 [`Sequence.scanLeft(Object,BiFunction)`][scan], which returns the lazy sequence of intermediate results of a left fold.
 Here's a basic implementation for streams:
 
