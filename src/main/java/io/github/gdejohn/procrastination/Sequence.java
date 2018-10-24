@@ -2942,7 +2942,12 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequences#apply(Sequence, Sequence)
      */
     public <R> Sequence<R> apply(Sequence<? extends Function<? super T, ? extends R>> functions) {
-        return functions.flatMap(this::map);
+        return Sequence.lazy(
+            () -> this.matchNonEmpty(
+                sequence -> functions.flatMap(sequence::map),
+                Sequence.empty()
+            )
+        );
     }
 
     /**
@@ -2967,8 +2972,13 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#map(Function)
      */
     public <U, R> Sequence<R> apply(Sequence<? extends U> sequence, BiPredicate<? super T, ? super U> predicate, BiFunction<? super T, ? super U, ? extends R> function) {
-        return this.flatMap(
-            element -> sequence.filter(Predicates.apply(predicate, element)).map(Functions.apply(function, element))
+        return Sequence.lazy(
+            () -> sequence.matchNonEmpty(
+                seq -> this.flatMap(
+                    element -> seq.filter(Predicates.apply(predicate, element)).map(Functions.apply(function, element))
+                ),
+                Sequence.empty()
+            )
         );
     }
 

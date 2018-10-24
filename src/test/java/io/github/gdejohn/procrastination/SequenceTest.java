@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
@@ -44,6 +43,7 @@ import static java.util.Collections.enumeration;
 import static java.util.concurrent.CompletableFuture.delayedExecutor;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -803,7 +803,7 @@ class SequenceTest {
     @Test
     void extend() {
         assertAll(
-            () -> assertThat(Sequence.empty().extend(Function.identity())).isEmpty(),
+            () -> assertThat(Sequence.empty().extend(identity())).isEmpty(),
             () -> assertThat(Sequence.of(0, 1).extend(n -> n * 2)).startsWith(0, 1, 2, 4, 8, 16, 32, 64)
         );
     }
@@ -1029,7 +1029,7 @@ class SequenceTest {
     @Test
     void update() {
         assertAll(
-            () -> assertThat(Sequences.range(1, 5).update(-1, Function.identity())).containsExactly(1, 2, 3, 4, 5),
+            () -> assertThat(Sequences.range(1, 5).update(-1, identity())).containsExactly(1, 2, 3, 4, 5),
             () -> assertThat(Sequences.range(1, 5).update(2, n -> n * 2)).containsExactly(1, 2, 6, 4, 5),
             () -> assertThat(Sequences.range(1, 5).update(8, n -> n * 2)).containsExactly(1, 2, 3, 4, 5)
         );
@@ -1050,6 +1050,40 @@ class SequenceTest {
                 "f", "o", "o", "b", "a", "r", "b", "a", "z"
             ),
             () -> assertThat(Sequence.empty().flatMap(xs -> Sequence.of(1, 2, 3))).isEmpty()
+        );
+    }
+
+    @Test
+    void apply() {
+        assertAll(
+            () -> assertThat(
+                Sequences.range(1, 3).apply(Sequence.of(1, 2).map(curry(Integer::sum)))
+            ).containsExactly(2, 3, 4, 3, 4, 5),
+            () -> assertThat(Sequence.empty().apply(Sequence.repeat(identity()))).isEmpty(),
+            () -> assertThat(Sequence.repeat(unit()).apply(Sequence.empty())).isEmpty(),
+            () -> assertThat(
+                Sequence.repeat(2).apply(Sequences.ints().map(curry(Integer::sum)))
+            ).startsWith(2, 2, 2, 2),
+            () -> assertThat(
+                Sequences.ints().apply(Sequence.repeat(2).map(curry(Integer::sum)))
+            ).startsWith(2, 3, 4, 5)
+        );
+    }
+
+    @Test
+    void applyFilterMap() {
+        assertAll(
+            () -> assertThat(
+                Sequences.range(1, 3).apply(Sequence.of(1, 2), (x, y) -> x != 2, Integer::sum)
+            ).containsExactly(2, 3, 4, 5),
+            () -> assertThat(Sequence.empty().apply(Sequence.repeat(unit()), (x, y) -> true, (x, y) -> x)).isEmpty(),
+            () -> assertThat(Sequence.repeat(unit()).apply(Sequence.empty(), (x, y) -> true, (x, y) -> x)).isEmpty(),
+            () -> assertThat(
+                Sequence.repeat(2).apply(Sequences.ints(), (x, y) -> y != 2, Integer::sum)
+            ).startsWith(2, 3, 5, 6),
+            () -> assertThat(
+                Sequences.ints().apply(Sequence.repeat(2), (x, y) -> x != 2, Integer::sum)
+            ).startsWith(2, 2, 2, 2)
         );
     }
 
