@@ -936,7 +936,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#and(Sequence)
      */
     public static long product(Sequence<Long> sequence) {
-        return Trampoline.evaluate(sequence, 1L,
+        return Trampoline.evaluate(
+            sequence,
+            1L,
             product -> seq -> n -> seq.match(
                 (head, tail) -> head == 0 ? terminate(0L) : call(product, tail, multiplyExact(head, n)),
                 () -> terminate(n)
@@ -1677,7 +1679,9 @@ public abstract class Sequence<T> implements Iterable<T> {
             return true;
         } else if (object instanceof Sequence) {
             //noinspection RedundantCast
-            return Trampoline.evaluate(this, (Sequence<?>) object,
+            return Trampoline.evaluate(
+                this,
+                (Sequence<?>) object,
                 equal -> sequence -> other -> sequence.matchLazy(
                     (x, xs) -> other.match(
                         (y, ys) -> x.get().equals(y) ? call(equal, xs, ys) : terminate(false),
@@ -1755,7 +1759,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @throws ArithmeticException if the length overflows a long
      */
     public long length() {
-        return Trampoline.evaluate(this, 0L,
+        return Trampoline.evaluate(
+            this,
+            0L,
             length -> sequence -> n -> sequence.matchLazy(
                 (head, tail) -> call(length, tail, Math.incrementExact(n)),
                 () -> terminate(n)
@@ -1800,7 +1806,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#shorterThan(Sequence)
      */
     public boolean longerThan(Sequence<?> sequence) {
-        return Trampoline.evaluate(this, sequence,
+        return Trampoline.evaluate(
+            this,
+            sequence,
             longer -> seq -> other -> seq.matchLazy(
                 (x, xs) -> other.matchLazy(
                     (y, ys) -> call(longer, xs, ys),
@@ -1867,7 +1875,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#or(Sequence)
      */
     public boolean any(Predicate<? super T> predicate) {
-        return Trampoline.evaluate(this,
+        return Trampoline.evaluate(
+            this,
             any -> sequence -> sequence.match(
                 (head, tail) -> predicate.test(head) ? terminate(true) : call(any, tail),
                 () -> terminate(false)
@@ -2054,7 +2063,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * this sequence.
      */
     public boolean hasPrefix(Sequence<? extends T> prefix) {
-        return Trampoline.evaluate(this, prefix,
+        return Trampoline.evaluate(
+            this,
+            prefix,
             hasPrefix -> sequence -> other -> other.matchLazy(
                 (y, ys) -> sequence.match(
                     (x, xs) -> x.equals(y.get()) ? call(hasPrefix, xs, ys) : terminate(false),
@@ -2084,7 +2095,9 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /** True if and only if all of the given elements appear somewhere in this sequence in their same order. */
     public boolean hasSubsequence(Sequence<? extends T> subsequence) {
-        return Trampoline.evaluate(this, subsequence,
+        return Trampoline.evaluate(
+            this,
+            subsequence,
             hasSubsequence -> sequence -> other -> other.matchLazy(
                 (y, ys) -> sequence.match(
                     (x, xs) -> x.equals(y.get()) ? call(hasSubsequence, xs, ys) : call(
@@ -2146,7 +2159,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** The element of this sequence at a given index, if the index is in bounds. */
     public Maybe<T> element(long index) {
         return index < 0 ? Maybe.empty() : Maybe.lazy(
-            () -> Trampoline.evaluate(this, index,
+            () -> Trampoline.evaluate(
+                this,
+                index,
                 element -> sequence -> n -> sequence.matchLazy(
                     (head, tail) -> n == 0 ? terminate(Maybe.of(head)) : call(element, tail, n - 1),
                     () -> terminate(Maybe.empty())
@@ -2168,7 +2183,8 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** The first element of this sequence that satisfies a predicate, if such an element exists. */
     public Maybe<T> find(Predicate<? super T> predicate) {
         return Maybe.lazy(
-            () -> Trampoline.evaluate(this,
+            () -> Trampoline.evaluate(
+                this,
                 find -> sequence -> sequence.match(
                     (head, tail) -> predicate.test(head) ? terminate(Maybe.of(head)) : call(find, tail),
                     () -> terminate(Maybe.empty())
@@ -2198,7 +2214,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Functions#flip(BiFunction)
      */
     public <R> R foldLeft(R initial, BiFunction<R, ? super T, R> function) {
-        return Trampoline.evaluate(this, initial,
+        return Trampoline.evaluate(
+            this,
+            initial,
             fold -> sequence -> result -> sequence.match(
                 (head, tail) -> call(fold, tail, function.apply(result, head)),
                 () -> terminate(result)
@@ -2239,7 +2257,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * result, allowing it to work on infinite sequences.
      */
     public <R> R foldRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
-        return Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
+        return Trampoline.evaluate(
+            this,
+            Sequence.<Function<R, R>>empty(),
             fold -> sequence -> reversed -> sequence.match(
                 (head, tail) -> function.apply(head).match(
                     left -> terminate(reversed.foldLeft(left, uncurry(Functions::apply))),
@@ -2259,7 +2279,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public Maybe<T> foldRight(Function<T, Either<T, Function<T, T>>> operator) {
         return Maybe.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<T, T>>empty(),
+            () -> Trampoline.evaluate(
+                this,
+                Sequence.<Function<T, T>>empty(),
                 fold -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> operator.apply(head).match(
@@ -2396,7 +2418,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** Reverse the order of this sequence. */
     public Sequence<T> reverse() {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<T>empty(),
+            () -> Trampoline.evaluate(
+                this,
+                Sequence.<T>empty(),
                 reverse -> sequence -> reversed -> sequence.matchLazy(
                     (head, tail) -> call(reverse, tail, Sequence.cons(head, reversed)),
                     () -> terminate(reversed)
@@ -2611,7 +2635,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public Sequence<T> skip(long length) {
         return length <= 0 ? this : Sequence.lazy(
-            () -> Trampoline.evaluate(this, length,
+            () -> Trampoline.evaluate(
+                this,
+                length,
                 skip -> sequence -> n -> n == 0 ? terminate(sequence) : sequence.matchLazy(
                     (head, tail) -> call(skip, tail, n - 1),
                     () -> terminate(Sequence.empty())
@@ -2623,7 +2649,8 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** The elements following the longest prefix of elements of this sequence that satisfy a predicate. */
     public Sequence<T> skipWhile(Predicate<? super T> predicate) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this,
+            () -> Trampoline.evaluate(
+                this,
                 skip -> sequence -> sequence.match(
                     (head, tail) -> predicate.test(head) ? call(skip, tail) : terminate(Sequence.cons(head, tail)),
                     () -> terminate(Sequence.empty())
@@ -2635,7 +2662,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** Skip as many elements of this sequence as another sequence produces. */
     public Sequence<T> skipWhile(Sequence<?> sequence) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, sequence,
+            () -> Trampoline.evaluate(
+                this,
+                sequence,
                 skip -> seq -> other -> other.matchLazy(
                     (y, ys) -> seq.matchLazy(
                         (x, xs) -> call(skip, xs, ys),
@@ -2727,7 +2756,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** Filter out the longest prefix of another sequence that is a subsequence of this sequence. */
     public Sequence<T> delete(Sequence<? extends T> sequence) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, sequence,
+            () -> Trampoline.evaluate(
+                this,
+                sequence,
                 delete -> xs_ -> ys_ -> ys_.matchLazy(
                     (y, ys) -> xs_.match(
                         (x, xs) -> let(
@@ -3217,7 +3248,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public <R> Sequence<R> scanRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<R, R>>empty(),
+            () -> Trampoline.evaluate(
+                this,
+                Sequence.<Function<R, R>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
                     (head, tail) -> function.apply(head).match(
                         left -> terminate(
@@ -3243,7 +3276,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public Sequence<T> scanRight(Function<T, Either<T, Function<T, T>>> operator) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(this, Sequence.<Function<T, T>>empty(),
+            () -> Trampoline.evaluate(
+                this,
+                Sequence.<Function<T, T>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> operator.apply(head).match(

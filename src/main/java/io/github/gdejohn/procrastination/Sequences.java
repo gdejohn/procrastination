@@ -498,7 +498,9 @@ public final class Sequences {
      * @see Sequences#lexicographically() Sequence.lexicographically()
      */
     public static <T> Comparator<Sequence<T>> lexicographically(Comparator<? super T> comparator) {
-        return (left, right) -> Trampoline.evaluate(left, right,
+        return (left, right) -> Trampoline.evaluate(
+            left,
+            right,
             f -> x_xs -> y_ys -> x_xs.match(
                 (x, xs) -> y_ys.match(
                     (y, ys) -> let(
