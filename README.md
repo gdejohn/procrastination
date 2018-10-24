@@ -19,10 +19,10 @@ The included data structures are lazily evaluated. They procrastinate, doing the
 required and putting it off for as long as possible, only computing each of their elements on demand. They can also be
 memoized such that each element is computed at most once, the first time it's asked for, and then cached.
 
-Because the data structures are purely functional, they are also fully persistent. Instead of mutators, methods are
-provided that return a new version of a given data structure reflecting the desired changes, leaving the previous
-version intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe
-because the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced). 
+Because the data structures are purely functional, they are fully persistent. Instead of mutators, methods are provided
+that return a new version of a given data structure reflecting the desired changes, leaving the previous version
+intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe because
+the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced). 
 
 The data structures are designed to emulate algebraic data types, with basic "data constructor" static factory methods
 mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general pattern-matching
@@ -69,12 +69,12 @@ data-structure analogue of Java's checked exceptions.
 
 `Sequence` offers an alternative to the Stream API introduced in Java 8. Unlike streams, sequences can be traversed any
 number of times (although this does mean that sequences derived from one-shot sources like iterators *must* be
-memoized). It's also much easier to define new functionality for sequences. One of the biggest goals of the Stream API
-was parallel processing, which is why streams were designed around [`spliterators`][spliterator]. So, processing a
-given stream in a way that isn't covered by the API means working directly with its spliterator, and creating a new
-stream in a way that isn't covered by the API means implementing a spliterator. Consider the instance method
-[`Sequence.scanLeft(Object,BiFunction)`][scan], which returns the lazy sequence of intermediate results of a left fold.
-Here's a basic implementation for streams:
+memoized). Sequences also provide a much more extensive API, and it's significantly easier to define new functionality
+for sequences. One of the biggest goals of the Stream API was parallel processing, which is why streams were designed
+around [`spliterators`][spliterator]. So, processing a given stream in a way that isn't covered by the API means
+working directly with its spliterator, and creating a new stream in a way that isn't covered by the API means
+implementing a spliterator. Consider the instance method [`Sequence.scanLeft(Object,BiFunction)`][scan], which returns
+the lazy sequence of intermediate results of a left fold. Here's a basic implementation for streams:
 
 ```java
 import java.util.Spliterator;
@@ -108,9 +108,9 @@ static <T, R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R, T, R
 ```
 
 It's imperative, stateful, and the control flow is a little hard to follow; not exactly pleasant. (Note that the
-characteristics, estimated size, and parallelism of the source stream's spliterator are ignored.) On the other hand,
-because sequences are recursively defined, they admit a concise, natural recursive implementation of `scanLeft()` that
-anyone could easily write if it weren't already included:
+characteristics and estimated size of the source stream's spliterator are ignored.) On the other hand, because
+sequences are recursively defined, they admit a concise, natural recursive implementation of `scanLeft()` that anyone
+could easily write if it weren't already included:
 
 ```java
 import io.github.gdejohn.procrastination.Sequence;
