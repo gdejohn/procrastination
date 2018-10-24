@@ -135,7 +135,7 @@ parallelism, give `Sequence` a try!
 
 ## Trampolines
 
-Applying imperative idioms to sequences is ugly and error-prone; recursive data types call for recursive algorithms.
+Applying imperative idioms to sequences is ugly and error prone; recursive data types call for recursive algorithms.
 Unfortunately, Java isn't very recursion friendly: deep call stacks quickly run afoul of stack overflow exceptions, and
 tail recursion doesn't help because there's no tail-call elimination. This isn't a problem for lazy operations like
 [`Sequence.map(Function)`][map], but whenever a potentially large number of elements must be eagerly traversed, as in
