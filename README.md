@@ -6,12 +6,12 @@
 
 # procrastination
 
-**procrastination** is a modular, zero-dependency library for Java 11 that provides
+**procrastination** is a modular, zero-dependency library for Java 11 that provides:
 
-* lazily evaluated, memoizing, purely functional data structures;
-* ad hoc pattern matching;
-* an extensible, reusable alternative to Java 8's [`Stream`][stream];
-* and stack-safe tail-recursive lambda expressions via trampolines and fixed points.
+* lazily evaluated, memoizing, purely functional data structures
+* ad hoc pattern matching
+* an extensible, reusable alternative to Java 8's [`Stream`][stream]
+* stack-safe tail-recursive lambda expressions via trampolines and fixed points
 
 ## Data Structures
 
@@ -142,10 +142,25 @@ tail recursion doesn't help because there's no tail-call elimination. This isn't
 [`Sequence.filter(Predicate)`][filter], stack overflow is waiting to pounce. Enter trampolines.
 
 [`Trampoline`][trampoline] transforms tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
-return type `T`, change the return type to `Trampoline<T>`, wrap the expressions returned in base cases with the static
+return type `R`, change the return type to `Trampoline<R>`, wrap the expressions returned in base cases with the static
 factory method [`terminate()`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and
-wrap the suspended recursive calls with the static factory method [`call()`][callSupplier]. To get the result from a
-trampoline, invoke the instance method [`evaluate()`][evaluate].
+wrap the suspended recursive calls with the static factory method [`call()`][callSupplier]. For example:
+
+```java
+/** True if and only if the sequence contains at least one element that satisfies the predicate. */
+static <T> Trampoline<Boolean> any(Sequence<T> sequence, Predicate<T> predicate) {
+    return sequence.match(
+        (head, tail) -> predicate.test(head) ? terminate(true) : call(() -> any(tail, predicate)),
+        () -> terminate(false)
+    );
+}
+```
+
+To get the result from a trampoline, use the instance method [`evaluate()`][evaluate]:
+
+```java
+boolean result = any(sequence, predicate).evaluate();
+```
 
 ### Anonymous Recursion
 
