@@ -121,7 +121,7 @@ static <T, R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R
         initial,
         () -> sequence.match(
             (head, tail) -> scanLeft(tail, function.apply(initial, head), function),
-            Sequence.empty()
+            () -> Sequence.empty()
         )
     );
 }
