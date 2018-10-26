@@ -80,20 +80,63 @@ import static java.util.stream.Collectors.mapping;
  * duplicates.
  *
  * <p>Sequences are recursively defined: they are either {@link Sequence#empty() empty}, or
- * {@link Sequence#cons(Object, Sequence) constructed} from a head element and a tail sequence. Conversely, the
- * instance method {@link Sequence#match(BiFunction, Supplier) match} pulls a sequence apart, simulating pattern
- * matching: if the sequence is non-empty, its head and tail are passed as arguments to a given binary function to
- * produce a result, otherwise the result is a given default value.
+ * {@link Sequence#cons(Object,Sequence) constructed} from a head element and a tail sequence. Conversely, the instance
+ * method {@link Sequence#match(BiFunction,Supplier) match(BiFunction,Supplier)} pulls a sequence apart, simulating
+ * pattern matching: if the sequence is non-empty, the binary function is applied to the head and tail and the result
+ * is returned, otherwise a default value produced by the supplier is returned.
  *
  * <p>Sequences are lazy in the sense that they procrastinate: they put off work for as long as possible, only
  * computing each element on demand. They can also be {@link Sequence#memoize() memoized} such that each element is
  * computed at most once, the first time it is asked for, and then cached. Because sequences are lazy, it is perfectly
  * natural to work with infinite sequences.
  *
- * <p>Unlike {@link Stream streams}, sequences can be traversed any number of times. The trade-off is that sequences
- * derived from one-shot sources (e.g., iterators, streams) <em>must</em> be memoized.
+ * <p>Sequences implement {@link Iterable}, so they can be used in for-each loops. Unlike {@link Stream streams},
+ * sequences can be traversed any number of times. The trade-off is that sequences derived from one-shot sources (e.g.,
+ * iterators, streams) <em>must</em> be memoized. Sequences do not support parallel processing, but it is much easier
+ * to recursively define new operations on sequences than working with spliterators to define new operations on
+ * streams.
  *
- * <p>This class offers no public or protected constructors, thereby prohibiting inheritance.
+ * <p>There are a variety of static factory methods to create sequences from other representations of aggregate data:
+ *
+ * <ul>
+ * <li>{@link Sequence#from(Iterable) Sequence.&lt;T&gt;from(Iterable&lt;T&gt;)}
+ * <li>{@link Sequence#from(Object[]) Sequence.&lt;T&gt;from(T[])} (there are also overloads for every kind of
+ * primitive array)
+ * <li>{@link Sequence#from(CharSequence) Sequence.from(CharSequence)}
+ * <li>{@link Sequence#from(Class) Sequence.&lt;T extends Enum&lt;T&gt;&gt;from(Class&lt;T&gt;)}
+ * <li>{@link Sequence#from(Map) Sequence.&lt;K,V&gt;from(Map&lt;K,V&gt;)}
+ * <li>{@link Sequence#from(Optional) Sequence.&lt;T&gt;from(Optional&lt;T&gt;)}
+ * <li>{@link Sequence#from(Callable) Sequence.&lt;T&gt;from(Callable&lt;T&gt;)}
+ * <li>{@link Sequence#from(CompletableFuture) Sequence.&lt;T&gt;from(CompletableFuture&lt;T&gt;)}
+ * <li>{@link Sequence#from(Pair) Sequence.&lt;T&gt;from(Pair&lt;T,T&gt;)}
+ * </ul>
+ *
+ * <p>There are also static factory methods for lazily viewing one-shot sources as memoized sequences:
+ *
+ * <ul>
+ * <li>{@link Sequence#memoize(BaseStream) Sequence.&lt;T&gt;memoize(BaseStream&lt;T&gt;)}
+ * <li>{@link Sequence#memoize(Iterator) Sequence.&lt;T&gt;memoize(Iterator&lt;T&gt;)}
+ * <li>{@link Sequence#memoize(Spliterator) Sequence.&lt;T&gt;memoize(Spliterator&lt;T&gt;)}
+ * <li>{@link Sequence#memoize(Enumeration) Sequence.&lt;T&gt;memoize(Enumeration&lt;T&gt;)}
+ * </ul>
+ *
+ * <p>And there are a variety of instance methods for converting sequences into other representations:
+ *
+ * <ul>
+ * <li>{@link Sequence#stream() Sequence.stream()}
+ * <li>{@link Sequence#list() Sequence.list()}
+ * <li>{@link Sequence#iterator() Sequence.iterator()}
+ * <li>{@link Sequence#spliterator() Sequence.spliterator()}
+ * <li>{@link Sequence#array(IntFunction) Sequence.&lt;A&gt;array(IntFunction&lt;A[]&gt;)}
+ * </ul>
+ *
+ * <p>Just like streams, sequences can use the {@link Collector} API to perform mutable reductions:
+ *
+ * <ul>
+ * <li>{@link Sequence#collect(Collector) Sequence.collect(Collector)}
+ * <li>{@link Sequence#collect(Supplier,BiConsumer) Sequence.collect(Supplier,BiConsumer)}
+ * <li>{@link Sequence#collect(Supplier) Sequence.&lt;C extends Collection&lt;T&gt;&gt;collect(Supplier&lt;C&gt;)}
+ * </ul>
  *
  * @param <T> the type of the elements of this sequence
  *
@@ -514,6 +557,13 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
+     * A lazy view of an Iterable as a sequence.
+     */
+    public static <T> Sequence<T> from(Iterable<? extends T> iterable) {
+        return Sequence.lazy(() -> Sequence.memoize(iterable.iterator()));
+    }
+
+    /**
      * A lazy view of an array as a sequence.
      */
     public static <T> Sequence<T> from(T[] array) {
@@ -582,13 +632,6 @@ public abstract class Sequence<T> implements Iterable<T> {
         } else {
             return Sequence.empty();
         }
-    }
-
-    /**
-     * A lazy view of an Iterable as a sequence.
-     */
-    public static <T> Sequence<T> from(Iterable<? extends T> iterable) {
-        return Sequence.lazy(() -> Sequence.memoize(iterable.iterator()));
     }
 
     /**
@@ -694,6 +737,18 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
+     * A memoized sequence of the elements produced by a stream.
+     *
+     * <p>The sequence must be {@link Sequence#memoize() memoized} because streams can only be traversed once.
+     *
+     * <p>This method accepts any kind of {@link BaseStream} (e.g., {@link Stream}, {@link IntStream},
+     * {@link LongStream}, {@link DoubleStream}, or custom implementations).
+     */
+    public static <T> Sequence<T> memoize(BaseStream<? extends T, ?> stream) {
+        return Sequence.memoize(stream.iterator());
+    }
+
+    /**
      * A memoized sequence of the elements produced by an iterator.
      *
      * <p>The sequence must be {@link Sequence#memoize() memoized} because iterators can only be traversed once.
@@ -720,18 +775,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public static <T> Sequence<T> memoize(Enumeration<? extends T> enumeration) {
         return Sequence.memoize(enumeration.asIterator());
-    }
-
-    /**
-     * A memoized sequence of the elements produced by a stream.
-     *
-     * <p>The sequence must be {@link Sequence#memoize() memoized} because streams can only be traversed once.
-     *
-     * <p>This method accepts any kind of {@link BaseStream} (e.g., {@link Stream}, {@link IntStream},
-     * {@link LongStream}, {@link DoubleStream}, or custom implementations).
-     */
-    public static <T> Sequence<T> memoize(BaseStream<? extends T, ?> stream) {
-        return Sequence.memoize(stream.iterator());
     }
 
     /**
@@ -1881,9 +1924,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * True if and only if at least one of the elements in this sequence satisfies a predicate.
-     *
-     * <p>False if this sequence is empty.
+     * True if and only if this sequence contains at least one element that satisfies a predicate.
      *
      * @see Sequence#or(Sequence)
      */
@@ -1898,9 +1939,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * True if and only if every element in this sequence satisfies a predicate.
-     *
-     * <p>True if this sequence is empty.
+     * True if and only if this sequence contains zero elements that are rejected by a predicate.
      *
      * @see Sequence#and(Sequence)
      */
@@ -2146,7 +2185,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public Maybe<T> last() {
         return Maybe.lazy(
-            () -> Trampoline.evaluate(this,
+            () -> Trampoline.evaluate(
+                this,
                 last -> sequence -> sequence.matchLazy(
                     (head, tail) -> tail.matchNonEmpty(
                         rest -> call(last, rest),
@@ -2210,7 +2250,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     public Maybe<Long> index(T element) {
         requireNonNull(element);
         return Maybe.lazy(
-            () -> Trampoline.evaluate(this, 0L,
+            () -> Trampoline.evaluate(
+                this,
+                0L,
                 index -> sequence -> n -> n < 0 ? terminate(Maybe.empty()) : sequence.match(
                     (head, tail) -> head.equals(element) ? terminate(Maybe.of(n)) : call(index, tail, n + 1),
                     () -> terminate(Maybe.empty())
@@ -2341,7 +2383,12 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    /** Transfer the elements of this sequence to a collection. */
+    /**
+     * Transfer the elements of this sequence to a collection.
+     *
+     * @see Sequence#collect(Collector)
+     * @see Sequence#collect(Supplier,BiConsumer)
+     */
     public <C extends Collection<? super T>> C collect(Supplier<C> collection) {
         return this.collect(collection, Collection::add);
     }
@@ -2350,6 +2397,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Combine the elements of this sequence into a single, mutable result, accumulating from the left.
      *
      * @see Sequence#collect(Collector)
+     * @see Sequence#collect(Supplier)
      */
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator) {
         R result = supplier.get();
@@ -2362,6 +2410,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * left.
      *
      * @see Sequence#collect(Supplier, BiConsumer)
+     * @see Sequence#collect(Supplier)
      * @see Collectors
      */
     public <A, R> R collect(Collector<? super T, A, ? extends R> collector) {
