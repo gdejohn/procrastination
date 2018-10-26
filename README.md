@@ -15,14 +15,14 @@
 
 ## Data Structures
 
-The included data structures are lazily evaluated. They procrastinate, doing the absolute minimum amount of work
-required and putting it off for as long as possible, only computing each of their elements on demand. They can also be
-memoized such that each element is computed at most once, the first time it's asked for, and then cached.
+Lazy evaluation means that the data structures procrastinate, doing the absolute minimum amount of work required and
+putting it off for as long as possible, only computing each of their elements on demand. They can also be memoized such
+that each element is computed at most once, the first time it's requested, and then cached.
 
-Because the data structures are purely functional, they are fully persistent. Instead of mutators, methods are provided
-that return a new version of a given data structure reflecting the desired changes, leaving the previous version
-intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe because
-the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced). 
+And because the data structures are purely functional, they are fully persistent. Instead of mutators, methods are
+provided that return a new version of a given data structure reflecting the desired changes, leaving the previous
+version intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe
+because the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced).
 
 The data structures are designed to emulate algebraic data types, with basic "data constructor" static factory methods
 mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general pattern-matching
@@ -144,7 +144,7 @@ tail recursion doesn't help because there's no tail-call elimination. This isn't
 [`Trampoline`][trampoline] transforms tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
 return type `R`, change the return type to `Trampoline<R>`, wrap the expressions returned in base cases with the static
 factory method [`terminate()`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and
-wrap the suspended recursive calls with the static factory method [`call()`][callSupplier]. For example:
+wrap the suspended recursive calls with the static factory method [`call()`][call]. For example:
 
 ```java
 /** True if and only if the sequence contains at least one element that satisfies the predicate. */
@@ -178,12 +178,24 @@ impossible. The trick here is to abstract the recursive call by taking the funct
 Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
 ```
 
+And `fix()` is implemented like this:
+
+```java
+static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
+    return function.apply(argument -> fix(function).apply(argument));
+}
+```
+
+This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, it's not a combinator because it's
+defined with explicit recursion. But it doesn't need to be a combinator, it just needs to compute fixed points. And it
+does!
+
 This also works for trampolined functions and curried functions of arbitrarily many arguments.
-[`Trampoline.evaluate()`][evaluateHelper] isn't just an instance method, it's also overloaded as an all-in-one static
-helper method that accepts a trampolined recursive lambda expression and an appropriate number of arguments, fixes the
-lambda expression, applies it to the arguments, evaluates the resulting trampoline, and returns the unwrapped value.
-And to complement this approach, the static factory method [`Trampoline.call()`][callFunction] is overloaded to accept
-curried functions and matching arguments. For example:
+[`Trampoline.evaluate()`][helper] isn't just an instance method, it's also overloaded as an all-in-one static helper
+method that accepts a trampolined recursive lambda expression and an appropriate number of arguments, fixes the lambda
+expression, applies it to the arguments, evaluates the resulting trampoline, and returns the unwrapped value. And to
+complement this approach, the static factory method [`Trampoline.call()`][complement] is overloaded to accept curried
+functions and matching arguments. For example:
 
 ```java
 static int length(Sequence<?> sequence) {
@@ -256,18 +268,19 @@ The included jshell script [`procrastination.jsh`][script] makes it easy to play
 directory run `mvn compile` and `jshell procrastination.jsh`. The script adds the module to the jshell environment and
 imports all of the types and static members.
 
-[callFunction]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
-[callSupplier]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
+[call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
 [ci]: https://travis-ci.com/gdejohn/procrastination
+[combinator]: https://mvanier.livejournal.com/2897.html
+[complement]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
 [cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
 [coverage]: https://codecov.io/gh/gdejohn/procrastination
 [either]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
 [empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
 [evaluate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate()
-[evaluateHelper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [filter]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#filter(java.util.function.Predicate)
 [fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
+[helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [javadoc]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
 [license]: http://www.apache.org/licenses/LICENSE-2.0
 [map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
