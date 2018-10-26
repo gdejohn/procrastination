@@ -274,7 +274,20 @@ public final class Functions {
      * @see Consumers#fix(UnaryOperator)
      */
     public static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
-        return function.apply(argument -> fix(function).apply(argument));
+        class Fix implements Function<T, R> {
+            private final Function<T, R> function;
+
+            Fix(UnaryOperator<Function<T, R>> function) {
+                this.function = function.apply(this);
+            }
+
+            @Override
+            public R apply(T argument) {
+                return this.function.apply(argument);
+            }
+        }
+
+        return new Fix(function);
     }
 
     /**

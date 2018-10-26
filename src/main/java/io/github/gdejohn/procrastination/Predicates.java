@@ -111,7 +111,7 @@ public final class Predicates {
      * @see Predicates#apply(Function, Object, Object, Object, Object)
      */
     public static <T, U, V> boolean apply(Function<? super T, ? extends Function<? super U, ? extends Predicate<? super V>>> predicate, T first, U second, V third) {
-        return Predicates.apply(predicate.apply(first), second, third);
+        return apply(predicate.apply(first), second, third);
     }
 
     /**
@@ -121,7 +121,7 @@ public final class Predicates {
      * @see Predicates#apply(Function, Object, Object, Object)
      */
     public static <T, U, V, W> boolean apply(Function<? super T, ? extends Function<? super U, ? extends Function<? super V, ? extends Predicate<? super W>>>> predicate, T first, U second, V third, W fourth) {
-        return Predicates.apply(predicate.apply(first), second, third, fourth);
+        return apply(predicate.apply(first), second, third, fourth);
     }
 
     /**
@@ -258,13 +258,27 @@ public final class Predicates {
     }
 
     /**
-     * Compute the fixed point of a higher-order function, yielding a recursive predicate.
+     * Return the fixed point of a unary operator on predicates, enabling recursive lambda expressions (i.e., anonymous
+     * recursion).
      *
      * @see Functions#fix(UnaryOperator)
      * @see Consumers#fix(UnaryOperator)
      */
-    public static <T> Predicate<T> fix(UnaryOperator<Predicate<T>> operator) {
-        return operator.apply(argument -> fix(operator).test(argument));
+    public static <T> Predicate<T> fix(UnaryOperator<Predicate<T>> predicate) {
+        class Fix implements Predicate<T> {
+            private final Predicate<T> predicate;
+
+            Fix(UnaryOperator<Predicate<T>> predicate) {
+                this.predicate = predicate.apply(this);
+            }
+
+            @Override
+            public boolean test(T argument) {
+                return this.predicate.test(argument);
+            }
+        }
+
+        return new Fix(predicate);
     }
 
     /**

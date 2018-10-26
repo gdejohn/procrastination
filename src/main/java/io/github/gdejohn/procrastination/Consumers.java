@@ -72,13 +72,27 @@ public final class Consumers {
     }
 
     /**
-     * Compute the fixed point of a higher-order function, yielding a recursive action.
+     * Return the fixed point of a unary operator on actions, enabling recursive lambda expressions (i.e., anonymous
+     * recursion).
      *
      * @see Functions#fix(UnaryOperator)
      * @see Predicates#fix(UnaryOperator)
      */
-    public static <T> Consumer<T> fix(UnaryOperator<Consumer<T>> operator) {
-        return operator.apply(variable -> fix(operator).accept(variable));
+    public static <T> Consumer<T> fix(UnaryOperator<Consumer<T>> action) {
+        class Fix implements Consumer<T> {
+            private final Consumer<T> action;
+
+            Fix(UnaryOperator<Consumer<T>> action) {
+                this.action = action.apply(this);
+            }
+
+            @Override
+            public void accept(T argument) {
+                this.action.accept(argument);
+            }
+        }
+
+        return new Fix(action);
     }
 
     /**
@@ -120,7 +134,7 @@ public final class Consumers {
      * @see Consumers#apply(Function, Object, Object, Object, Object)
      */
     public static <T, U, V> void apply(Function<? super T, ? extends Function<? super U, ? extends Consumer<? super V>>> action, T first, U second, V third) {
-        Consumers.apply(action.apply(first), second, third);
+        apply(action.apply(first), second, third);
     }
 
     /**
@@ -130,7 +144,7 @@ public final class Consumers {
      * @see Consumers#apply(Function, Object, Object, Object)
      */
     public static <T, U, V, W> void apply(Function<? super T, ? extends Function<? super U, ? extends Function<? super V, ? extends Consumer<? super W>>>> action, T first, U second, V third, W fourth) {
-        Consumers.apply(action.apply(first), second, third, fourth);
+        apply(action.apply(first), second, third, fourth);
     }
 
     /** Partially apply a binary consumer, fixing its first argument. */
