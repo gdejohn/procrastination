@@ -585,7 +585,14 @@ public abstract class Either<A, B> {
         );
     }
 
-    /** Lazily apply a lifted function to this, biased on the right. */
+    /**
+     * Lazily apply a lifted function to this {@code Either}, biased on the right.
+     *
+     * <p>If the value of the given {@code Either} is on the left, return that value on the left. Otherwise, if the
+     * value of this {@code Either} is on the left, return that value on the left. Otherwise, apply the function
+     * on the right of the given {@code Either} to the value on the right of this {@code Either} and return the result
+     * on the right.
+     */
     public <C> Either<A, C> applyRight(Either<? extends A, ? extends Function<? super B, ? extends C>> function) {
         return Either.<A, Function<? super B, ? extends C>>cast(function).flatMapRight(this::mapRight);
     }
@@ -597,7 +604,14 @@ public abstract class Either<A, B> {
         return this.flatMapRight(value -> either.mapRight(Functions.apply(function, value)));
     }
 
-    /** Lazily apply a lifted function to this, biased on the left. */
+    /**
+     * Lazily apply a lifted function to this {@code Either}, biased on the left.
+     *
+     * <p>If the value of the given {@code Either} is on the right, return that value on the right. Otherwise, if the
+     * value of this {@code Either} is on the right, return that value on the right. Otherwise, apply the function
+     * on the left of the given {@code Either} to the value on the left of this {@code Either} and return the result
+     * on the left.
+     */
     public <C> Either<C, B> applyLeft(Either<? extends Function<? super A, ? extends C>, ? extends B> function) {
         return Either.<Function<? super A, ? extends C>, B>cast(function).flatMapLeft(this::mapLeft);
     }
