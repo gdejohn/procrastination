@@ -2620,9 +2620,12 @@ public abstract class Sequence<T> implements Iterable<T> {
     /** The elements of this sequence that satisfy a predicate. */
     public Sequence<T> filter(Predicate<? super T> predicate) {
         return Sequence.lazy(
-            () -> this.skipWhile(predicate.negate()).match(
-                (head, tail) -> Sequence.cons(head, tail.filter(predicate)),
-                Sequence.empty()
+            () -> Trampoline.evaluate(
+                this,
+                filter -> sequence -> sequence.match(
+                    (x, xs) -> predicate.test(x) ? terminate(cons(x, xs.filter(predicate))) : call(filter, xs),
+                    () -> terminate(Sequence.empty())
+                )
             )
         );
     }

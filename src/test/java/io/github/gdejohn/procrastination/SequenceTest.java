@@ -841,7 +841,8 @@ class SequenceTest {
             () -> assertThat(Sequences.range(0, 10).filter(x -> x % 2 == 0)).containsExactly(0, 2, 4, 6, 8, 10),
             () -> assertThat(Sequences.range(0, 4).filter(x -> false)).isEmpty(),
             () -> assertThat(Sequences.range(0, 4).filter(x -> true)).containsExactly(0, 1, 2, 3, 4),
-            () -> assertThat(Sequence.empty().filter(x -> true)).isEmpty()
+            () -> assertThat(Sequence.empty().filter(x -> true)).isEmpty(),
+            () -> assertThat(Sequences.ints().filter(greaterThan(10_000)).head()).containsExactly(10_001)
         );
     }
 
