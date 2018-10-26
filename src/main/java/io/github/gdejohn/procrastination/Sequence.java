@@ -60,8 +60,6 @@ import static io.github.gdejohn.procrastination.Functions.uncurry;
 import static io.github.gdejohn.procrastination.Maybe.when;
 import static io.github.gdejohn.procrastination.Pair.bySecond;
 import static io.github.gdejohn.procrastination.Predicates.gather;
-import static io.github.gdejohn.procrastination.Predicates.greaterThanOrEqualTo;
-import static io.github.gdejohn.procrastination.Predicates.lessThan;
 import static io.github.gdejohn.procrastination.Predicates.on;
 import static io.github.gdejohn.procrastination.Trampoline.call;
 import static io.github.gdejohn.procrastination.Trampoline.terminate;
@@ -2433,15 +2431,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#strictlyDecreasing(Comparator)
      */
     public Sequence<T> sort(Comparator<? super T> comparator) {
-        return Sequence.lazy(
-            () -> this.match(
-                (head, tail) -> Sequences.concatenate(
-                    tail.filter(lessThan(head, comparator)).sort(comparator),
-                    Sequence.cons(head, tail.filter(greaterThanOrEqualTo(head, comparator)).sort(comparator))
-                ),
-                Sequence.empty()
-            )
-        );
+        return Sequence.lazy(() -> Sequence.memoize(this.stream().sorted(comparator)));
     }
 
     /**
