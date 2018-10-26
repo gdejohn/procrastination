@@ -13,7 +13,6 @@
 
 package io.github.gdejohn.procrastination;
 
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -21,6 +20,7 @@ import java.util.function.UnaryOperator;
 import static io.github.gdejohn.procrastination.Functions.apply;
 import static io.github.gdejohn.procrastination.Functions.fix;
 import static io.github.gdejohn.procrastination.Unit.unit;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Stack-safe tail recursion via tail-call elimination.
@@ -29,20 +29,19 @@ import static io.github.gdejohn.procrastination.Unit.unit;
  * {@link Trampoline#terminate(Object) terminate} to create trampolines, and the instance method
  * {@link Trampoline#evaluate() evaluate} to get the result.
  *
- * <p>To trampoline a tail-recursive method with some return type {@code T},
+ * <p>To trampoline a tail-recursive method with some return type {@code R},
  *
  * <ol>
- * <li>change the return type to {@code Trampoline<T>};
+ * <li>change the return type to {@code Trampoline<R>};
  * <li>for each base case, wrap the returned expression with {@code terminate()};
  * <li>suspend each recursive call in a {@link Supplier} lambda expression and wrap with {@code call()}.
  * </ol>
  *
  * <p>This approach cleanly extends to mutual recursion.
  *
- * <p>Instead of delegating to a private trampolined helper method to avoid exposing to client code the implementation
- * details of tail recursion and trampolining, tail-recursive computations can be performed inline with the static
- * helper methods {@link Trampoline#evaluate(Object, UnaryOperator)} and
- * {@link Trampoline#execute(Object, UnaryOperator)}.
+ * <p>Instead of delegating to a private trampolined helper method to hide the implementation details of tail recursion
+ * and trampolining, tail-recursive computations can be defined inline with the static helper methods
+ * {@link Trampoline#evaluate(Object, UnaryOperator)} and {@link Trampoline#execute(Object, UnaryOperator)}.
  *
  * @param <T> the type of the value that this trampoline computes
  */
@@ -74,7 +73,7 @@ public abstract class Trampoline<T> {
      * <p>In the context of tail recursion, this represents a base case.
      */
     public static <T> Trampoline<T> terminate(T value) {
-        Objects.requireNonNull(value);
+        requireNonNull(value);
         return new Trampoline<>() {
             @Override
             protected Trampoline<? extends T> bounce() {
