@@ -138,6 +138,12 @@ import static java.util.stream.Collectors.mapping;
  * <li>{@link Sequence#collect(Supplier) Sequence.&lt;C extends Collection&lt;T&gt;&gt;collect(Supplier&lt;C&gt;)}
  * </ul>
  *
+ * <p>There's also a collector that produces sequences, and it can take advantage of parallelism:
+ *
+ * <ul>
+ * <li>{@link Sequences#toSequence() Sequences.toSequence()}
+ * </ul>
+ *
  * @param <T> the type of the elements of this sequence
  *
  * @see Maybe
