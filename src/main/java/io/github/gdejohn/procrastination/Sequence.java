@@ -1761,12 +1761,25 @@ public abstract class Sequence<T> implements Iterable<T> {
     public long length() {
         return Trampoline.evaluate(
             this,
-            0L,
+            new MutableLong(0),
             length -> sequence -> n -> sequence.matchLazy(
-                (head, tail) -> call(length, tail, Math.incrementExact(n)),
-                () -> terminate(n)
+                (head, tail) -> call(length, tail, n.increment()),
+                () -> terminate(n.value)
             )
         );
+    }
+
+    private static class MutableLong {
+        long value;
+
+        MutableLong(long value) {
+            this.value = value;
+        }
+
+        MutableLong increment() {
+            this.value = Math.incrementExact(this.value);
+            return this;
+        }
     }
 
     /** The nonnegative number of elements in this sequence, if less than or equal to a given bound. */
