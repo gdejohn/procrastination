@@ -37,20 +37,15 @@ import static java.util.Objects.requireNonNull;
 /**
  * A lazily evaluated, persistent collection with at most one element.
  *
- * <p>{@code Maybe} is a lazy alternative to {@link Optional}.
+ * <p>{@code Maybe} is a lazy alternative to {@link Optional}. It implements {@link Iterable}, so it can be used in
+ * for-each loops. An instance of {@code Maybe<T>} can be thought of as a value of type {@code T} that may or may not
+ * exist, or as a {@link Sequence sequence} with a length of at most one, or as an {@code Either<Unit, T>} (i.e., the
+ * sum of {@code T} and {@link Unit}).
  *
- * <p>An instance of {@code Maybe<T>} can be thought of as a value of type {@code T} that may or may not exist, or as a
- * {@code Sequence<T>} with a length of at most one, or as an {@code Either<Unit, T>} (i.e., the sum of
- * {@code T} and {@code Unit}).
- *
- * <p>{@code Maybe} is often used to model the possibility of failure. {@code Either} offers an alternative where the
+ * <p>{@code Maybe} is often used to model the possibility of failure. {@link Either} offers an alternative where the
  * failure case can have information associated with it (e.g., an exception, or an error message).
  *
  * @param <T> the type of the value, if it exists
- *
- * @see Sequence
- * @see Either
- * @see Unit
  */
 public abstract class Maybe<T> implements Iterable<T> {
     private static abstract class Proxy<T> extends Maybe<T> {
