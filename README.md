@@ -1,5 +1,5 @@
 [![Artifact repository](https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue)][jitpack]
-[![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)][javadoc]
+[![Javadoc](https://img.shields.io/badge/javadoc-0.1.0-brightgreen.svg)][javadoc]
 [![License](https://img.shields.io/github/license/gdejohn/procrastination.svg)][license]
 [![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)][build]
 [![Code coverage](https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg)][coverage]
@@ -270,32 +270,32 @@ directory run `mvn compile` and `jshell procrastination.jsh`. The script adds th
 imports all of the types and static members.
 
 [build]: https://travis-ci.com/gdejohn/procrastination
-[call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
+[call]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
 [combinator]: https://mvanier.livejournal.com/2897.html
-[complement]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
-[cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
+[complement]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
+[cons]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
 [coverage]: https://codecov.io/gh/gdejohn/procrastination
-[either]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
-[empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
+[either]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
+[empty]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
-[evaluate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate()
-[filter]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#filter(java.util.function.Predicate)
-[fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
-[helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
-[javadoc]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
+[evaluate]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate()
+[filter]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#filter(java.util.function.Predicate)
+[fix]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
+[helper]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
+[javadoc]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [license]: http://www.apache.org/licenses/LICENSE-2.0
-[map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
-[match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
-[maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
-[memoize]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
+[map]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
+[match]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
+[maybe]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
+[memoize]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
 [optional]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Optional.html
-[pair]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Pair.html
-[scan]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#scanLeft(R,java.util.function.BiFunction)
+[pair]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Pair.html
+[scan]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#scanLeft(R,java.util.function.BiFunction)
 [script]: https://github.com/gdejohn/procrastination/blob/master/procrastination.jsh
-[sequence]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html
+[sequence]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html
 [spliterator]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Spliterator.html
 [stream]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/Stream.html
 [supplier]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Supplier.html
-[terminate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#terminate(T)
-[trampoline]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html
+[terminate]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#terminate(T)
+[trampoline]: https://jitpack.io/io/github/gdejohn/procrastination/0.1.0/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html
