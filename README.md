@@ -1,7 +1,7 @@
 [![Artifact repository](https://img.shields.io/badge/jitpack-SNAPSHOT-blue.svg)][snapshot]
 [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)][javadoc]
 [![License](https://img.shields.io/github/license/gdejohn/procrastination.svg)][license]
-[![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)][ci]
+[![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)][build]
 [![Code coverage](https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg)][coverage]
 
 # procrastination
@@ -67,14 +67,16 @@ data-structure analogue of Java's checked exceptions.
 
 ## Sequences vs. Streams
 
-`Sequence` offers an alternative to the Stream API introduced in Java 8. Unlike streams, sequences can be traversed any
-number of times (although this does mean that sequences derived from one-shot sources like iterators *must* be
-memoized). Sequences also provide a much more comprehensive API, and it's significantly easier to define new
-functionality for sequences. One of the biggest goals of the Stream API was parallel processing, which is why streams
-were designed around [`spliterators`][spliterator]. So, processing a given stream in a way that isn't covered by the
-API means working directly with its spliterator, and creating a new stream in a way that isn't covered by the API means
-implementing a spliterator. Consider the instance method [`Sequence.scanLeft(Object,BiFunction)`][scan], which returns
-the lazy sequence of intermediate results of a left fold. Here's a basic implementation for streams:
+`Sequence` offers an alternative to the Stream API introduced in Java 8. Like streams, there are a variety of methods
+to go back and forth between sequences and other representations, including collections, arrays, and streams. Unlike
+streams, sequences can be traversed any number of times (although this does mean that sequences derived from one-shot
+sources like iterators *must* be memoized). Sequences also provide a much more comprehensive API, and it's
+significantly easier to define new functionality for sequences. One of the biggest goals of the Stream API was parallel
+processing, which is why streams were designed around [`spliterators`][spliterator]. So, processing a given stream in a
+way that isn't covered by the API means working directly with its spliterator, and creating a new stream in a way that
+isn't covered by the API means implementing a spliterator. Consider the instance method
+[`Sequence.scanLeft(Object,BiFunction)`][scan], which returns the lazy sequence of intermediate results of a left fold.
+Here's a basic implementation for streams:
 
 ```java
 import java.util.Spliterator;
@@ -186,9 +188,8 @@ static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
 }
 ```
 
-This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, it's not a combinator because it's
-defined with explicit recursion. But it doesn't need to be a combinator, it just needs to compute fixed points. And it
-does!
+This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, it's not a combinator because it
+uses explicit recursion. But it doesn't need to be a combinator, it only needs to produce fixed points. And it does!
 
 This also works for trampolined functions and curried functions of arbitrarily many arguments.
 [`Trampoline.evaluate()`][helper] isn't just an instance method, it's also overloaded as an all-in-one static helper
@@ -268,8 +269,8 @@ The included jshell script [`procrastination.jsh`][script] makes it easy to play
 directory run `mvn compile` and `jshell procrastination.jsh`. The script adds the module to the jshell environment and
 imports all of the types and static members.
 
+[build]: https://travis-ci.com/gdejohn/procrastination
 [call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
-[ci]: https://travis-ci.com/gdejohn/procrastination
 [combinator]: https://mvanier.livejournal.com/2897.html
 [complement]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
 [cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
