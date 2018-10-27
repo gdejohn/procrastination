@@ -88,6 +88,12 @@ import static java.util.stream.Collectors.mapping;
  * computed at most once, the first time it is asked for, and then cached. Because sequences are lazy, it is perfectly
  * natural to work with infinite sequences.
  *
+ * <p>Care must be taken with sequences that might be infinite or memoized. Some operations (e.g.,
+ * {@link Sequence#last() Sequence.last()}) must traverse an entire sequence and will never return if it's infinite.
+ * Others operations (e.g., {@link Sequence#find(Predicate) Sequence.find(Predicate)} can short-circuit, so they might
+ * return given an infinite sequence or they might not. Even if a sequence is finite, these eager operations can still
+ * throw {@link OutOfMemoryError} if it is memoized, can't be garbage-collected, and doesn't fit in memory.
+ *
  * <p>Sequences implement {@link Iterable}, so they can be used in for-each loops. Unlike {@link Stream streams},
  * sequences can be traversed any number of times. The trade-off is that sequences derived from one-shot sources (e.g.,
  * iterators, streams) <em>must</em> be memoized. Sequences do not support parallel processing, but it is much easier
@@ -228,6 +234,9 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A sequence that delegates pattern matching to a lazily evaluated sequence.
+     *
+     * <p>The sequence to which the returned sequence delegates is reevaluated and memoized each time it's matched
+     * against and then it's discarded. The returned sequence itself is not memoized.
      */
     public static <T> Sequence<T> lazy(Supplier<? extends Sequence<? extends T>> sequence) {
         return new Sequence.Proxy<>() {
@@ -936,9 +945,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * True if and only if every element in a sequence of booleans is true.
-     *
-     * <p>True if empty.
+     * True if and only if the given sequence contains zero elements that are false.
      *
      * @see Sequence#all(Predicate)
      * @see Sequence#or(Sequence)
@@ -949,9 +956,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * True if and only if at least one element in a sequence of booleans is true.
-     *
-     * <p>False if empty.
+     * True if and only if the given sequence contains at least one element that is true.
      *
      * @see Sequence#any(Predicate)
      * @see Sequence#and(Sequence)
@@ -994,8 +999,8 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A sequence that only computes each element at most once, the first time it is asked for, delegating to this
-     * sequence and caching the result.
+     * A sequence that lazily delegates to this sequence, only computing each element at most once, the first time it
+     * is asked for, and then caching it.
      */
     public Sequence<T> memoize() {
         return Sequence.memoize(this);
@@ -1036,7 +1041,9 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
     }
 
-    /** Force the evaluation of every element of this sequence. */
+    /**
+     * A fully materialized sequence containing exactly the elements of this sequence, in the same order.
+     */
     public Sequence<T> eager() {
         return this.collect(Sequences.toSequence());
     }
@@ -1349,13 +1356,17 @@ public abstract class Sequence<T> implements Iterable<T> {
         return this.matchLazy(Pair::of);
     }
 
-    /** Perform an action on each element of this sequence. */
+    /**
+     * Perform an action on each element of this sequence.
+     */
     @Override
     public void forEach(Consumer<? super T> action) {
         this.spliterator().forEachRemaining(action);
     }
 
-    /** If non-empty, perform an action on each element of this sequence, otherwise perform a default action. */
+    /**
+     * If non-empty, perform an action on each element of this sequence, otherwise perform a default action.
+     */
     public void forEachOrElse(Consumer<? super T> action, Runnable otherwise) {
         this.match(
             (head, tail) -> {
@@ -1714,11 +1725,8 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Return true if and only if the argument is a sequence and contains the same elements as this sequence in the
+     * True if and only if the argument is a sequence and contains exactly the same elements as this sequence in the
      * same order.
-     *
-     * If this sequence is infinite and the argument is also an infinite sequence, they must not be equal, or this
-     * method will never return.
      */
     @Override
     public boolean equals(Object object) {
@@ -1743,11 +1751,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Return the hash code of this sequence, following the contract of {@code List.hashCode()}.
-     *
-     * If this sequence is infinite, this method will never return.
-     *
-     * @see List#hashCode()
+     * The hash code of this sequence, following the contract of {@link List#hashCode()}.
      */
     @Override
     public int hashCode() {
@@ -1755,7 +1759,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Return the string representation of this sequence, truncating if there are more than thirty elements.
+     * The string representation of this sequence, truncating if there are more than thirty elements.
      *
      * @see Sequence#toString(String)
      * @see Sequence#toString(String, String, String)
@@ -1774,8 +1778,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Concatenate the string representations of the elements of this sequence, separating the elements with a
      * delimiter.
      *
-     * If this sequence is infinite, this method will never return.
-     *
      * @see Sequence#toString(String, String, String)
      * @see Collectors#joining(CharSequence)
      */
@@ -1787,8 +1789,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Concatenate the string representations of the elements of this sequence, with a given delimiter, prefix, and
      * suffix.
      *
-     * If this sequence is infinite, this method will never return.
-     *
      * @see Sequence#toString(String)
      * @see Collectors#joining(CharSequence, CharSequence, CharSequence)
      */
@@ -1799,11 +1799,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * The nonnegative number of elements in this sequence.
      *
-     * <p>If this sequence is memoized and strongly reachable, this method might throw an {@link OutOfMemoryError}.
+     * @throws ArithmeticException if the length overflows a long
      *
      * @see Sequence#length(long)
-     *
-     * @throws ArithmeticException if the length overflows a long
      */
     public long length() {
         return Trampoline.evaluate(
@@ -1829,7 +1827,9 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
     }
 
-    /** The nonnegative number of elements in this sequence, if less than or equal to a given bound. */
+    /**
+     * The nonnegative number of elements contained in this sequence, if less than or equal to a given bound.
+     */
     public Maybe<Long> length(long bound) {
         if (bound == Long.MAX_VALUE) {
             return Maybe.from(this::length);
