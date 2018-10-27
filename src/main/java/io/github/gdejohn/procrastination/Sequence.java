@@ -1806,22 +1806,26 @@ public abstract class Sequence<T> implements Iterable<T> {
     public long length() {
         return Trampoline.evaluate(
             this,
-            new MutableLong(0),
+            new Counter(0),
             length -> sequence -> n -> sequence.matchLazy(
                 (head, tail) -> call(length, tail, n.increment()),
-                () -> terminate(n.value)
+                () -> terminate(n.value())
             )
         );
     }
 
-    private static class MutableLong {
-        long value;
+    private static class Counter {
+        private long value;
 
-        MutableLong(long value) {
+        Counter(long value) {
             this.value = value;
         }
 
-        MutableLong increment() {
+        long value() {
+            return this.value;
+        }
+
+        Counter increment() {
             this.value = Math.incrementExact(this.value);
             return this;
         }
