@@ -88,11 +88,11 @@ import static java.util.stream.Collectors.mapping;
  * computed at most once, the first time it is asked for, and then cached. Because sequences are lazy, it is perfectly
  * natural to work with infinite sequences.
  *
- * <p>Care must be taken with sequences that might be infinite or memoized. Some operations (e.g.,
- * {@link Sequence#last() Sequence.last()}) must traverse an entire sequence and will never return if it's infinite.
- * Others operations (e.g., {@link Sequence#find(Predicate) Sequence.find(Predicate)} can short-circuit, so they might
- * return given an infinite sequence or they might not. Even if a sequence is finite, these eager operations can still
- * throw {@link OutOfMemoryError} if it is memoized, can't be garbage-collected, and doesn't fit in memory.
+ * <p>Care must be taken with sequences that might be infinite or memoized. Some methods, like {@link Sequence#last()},
+ * must traverse an entire sequence and will never return if it's infinite. Others methods can short-circuit, like
+ * {@link Sequence#find find()}, so they might return given an infinite sequence or they might not. Even if a sequence
+ * is finite, eager methods like these can still throw {@link OutOfMemoryError} if it is memoized, can't be
+ * garbage-collected, and doesn't fit in memory.
  *
  * <p>Sequences implement {@link Iterable}, so they can be used in for-each loops. Unlike {@link Stream streams},
  * sequences can be traversed any number of times. The trade-off is that sequences derived from one-shot sources (e.g.,
@@ -104,8 +104,7 @@ import static java.util.stream.Collectors.mapping;
  *
  * <ul>
  * <li>{@link Sequence#from(Iterable) Sequence.&lt;T&gt;from(Iterable&lt;T&gt;)}
- * <li>{@link Sequence#from(Object[]) Sequence.&lt;T&gt;from(T[])} (there are also overloads for every kind of
- * primitive array)
+ * <li>{@link Sequence#from(Object[]) Sequence.&lt;T&gt;from(T[])} (plus overloads for every kind of primitive array)
  * <li>{@link Sequence#from(CharSequence) Sequence.from(CharSequence)}
  * <li>{@link Sequence#from(Class) Sequence.&lt;T extends Enum&lt;T&gt;&gt;from(Class&lt;T&gt;)}
  * <li>{@link Sequence#from(Map) Sequence.&lt;K,V&gt;from(Map&lt;K,V&gt;)}
