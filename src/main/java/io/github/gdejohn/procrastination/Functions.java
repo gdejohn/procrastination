@@ -42,29 +42,41 @@ public final class Functions {
     }
 
     /**
-     * A thread-safe Supplier that computes its value at most once, delegating to the given Supplier, and caches the
-     * result.
+     * A thread-safe lazy supplier that computes its non-null value at most once, delegating to the given supplier and
+     * caching the result.
+     *
+     * <p>If the given supplier throws, the returned supplier keeps a reference to the throwable, and that same
+     * throwable is thrown each time the returned supplier is invoked. If the given supplier returns null, a
+     * {@code NullPointerException} is created, the returned supplier keeps a reference to it, and that same exception
+     * is thrown each time the returned supplier is invoked.
+     *
+     * <p>If a supplier returned by this method is passed to this method as an argument, the same supplier is returned.
+     *
+     * @throws NullPointerException if the given supplier is null
      */
     public static <T> Supplier<T> memoize(Supplier<? extends T> supplier) {
-        requireNonNull(supplier);
-
         class Proxy implements Supplier<T> {
             private boolean initialized = false;
 
             private Supplier<T> delegate;
 
             Proxy(Supplier<? extends T> principal) {
-                requireNonNull(principal);
                 this.delegate = () -> {
                     synchronized(this) {
                         if(!this.initialized) {
-                            T result = principal.get();
-                            this.delegate = () -> result;
-                            this.initialized = true;
-                            return result;
-                        } else {
-                            return this.delegate.get();
+                            try {
+                                T result = requireNonNull(principal.get());
+                                this.delegate = () -> result;
+                                this.initialized = true;
+                                return result;
+                            } catch (Throwable throwable) {
+                                this.delegate = () -> {
+                                    throw throwable;
+                                };
+                                this.initialized = true;
+                            }
                         }
+                        return this.delegate.get();
                     }
                 };
             }
@@ -75,6 +87,7 @@ public final class Functions {
             }
         }
 
+        requireNonNull(supplier);
         return supplier instanceof Proxy ? (Proxy) supplier : new Proxy(supplier);
     }
 
