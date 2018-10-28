@@ -10,8 +10,8 @@
 
 * lazily evaluated, memoizing, purely functional data structures
 * ad hoc pattern matching
-* an extensible, reusable alternative to Java 8's [`Stream`][stream]
 * stack-safe tail-recursive lambda expressions via trampolines and fixed points
+* an extensible, reusable alternative to Java 8's [`Stream`][stream]
 
 ## Data Structures
 
@@ -45,8 +45,13 @@ cover every case.
 recursively defined: a sequence is either [`empty`][empty], or it's [`constructed`][cons] from a head element and a
 tail sequence. Conversely, the instance method [`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart:
 if the sequence is non-empty, it applies the given binary function to the head and tail and returns the result,
-otherwise it returns a default value produced by the given supplier. Because sequences are lazy, it is perfectly
-natural to work with infinite sequences. (Just be careful not to fully evaluate them!)
+otherwise it returns a default value produced by the given supplier.
+
+Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! Some methods, like
+[`Sequence.last()`][last], must traverse an entire sequence and will never return if it's infinite. Others methods can
+short-circuit, like [`Sequence.find(Predicate)`][find], so they might return given an infinite sequence or they might
+not. Even if a sequence is finite, eager methods like these can still cause an [`OutOfMemoryError`][memory] if the
+sequence is memoized, can't be garbage-collected, and doesn't fit in memory.
 
 ### Maybe
 
@@ -55,10 +60,11 @@ element and is often used to model potential failure. `Maybe` is a lazy alternat
 
 ### Either
 
-[`Either`][either] is a container with exactly one element that can take on one of two possible values, labeled *left*
-and *right*, which may have different types. Like `Maybe`, it can be used to model failure, but it allows information
-to be attached to the failure case (e.g., an exception, or a string error message). In that sense, it is the
-data-structure analogue of Java's checked exceptions.
+[`Either`][either] is a container with exactly one element that can take on one of two possible values, labeled
+[`left`][left] and [`right`][right], which may have different types. `Either` can also be used to model failure, but
+unlike `Maybe.empty()`, it allows information to be attached to the failure case (e.g., an exception, or a string error
+message). In that sense, it is the data-structure analogue of Java's checked exceptions. The convention in this context
+is to fail on the left and succeed on the right (mnemonically, *right* is *correct*).
 
 ### Pair
 
@@ -286,18 +292,23 @@ This project uses [semantic versioning][versioning]. Check the [releases] for th
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
 [evaluate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate()
 [filter]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#filter(java.util.function.Predicate)
+[find]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#find(java.util.function.Predicate)
 [fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [javadoc]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
+[last]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#last()
+[left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
 [license]: http://www.apache.org/licenses/LICENSE-2.0
 [map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
 [memoize]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
+[memory]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/OutOfMemoryError.html
 [optional]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Optional.html
 [pair]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Pair.html
 [releases]: https://github.com/gdejohn/procrastination/releases
+[right]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#right(B)
 [scan]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#scanLeft(R,java.util.function.BiFunction)
 [script]: https://github.com/gdejohn/procrastination/blob/master/procrastination.jsh
 [sequence]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html
