@@ -244,11 +244,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         return new Sequence.Proxy<>() {
             @Override
             protected Sequence<T> principal() {
-                Sequence<T> principal = cast(sequence.get());
-                while (principal instanceof Sequence.Proxy) {
-                    principal = ((Sequence.Proxy<T>) principal).principal();
-                }
-                return principal.memoize();
+                return cast(sequence.get().memoize());
             }
         };
     }

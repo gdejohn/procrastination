@@ -122,11 +122,7 @@ public abstract class Maybe<T> implements Iterable<T> {
         return new Maybe.Proxy<>() {
             @Override
             protected Maybe<T> principal() {
-                Maybe<T> principal = cast(maybe.get());
-                while (principal instanceof Maybe.Proxy) {
-                    principal = ((Maybe.Proxy<T>) principal).principal();
-                }
-                return principal.memoize();
+                return cast(maybe.get().memoize());
             }
 
             @Override

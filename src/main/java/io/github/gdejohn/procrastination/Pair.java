@@ -60,11 +60,7 @@ public abstract class Pair<T, U> {
         return new Pair.Proxy<>() {
             @Override
             protected Pair<T, U> principal() {
-                Pair<T, U> principal = cast(pair.get());
-                while (principal instanceof Pair.Proxy) {
-                    principal = ((Pair.Proxy<T, U>) principal).principal();
-                }
-                return principal.memoize();
+                return cast(pair.get().memoize());
             }
         };
     }

@@ -75,11 +75,7 @@ public abstract class Either<A, B> {
         return new Either.Proxy<>() {
             @Override
             protected Either<A, B> principal() {
-                Either<A, B> principal = cast(either.get());
-                while (principal instanceof Either.Proxy) {
-                    principal = ((Either.Proxy<A, B>) principal).principal();
-                }
-                return principal.memoize();
+                return cast(either.get().memoize());
             }
         };
     }
