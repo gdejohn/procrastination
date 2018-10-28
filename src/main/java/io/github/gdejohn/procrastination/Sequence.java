@@ -236,6 +236,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * <p>The sequence to which the returned sequence delegates is reevaluated and memoized each time it's matched
      * against and then it's discarded. The returned sequence itself is not memoized.
+     *
+     * @see Sequence#cons(Object,Sequence)
+     * @see Sequence#empty()
      */
     public static <T> Sequence<T> lazy(Supplier<? extends Sequence<? extends T>> sequence) {
         return new Sequence.Proxy<>() {
@@ -255,13 +258,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * <p>Analogous to the empty {@code Maybe}, or the unit value.
      *
-     * @see Sequence#cons(Object, Sequence)
-     * @see Sequence#of(Object)
-     * @see Sequence#of(Object[])
-     * @see Sequence#cons(Supplier, Sequence)
-     * @see Sequence#of(Supplier)
-     * @see Maybe#empty()
-     * @see Unit#unit()
+     * @see Sequence#cons(Object,Sequence)
+     * @see Sequence#lazy(Supplier)
+     * @see Sequence#isEmpty()
      */
     public static <T> Sequence<T> empty() {
         @SuppressWarnings("unchecked") // safe because the empty sequence never produces any elements
@@ -272,14 +271,12 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Construct a non-empty sequence.
      *
-     * @param head the first element of the sequence
-     * @param tail the rest of the elements of the sequence
-     *
-     * @see Sequence#empty()
+     * @see Sequence#cons(Object,Supplier)
+     * @see Sequence#cons(Supplier,Sequence)
      * @see Sequence#of(Object)
      * @see Sequence#of(Object[])
-     * @see Sequence#cons(Supplier, Sequence)
-     * @see Sequence#of(Supplier)
+     * @see Sequence#empty()
+     * @see Sequence#lazy(Supplier)
      */
     public static <T> Sequence<T> cons(T head, Sequence<? extends T> tail) {
         requireNonNull(head);
@@ -327,7 +324,15 @@ public abstract class Sequence<T> implements Iterable<T> {
         };
     }
 
-    /** Construct a non-empty sequence with a lazily evaluated tail. */
+    /**
+     * Construct a non-empty sequence with a lazily evaluated tail.
+     *
+     * @see Sequence#cons(Object,Sequence)
+     * @see Sequence#cons(Supplier,Supplier)
+     * @see Sequence#of(Object)
+     * @see Sequence#empty()
+     * @see Sequence#lazy(Supplier)
+     */
     public static <T> Sequence<T> cons(T head, Supplier<? extends Sequence<? extends T>> tail) {
         requireNonNull(head);
         requireNonNull(tail);
@@ -377,14 +382,11 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Construct a non-empty sequence with a lazily evaluated head.
      *
-     * @param head the supplier of the first element of the sequence
-     * @param tail the rest of the elements of the sequence
-     *
-     * @see Sequence#empty()
-     * @see Sequence#cons(Object, Sequence)
-     * @see Sequence#of(Object)
-     * @see Sequence#of(Object[])
+     * @see Sequence#cons(Object,Sequence)
+     * @see Sequence#cons(Supplier,Supplier)
      * @see Sequence#of(Supplier)
+     * @see Sequence#empty()
+     * @see Sequence#lazy(Supplier)
      */
     public static <T> Sequence<T> cons(Supplier<? extends T> head, Sequence<? extends T> tail) {
         requireNonNull(head);
@@ -438,7 +440,15 @@ public abstract class Sequence<T> implements Iterable<T> {
         };
     }
 
-    /** Construct a non-empty sequence with a lazily evaluated head and tail. */
+    /**
+     * Construct a non-empty sequence with a lazily evaluated head and tail.
+     *
+     * @see Sequence#cons(Object,Supplier)
+     * @see Sequence#cons(Supplier,Sequence)
+     * @see Sequence#of(Supplier)
+     * @see Sequence#empty()
+     * @see Sequence#lazy(Supplier)
+     */
     public static <T> Sequence<T> cons(Supplier<? extends T> head, Supplier<? extends Sequence<? extends T>> tail) {
         requireNonNull(head);
         requireNonNull(tail);
@@ -496,13 +506,12 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * <p>{@code Sequence.of(head)} is equivalent to {@code Sequence.cons(head, Sequence.empty())}.
      *
-     * @param head the only element of the sequence
-     *
-     * @see Sequence#of(Supplier)
      * @see Sequence#of(Object[])
+     * @see Sequence#of(Supplier)
+     * @see Sequence#cons(Object,Sequence)
+     * @see Sequence#cons(Object,Supplier)
      * @see Sequence#empty()
-     * @see Sequence#cons(Object, Sequence)
-     * @see Sequence#cons(Supplier, Sequence)
+     * @see Sequence#lazy(Supplier)
      * @see Sequence#only()
      * @see Sequence#isSingleton()
      */
@@ -513,15 +522,13 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * A singleton sequence with a lazily evaluated head.
      *
-     * <p>{@code Sequence.of(head)} is equivalent to {@code Sequence.cons(head, Sequence.empty())}.
-     *
-     * @param head the only, unevaluated element of the sequence
+     * <p>{@code Sequence.of(() -> head)} is equivalent to {@code Sequence.cons(() -> head, Sequence.empty())}.
      *
      * @see Sequence#of(Object)
-     * @see Sequence#of(Object[])
+     * @see Sequence#cons(Supplier,Sequence)
+     * @see Sequence#cons(Supplier,Supplier)
      * @see Sequence#empty()
-     * @see Sequence#cons(Object, Sequence)
-     * @see Sequence#cons(Supplier, Sequence)
+     * @see Sequence#lazy(Supplier)
      * @see Sequence#only()
      * @see Sequence#isSingleton()
      */
@@ -533,14 +540,11 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * A sequence of zero or more elements.
      *
-     * @param elements the elements of the sequence
-     *
-     * @see Sequence#from(Object[])
-     * @see Sequence#empty()
-     * @see Sequence#cons(Object, Sequence)
-     * @see Sequence#cons(Supplier, Sequence)
      * @see Sequence#of(Object)
-     * @see Sequence#of(Supplier)
+     * @see Sequence#from(Object[])
+     * @see Sequence#cons(Object,Sequence)
+     * @see Sequence#empty()
+     * @see Sequence#lazy(Supplier)
      */
     @SafeVarargs
     public static <T> Sequence<T> of(T... elements) {
@@ -548,28 +552,42 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * The empty sequence given a null argument, otherwise a singleton sequence of the argument.
+     * The empty sequence given a null argument, otherwise a singleton sequence containing the argument.
      *
-     * @param head the only element of the sequence if not null
-     *
+     * @see Sequence#nullable(Supplier)
      * @see Sequence#from(Optional)
+     * @see Sequence#of(Object)
+     * @see Sequence#empty()
+     * @see Sequence#lazy(Supplier)
+     * @see Maybe#nullable(Object)
      */
     public static <T> Sequence<T> nullable(T head) {
         return head == null ? Sequence.empty() : Sequence.of(head);
     }
 
     /**
-     * The empty sequence given a lazy argument that evaluates to null, otherwise a singleton sequence of the value.
+     * The empty sequence given a supplier that returns null, otherwise a singleton sequence containing the supplied
+     * value.
      *
      * <p>Lazily matching against the returned {@code Sequence} does not preserve the laziness of the argument, because
      * it must be eagerly evaluated to decide whether the sequence is empty or not.
+     *
+     * @see Sequence#nullable(Object)
+     * @see Sequence#from(Optional)
+     * @see Sequence#of(Supplier)
+     * @see Sequence#empty()
+     * @see Sequence#lazy(Supplier)
+     * @see Maybe#nullable(Supplier)
      */
     public static <T> Sequence<T> nullable(Supplier<? extends T> value) {
-        return Sequence.lazy(() -> nullable(value.get()));
+        return Sequence.lazy(() -> Sequence.nullable(value.get()));
     }
 
     /**
      * A lazy view of an Iterable as a sequence.
+     *
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(Map)
      */
     public static <T> Sequence<T> from(Iterable<? extends T> iterable) {
         return Sequence.lazy(() -> Sequence.memoize(iterable.iterator()));
@@ -577,6 +595,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(int[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(float[])
+     * @see Sequence#from(double[])
      */
     public static <T> Sequence<T> from(T[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -584,6 +612,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of ints as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(float[])
+     * @see Sequence#from(double[])
      */
     public static Sequence<Integer> from(int[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -591,6 +629,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of longs as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(int[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(float[])
+     * @see Sequence#from(double[])
      */
     public static Sequence<Long> from(long[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -598,6 +646,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of shorts as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(int[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(float[])
+     * @see Sequence#from(double[])
      */
     public static Sequence<Short> from(short[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -605,6 +663,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of bytes as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(int[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(float[])
+     * @see Sequence#from(double[])
      */
     public static Sequence<Byte> from(byte[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -612,6 +680,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of chars as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(int[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(float[])
+     * @see Sequence#from(double[])
      */
     public static Sequence<Character> from(char[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -619,6 +697,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of booleans as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(int[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(float[])
+     * @see Sequence#from(double[])
      */
     public static Sequence<Boolean> from(boolean[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -626,6 +714,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of floats as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(int[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(double[])
      */
     public static Sequence<Float> from(float[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -633,6 +731,16 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A lazy view of an array of doubles as a sequence.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Object[])
+     * @see Sequence#from(int[])
+     * @see Sequence#from(long[])
+     * @see Sequence#from(short[])
+     * @see Sequence#from(byte[])
+     * @see Sequence#from(char[])
+     * @see Sequence#from(boolean[])
+     * @see Sequence#from(float[])
      */
     public static Sequence<Double> from(double[] array) {
         return Sequence.from(index -> array[index], array.length, 0);
@@ -659,27 +767,37 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    /** A sequence of the values of an enum, in the order that they are declared. */
+    /** A sequence containing the values of an enum, in the order that they are declared. */
     public static <T extends Enum<T>> Sequence<T> from(Class<T> type) {
         return Sequence.from(requireNonNull(type.getEnumConstants()));
     }
 
     /**
-     * A lazy view of a Map as a sequence of key-value pairs.
+     * A lazy view of a map as a sequence of key-value pairs.
+     *
+     * @see Sequence#from(Iterable)
+     * @see Sequence#from(Map,BiFunction)
+     * @see Sequence#from(Map,BiPredicate,BiFunction)
      */
     public static <K, V> Sequence<Pair<K, V>> from(Map<? extends K, ? extends V> map) {
         return Sequence.from(map.entrySet()).map(Pair::from);
     }
 
     /**
-     * A lazy view of a Map as a sequence of key-value pairs, mapping over the pairs.
+     * A lazy view of a map as a sequence of key-value pairs, mapping over the pairs.
+     *
+     * @see Sequence#from(Map)
+     * @see Sequence#from(Map,BiPredicate,BiFunction)
      */
     public static <K, V, R> Sequence<R> from(Map<? extends K, ? extends V> map, BiFunction<? super K, ? super V, ? extends R> function) {
         return Sequence.from(map.entrySet()).map(entry -> function.apply(entry.getKey(), entry.getValue()));
     }
 
     /**
-     * A lazy view of a Map as a sequence of key-value pairs, filtering and mapping over the pairs.
+     * A lazy view of a map as a sequence of key-value pairs, filtering and mapping over the pairs.
+     *
+     * @see Sequence#from(Map)
+     * @see Sequence#from(Map,BiFunction)
      */
     public static <K, V, R> Sequence<R> from(Map<? extends K, ? extends V> map, BiPredicate<? super K, ? super V> predicate, BiFunction<? super K, ? super V, ? extends R> function) {
         return Sequence.from(
@@ -696,6 +814,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * empty sequence.
      *
      * @see Sequence#nullable(Object)
+     * @see Sequence#nullable(Supplier)
      * @see Maybe#from(Optional)
      * @see Maybe#sequence()
      */
