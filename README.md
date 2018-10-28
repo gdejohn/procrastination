@@ -1,4 +1,4 @@
-[![Artifact repository][badge]][jitpack]
+[![Artifact repository](https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue)][jitpack]
 [![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)][javadoc]
 [![License](https://img.shields.io/github/license/gdejohn/procrastination.svg)][license]
 [![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)][build]
@@ -30,46 +30,50 @@ facility; there is no matching against literals, no wildcard patterns, no nested
 to distinguish which data constructor was used and extract the components in a single step.
 
 The rest of the operations on these data structures are all ultimately defined in terms of the `match()` methods and
-data constructors. None of the classes hide anything interesting. They don't declare any instance fields. They each
-have just one constructor (in the Java sense), declared private, taking no arguments, with an empty body. If some
-useful operation is missing, anyone can define it externally as a static method just as easily as writing an instance
-method inside the class.
+data constructors. None of the classes hide anything interesting. They don't have any instance fields. They each have
+just one constructor, declared private, taking no arguments, with an empty body, only used by the static factory
+methods. If some useful operation is missing, anyone can define it externally as a static method just as easily as
+writing an instance method inside the class.
 
-While it is easy to define new operations on these types, it is impossible to add new cases. Since the classes don't
-expose their (Java) constructors, they are effectively sealed types, so the `match()` methods will always exhaustively
-cover every case.
+While it is easy to define new operations on these types, it is impossible to add new cases. Since the classes only
+expose static factory methods and not their constructors, they are effectively sealed types, so the `match()` methods
+will always exhaustively cover every case.
+
+None of the data structures allow null elements. Lazy evaluation means that they can't always tell right away if an
+element is null, but they will always throw `NullPointerException` before returning a null element to a caller.
 
 ### Sequence
 
-[`Sequence`][sequence] is an ordered collection of zero or more non-null elements (duplicates allowed). It is
-recursively defined: a sequence is either [`empty`][empty], or it's [`constructed`][cons] from a head element and a
-tail sequence. Conversely, the instance method [`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart:
-if the sequence is non-empty, it applies the given binary function to the head and tail and returns the result,
-otherwise it returns a default value produced by the given supplier.
+[`Sequence`][sequence] is an ordered collection of zero or more elements (duplicates allowed). It is recursively
+defined: a sequence is either [`empty`][empty], or it's [`constructed`][cons] from a head element and a tail sequence.
+Conversely, the instance method [`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequence
+is non-empty, it applies the given binary function to the head and tail and returns the result, otherwise it returns a
+default value produced by the given supplier.
 
 Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! Some methods, like
-[`Sequence.last()`][last], must traverse an entire sequence and will never return if it's infinite. Others methods can
+[`Sequence.last()`][last], must traverse an entire sequence and will never return if it's infinite. Other methods can
 short-circuit, like [`Sequence.find(Predicate)`][find], so they might return given an infinite sequence or they might
-not. Even if a sequence is finite, eager methods like these can still cause an [`OutOfMemoryError`][memory] if the
-sequence is memoized, can't be garbage-collected, and doesn't fit in memory.
+not. Even if a sequence is finite, eager methods like these can still cause an `OutOfMemoryError` if the sequence is
+memoized, can't be garbage-collected, and doesn't fit in memory.
 
 ### Maybe
 
-[`Maybe`][maybe] represents a value that may or may not exist. It can be thought of as a sequence with at most one
-element and is often used to model potential failure. `Maybe` is a lazy alternative to [`Optional`][optional].
+[`Maybe`][maybe] is a collection that either contains a single element or is empty. It can be thought of as a value
+that may or may not exist, or as a sequence with at most one element. It is often used to model potential failure.
+`Maybe` is a lazy alternative to [`Optional`][optional].
 
 ### Either
-
+ 
 [`Either`][either] is a container with exactly one element that can take on one of two possible values, labeled
-[`left`][left] and [`right`][right], which may have different types. `Either` can also be used to model failure, but
-unlike `Maybe.empty()`, it allows information to be attached to the failure case (e.g., an exception, or a string error
-message). In that sense, it is the data-structure analogue of Java's checked exceptions. The convention in this context
-is to fail on the left and succeed on the right (mnemonically, *right* is *correct*).
+[`left`][left] and [`right`][right], which may have different types. `Either` can also be used to model failure, by
+convention failing on the left and succeeding on the right (mnemonically, *right* is *correct*). But unlike
+`Maybe.empty()`, it allows information to be attached to the failure case (e.g., an exception, or a string error
+message). In that sense, `Either` is the data-structure analogue of Java's checked exceptions.
 
 ### Pair
 
 [`Pair`][pair] is an ordered collection with exactly two elements which may have different types (i.e., a 2-tuple).
-`Pair` is similar to [`Entry`][entry], but by contrast it is lazy and purely functional.
+`Pair` is similar to [`Map.Entry`][entry], but by contrast it is persistent and conceptually more general.
 
 ## Sequences vs. Streams
 
@@ -194,8 +198,8 @@ static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
 }
 ```
 
-This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, it's not a combinator because it
-uses explicit recursion. But it doesn't need to be a combinator, it only needs to produce fixed points. And it does!
+This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, combinators aren't allowed to use
+explicit recursion. But it doesn't need to be a combinator, it only needs to output fixed points. And it does!
 
 This also works for trampolined functions and curried functions of arbitrarily many arguments.
 [`Trampoline.evaluate()`][helper] isn't just an instance method, it's also overloaded as an all-in-one static helper
@@ -280,7 +284,6 @@ imports all of the types and static members.
 
 This project uses [semantic versioning][versioning]. Check the [releases] for the available versions.
 
-[badge]: https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue
 [build]: https://travis-ci.com/gdejohn/procrastination
 [call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
 [combinator]: https://mvanier.livejournal.com/2897.html
@@ -304,7 +307,6 @@ This project uses [semantic versioning][versioning]. Check the [releases] for th
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
 [memoize]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
-[memory]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/OutOfMemoryError.html
 [optional]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Optional.html
 [pair]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Pair.html
 [releases]: https://github.com/gdejohn/procrastination/releases
