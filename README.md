@@ -1,9 +1,9 @@
-[![repository](https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue)][jitpack]
-[![docs](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)][javadoc]
-[![license](https://img.shields.io/github/license/gdejohn/procrastination.svg)][apache]
-[![build](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)][travis]
-[![coverage](https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg)][codecov]
-[![chat](https://badges.gitter.im/gdejohn/procrastination.svg)][gitter]
+[![artifacts]][jitpack]
+[![docs]][javadoc]
+[![license]][apache]
+[![build]][travis]
+[![coverage]][codecov]
+[![chat]][gitter]
 
 # procrastination
 
@@ -30,18 +30,18 @@ mirrored by abstract `match()` instance methods simulating pattern matching. Thi
 facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply makes it possible
 to distinguish which data constructor was used and extract the components in a single step.
 
-The rest of the operations on these data structures are all ultimately defined in terms of the `match()` methods and
-data constructors. None of the classes hide anything interesting. They don't have any instance fields. They each have
-just one constructor, declared private, taking no arguments, with an empty body, only used by the static factory
-methods. If some useful operation is missing, anyone can define it externally as a static method just as easily as
-writing an instance method inside the class.
+Everything else is ultimately defined in terms of the `match()` methods and data constructors. None of the classes hide
+anything interesting. They don't have any instance fields. They each have just one constructor, declared private,
+taking no arguments, with an empty body, only used by the static factory methods. If some useful operation is missing,
+anyone can define it externally as a static method just as easily as writing an instance method inside the class.
 
 While it is easy to define new operations on these types, it is impossible to add new cases. Since the classes only
 expose static factory methods and not their constructors, they are effectively sealed types, so the `match()` methods
 will always exhaustively cover every case.
 
-None of the data structures allow null elements. Lazy evaluation means that they can't always tell right away if an
-element is null, but they will always throw `NullPointerException` before returning a null element to a caller.
+None of the data structures allow null elements. One of the consequences of lazy evaluation is that it may not be
+possible to determine up front if an element is null, but `NullPointerException` will always be thrown instead of
+returning a null element to a caller.
 
 ### Sequence
 
@@ -286,11 +286,16 @@ imports all of the types and static members.
 This project uses [semantic versioning][semver]. Check the [releases] for the available versions.
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
+[artifacts]: https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue
+[build]: https://travis-ci.com/gdejohn/procrastination.svg?branch=master
 [call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
+[chat]: https://badges.gitter.im/gdejohn/procrastination.svg
 [codecov]: https://codecov.io/gh/gdejohn/procrastination
 [combinator]: https://mvanier.livejournal.com/2897.html
 [complement]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
 [cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
+[coverage]: https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg
+[docs]: https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg
 [either]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
 [empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
@@ -304,6 +309,7 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [last]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#last()
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
+[license]: https://img.shields.io/github/license/gdejohn/procrastination.svg
 [map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
