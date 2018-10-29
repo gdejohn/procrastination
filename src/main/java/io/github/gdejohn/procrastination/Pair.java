@@ -67,6 +67,8 @@ public abstract class Pair<T, U> {
 
     /** A pair of eagerly evaluated elements. */
     public static <T, U> Pair<T, U> of(T first, U second) {
+        requireNonNull(first);
+        requireNonNull(second);
         return new Pair<>() {
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
@@ -87,6 +89,8 @@ public abstract class Pair<T, U> {
 
     /** A pair with an eagerly evaluated first element and a lazily evaluated second element. */
     public static <T, U> Pair<T, U> of(T first, Supplier<? extends U> second) {
+        requireNonNull(first);
+        requireNonNull(second);
         return new Pair<>() {
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
@@ -108,6 +112,8 @@ public abstract class Pair<T, U> {
 
     /** A pair with a lazily evaluated first element and an eagerly evaluated second element. */
     public static <T, U> Pair<T, U> of(Supplier<? extends T> first, U second) {
+        requireNonNull(first);
+        requireNonNull(second);
         return new Pair<>() {
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
@@ -129,6 +135,8 @@ public abstract class Pair<T, U> {
 
     /** A pair of lazily evaluated elements. */
     public static <T, U> Pair<T, U> of(Supplier<? extends T> first, Supplier<? extends U> second) {
+        requireNonNull(first);
+        requireNonNull(second);
         return new Pair<>() {
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
@@ -159,11 +167,13 @@ public abstract class Pair<T, U> {
 
     /** A pair where both elements are the same value. */
     public static <T> Pair<T, T> duplicate(T value) {
+        requireNonNull(value);
         return Pair.of(value, value);
     }
 
     /** A pair where both elements are the same lazy value. */
     public static <T> Pair<T, T> duplicate(Supplier<? extends T> value) {
+        requireNonNull(value);
         return Pair.lazy(() -> let(Functions.memoize(value), memoized -> Pair.of(memoized, memoized)));
     }
 
