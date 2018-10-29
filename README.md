@@ -16,9 +16,9 @@
 
 ## Data Structures
 
-Lazy evaluation means that the data structures procrastinate, doing the absolute minimum amount of work required and
-putting it off for as long as possible, only computing each of their elements on demand. They can also be memoized such
-that each element is computed at most once, the first time it's requested, and then cached.
+Lazy evaluation means that the data structures procrastinate, doing the minimum amount of work required and putting it
+off for as long as possible, only computing each of their elements on demand. They can also be memoized such that each
+element is computed at most once, the first time it's asked for, and then cached.
 
 And because the data structures are purely functional, they are fully persistent. Instead of mutators, methods are
 provided that return a new version of a given data structure reflecting the desired changes, leaving the previous
