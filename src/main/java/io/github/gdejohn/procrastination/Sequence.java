@@ -3681,8 +3681,15 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#subsequences()
      */
     public Sequence<Sequence<T>> prefixes() {
-        var sequence = this.memoize();
-        return Sequence.cons(Sequence.empty(), sequence.indices().map(index -> sequence.take(index + 1)));
+        return Sequence.lazy(
+            () -> let(
+                this.memoize(),
+                sequence -> Sequence.cons(
+                    Sequence.empty(),
+                    sequence.indices().map(index -> sequence.take(index + 1))
+                )
+            )
+        );
     }
 
     /**
