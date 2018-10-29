@@ -36,6 +36,8 @@ import static io.github.gdejohn.procrastination.Predicates.compose;
 import static io.github.gdejohn.procrastination.Predicates.divides;
 import static io.github.gdejohn.procrastination.Predicates.gather;
 import static io.github.gdejohn.procrastination.Predicates.greaterThan;
+import static io.github.gdejohn.procrastination.Predicates.greaterThanOrEqualTo;
+import static io.github.gdejohn.procrastination.Predicates.lessThan;
 import static io.github.gdejohn.procrastination.Sequence.cons;
 import static io.github.gdejohn.procrastination.Undefined.undefined;
 import static io.github.gdejohn.procrastination.Unit.unit;
@@ -753,6 +755,33 @@ class SequenceTest {
         var list = Arrays.asList(array);
         Collections.shuffle(list);
         var sequence = Sequences.sort(Sequence.from(list)).memoize();
+        assertAll(
+            () -> assertThat(sequence).hasSize(array.length),
+            () -> assertThat(Sequences.strictlyIncreasing(sequence)).isTrue(),
+            () -> assertThat(sequence.head()).containsExactly(0),
+            () -> assertThat(sequence.last()).containsExactly(array.length - 1)
+        );
+    }
+
+    private static <T extends Comparable<? super T>> Sequence<T> sort(Sequence<? extends T> sequence) {
+        return Sequence.lazy(
+            () -> sequence.match(
+                (head, tail) -> Sequences.concatenate(
+                    sort(tail.filter(lessThan(head))),
+                    cons(head, sort(tail.filter(greaterThanOrEqualTo(head))))
+                ),
+                Sequence.empty()
+            )
+        );
+    }
+
+    @Test
+    void sortLazy() {
+        var array = new Integer[100_000];
+        Arrays.setAll(array, Integer::valueOf);
+        var list = Arrays.asList(array);
+        Collections.shuffle(list);
+        var sequence = sort(Sequence.from(list)).memoize();
         assertAll(
             () -> assertThat(sequence).hasSize(array.length),
             () -> assertThat(Sequences.strictlyIncreasing(sequence)).isTrue(),
