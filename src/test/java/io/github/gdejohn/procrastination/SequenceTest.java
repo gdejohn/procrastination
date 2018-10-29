@@ -350,7 +350,7 @@ class SequenceTest {
     void uncons() {
         assertAll(
             () -> assertThat(Sequence.empty().uncons()).isEmpty(),
-            () -> assertThat(Sequences.range(1, 5).uncons().optional()).hasValue(Pair.of(1, Sequence.of(2, 3, 4, 5)))
+            () -> assertThat(Sequences.range(1, 5).uncons()).containsExactly(Pair.of(1, Sequence.of(2, 3, 4, 5)))
         );
     }
 
@@ -430,9 +430,9 @@ class SequenceTest {
     void head() {
         assertAll(
             () -> assertThat(Sequence.empty().head()).isEmpty(),
-            () -> assertThat(Sequence.of("foo").head().optional()).hasValue("foo"),
-            () -> assertThat(Sequence.of("foo", "bar").head().optional()).hasValue("foo"),
-            () -> assertThat(Sequences.ints().head().optional()).hasValue(0)
+            () -> assertThat(Sequence.of("foo").head()).containsExactly("foo"),
+            () -> assertThat(Sequence.of("foo", "bar").head()).containsExactly("foo"),
+            () -> assertThat(Sequences.ints().head()).containsExactly(0)
         );
     }
 
@@ -440,9 +440,9 @@ class SequenceTest {
     void last() {
         assertAll(
             () -> assertThat(Sequence.empty().last()).isEmpty(),
-            () -> assertThat(Sequence.of("foo").last().optional()).hasValue("foo"),
-            () -> assertThat(Sequence.of("foo", "bar").last().optional()).hasValue("bar"),
-            () -> assertThat(Sequences.range(1, 100_000).last().optional()).hasValue(100_000)
+            () -> assertThat(Sequence.of("foo").last()).containsExactly("foo"),
+            () -> assertThat(Sequence.of("foo", "bar").last()).containsExactly("bar"),
+            () -> assertThat(Sequences.range(1, 100_000).last()).containsExactly(100_000)
         );
     }
 
@@ -450,7 +450,7 @@ class SequenceTest {
     void only() {
         assertAll(
             () -> assertThat(Sequence.empty().only()).isEmpty(),
-            () -> assertThat(Sequence.of("foo").only().optional()).hasValue("foo"),
+            () -> assertThat(Sequence.of("foo").only()).containsExactly("foo"),
             () -> assertThat(Sequence.of("foo", "bar").only()).isEmpty(),
             () -> assertThat(Sequence.repeat("foo").only()).isEmpty()
         );
@@ -483,8 +483,8 @@ class SequenceTest {
         assertAll(
             () -> assertThat(Sequences.ints().length(10_000)).isEmpty(),
             () -> assertThat(Sequences.ints().length(-1)).isEmpty(),
-            () -> assertThat(Sequences.range(0, 10_000).length(100_000).optional()).hasValue(10_001L),
-            () -> assertThat(Sequences.range(0, 10_000).length(Long.MAX_VALUE).optional()).hasValue(10_001L)
+            () -> assertThat(Sequences.range(0, 10_000).length(100_000)).containsExactly(10_001L),
+            () -> assertThat(Sequences.range(0, 10_000).length(Long.MAX_VALUE)).containsExactly(10_001L)
         );
     }
 
@@ -646,7 +646,7 @@ class SequenceTest {
         assertAll(
             () -> assertThat(sequence.element(1_000_000)).isEmpty(),
             () -> assertThat(sequence.element(-1)).isEmpty(),
-            () -> assertThat(sequence.element(90_000).optional()).hasValue(90_001)
+            () -> assertThat(sequence.element(90_000)).containsExactly(90_001)
         );
     }
 
@@ -655,8 +655,8 @@ class SequenceTest {
         assertAll(
             () -> assertThat(Sequences.maximum(Sequence.<Integer>empty())).isEmpty(),
             () -> assertThat(
-                Sequences.maximum(Sequences.range(1, 100_000).insert(50_000, 1_000_000)).optional()
-            ).hasValue(1_000_000)
+                Sequences.maximum(Sequences.range(1, 100_000).insert(50_000, 1_000_000))
+            ).containsExactly(1_000_000)
         );
     }
 
@@ -664,9 +664,7 @@ class SequenceTest {
     void minimumNaturalOrder() {
         assertAll(
             () -> assertThat(Sequences.minimum(Sequence.<Integer>empty())).isEmpty(),
-            () -> assertThat(
-                Sequences.minimum(Sequences.range(1, 100_000).insert(50_000, 0)).optional()
-            ).hasValue(0)
+            () -> assertThat(Sequences.minimum(Sequences.range(1, 100_000).insert(50_000, 0))).containsExactly(0)
         );
     }
 
@@ -675,7 +673,7 @@ class SequenceTest {
         var sequence = Sequences.range(1, 100_000);
         assertAll(
             () -> assertThat(sequence.find(greaterThan(1_000_000))).isEmpty(),
-            () -> assertThat(sequence.find(greaterThan(90_000)).optional()).hasValue(90_001)
+            () -> assertThat(sequence.find(greaterThan(90_000))).containsExactly(90_001)
         );
     }
 
@@ -684,7 +682,7 @@ class SequenceTest {
         var sequence = Sequences.range(1, 5);
         assertAll(
             () -> assertThat(sequence.index(8)).isEmpty(),
-            () -> assertThat(sequence.index(3).optional()).hasValue(2L)
+            () -> assertThat(sequence.index(3)).containsExactly(2L)
         );
     }
 
@@ -714,10 +712,10 @@ class SequenceTest {
             () -> assertThat(
                 Sequences.ints().replace(100_000, 0).foldRight(x -> x == 0 ? left(0) : right(y -> x * y))
             ).containsExactly(0),
-            () -> assertThat(Sequences.range(1, 10_000).foldRight(x -> right(y -> x + y)).optional()).hasValue(
+            () -> assertThat(Sequences.range(1, 10_000).foldRight(x -> right(y -> x + y))).containsExactly(
                 50_005_000
             ),
-            () -> assertThat(Sequence.of(2).foldRight(x -> right(y -> x + y)).optional()).hasValue(2),
+            () -> assertThat(Sequence.of(2).foldRight(x -> right(y -> x + y))).containsExactly(2),
             () -> assertThat(Sequence.<Integer>empty().foldRight(x -> right(y -> x + y))).isEmpty()
         );
     }
@@ -758,8 +756,8 @@ class SequenceTest {
         assertAll(
             () -> assertThat(sequence).hasSize(array.length),
             () -> assertThat(Sequences.strictlyIncreasing(sequence)).isTrue(),
-            () -> assertThat(sequence.head().optional()).hasValue(0),
-            () -> assertThat(sequence.last().optional()).hasValue(99_999)
+            () -> assertThat(sequence.head()).containsExactly(0),
+            () -> assertThat(sequence.last()).containsExactly(array.length - 1)
         );
     }
 
@@ -994,7 +992,7 @@ class SequenceTest {
     void tail() {
         assertAll(
             () -> assertThat(Sequence.empty().tail()).isEmpty(),
-            () -> assertThat(Sequence.of("foo").tail().optional()).hasValue(Sequence.empty()),
+            () -> assertThat(Sequence.of("foo").tail()).containsExactly(Sequence.empty()),
             () -> assertThat(Sequences.ints().tail().optional()).hasValueSatisfying(
                 tail -> assertThat(tail).startsWith(1, 2, 3, 4, 5)
             )
@@ -1005,8 +1003,8 @@ class SequenceTest {
     void initial() {
         assertAll(
             () -> assertThat(Sequence.empty().initial()).isEmpty(),
-            () -> assertThat(Sequence.of("foo").initial().optional()).hasValue(Sequence.empty()),
-            () -> assertThat(Sequences.range(1, 5).initial().optional()).hasValue(Sequences.range(1, 4))
+            () -> assertThat(Sequence.of("foo").initial()).containsExactly(Sequence.empty()),
+            () -> assertThat(Sequences.range(1, 5).initial()).containsExactly(Sequences.range(1, 4))
         );
     }
 
@@ -1492,8 +1490,8 @@ class SequenceTest {
                 ).foldLeft(
                     String::concat
                 ).or(i::toString)
-            ).element(90).optional()
-        ).hasValue("FizzBuzz");
+            ).element(90)
+        ).containsExactly("FizzBuzz");
     }
 
     private static long gcd(long a, long b) {
