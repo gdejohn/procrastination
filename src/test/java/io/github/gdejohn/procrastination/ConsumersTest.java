@@ -24,10 +24,10 @@ class ConsumersTest {
             int value = 1;
         };
         Consumers.<Integer>fix(
-            a -> i -> {
-                if (i > 0) {
+            action -> n -> {
+                if (n > 0) {
                     integer.value <<= 1;
-                    a.accept(i - 1);
+                    action.accept(n - 1);
                 }
             }
         ).accept(16);
