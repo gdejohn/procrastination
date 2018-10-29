@@ -72,6 +72,7 @@ public abstract class Either<A, B> {
      * <p>This is useful for deferring the decision as to whether the value is on the left or the right.
      */
     public static <A, B> Either<A, B> lazy(Supplier<? extends Either<? extends A, ? extends B>> either) {
+        requireNonNull(either);
         return new Either.Proxy<>() {
             @Override
             protected Either<A, B> principal() {
@@ -80,7 +81,14 @@ public abstract class Either<A, B> {
         };
     }
 
-    /** Put an eager value on the right. */
+    /**
+     * Put an eager value on the right.
+     *
+     * @see Either#left(Object)
+     * @see Either#right(Supplier)
+     * @see Either#lazy(Supplier)
+     * @see Either#isRight()
+     */
     public static <A, B> Either<A, B> right(B value) {
         requireNonNull(value);
         return new Either<>() {
@@ -98,27 +106,46 @@ public abstract class Either<A, B> {
             public Either<A, B> memoize() {
                 return this;
             }
+
+            @Override
+            public Either<A, B> eager() {
+                return this;
+            }
         };
     }
 
-    /** Put a lazy value on the right. */
+    /**
+     * Put a lazy value on the right.
+     *
+     * @see Either#left(Supplier)
+     * @see Either#right(Object)
+     * @see Either#lazy(Supplier)
+     * @see Either#isRight()
+     */
     public static <A, B> Either<A, B> right(Supplier<? extends B> value) {
         requireNonNull(value);
         return new Either<>() {
             @Override
             public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
-                return right.apply(Functions.map(Functions.memoize(value), Objects::requireNonNull));
+                return right.apply(Functions.memoize(value));
             }
 
             @Override
             public Either<A, B> memoize() {
-                Supplier<? extends B> memoized = Functions.memoize(value);
+                var memoized = Functions.memoize(value);
                 return memoized == value ? this : Either.right(memoized);
             }
         };
     }
 
-    /** Put an eager value on the left. */
+    /**
+     * Put an eager value on the left.
+     *
+     * @see Either#right(Object)
+     * @see Either#left(Supplier)
+     * @see Either#lazy(Supplier)
+     * @see Either#isLeft()
+     */
     public static <A, B> Either<A, B> left(A value) {
         requireNonNull(value);
         return new Either<>() {
@@ -136,27 +163,39 @@ public abstract class Either<A, B> {
             public Either<A, B> memoize() {
                 return this;
             }
+
+            @Override
+            public Either<A, B> eager() {
+                return this;
+            }
         };
     }
 
-    /** Put a lazy value on the left. */
+    /**
+     * Put a lazy value on the left.
+     *
+     * @see Either#right(Supplier)
+     * @see Either#left(Object)
+     * @see Either#lazy(Supplier)
+     * @see Either#isLeft()
+     */
     public static <A, B> Either<A, B> left(Supplier<? extends A> value) {
         requireNonNull(value);
         return new Either<>() {
             @Override
             public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
-                return left.apply(Functions.map(Functions.memoize(value), Objects::requireNonNull));
+                return left.apply(Functions.memoize(value));
             }
 
             @Override
             public Either<A, B> memoize() {
-                Supplier<? extends A> memoized = Functions.memoize(value);
+                var memoized = Functions.memoize(value);
                 return memoized == value ? this : Either.left(memoized);
             }
         };
     }
 
-    /** A view of a {@code Callable} as an {@code Either}. */
+    /** View a {@code Callable} as an {@code Either}. */
     public static <T> Either<Exception, T> from(Callable<? extends T> value) {
         return Either.lazy(
             () -> {
@@ -169,7 +208,7 @@ public abstract class Either<A, B> {
         );
     }
 
-    /** A view of a {@code CompletableFuture} as an {@code Either}. */
+    /** View a {@code CompletableFuture} as an {@code Either}. */
     public static <T> Either<Exception, T> from(CompletableFuture<? extends T> value) {
         return Either.lazy(
             () -> {

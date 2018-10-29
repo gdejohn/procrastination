@@ -54,13 +54,8 @@ public abstract class Maybe<T> implements Iterable<T> {
         protected abstract Maybe<T> principal();
 
         @Override
-        public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise) {
-            return this.principal().matchLazy(function, otherwise);
-        }
-
-        @Override
-        public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-            return this.principal().matchLazy(function, otherwise);
+        public <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise) {
+            return this.principal().match(function, otherwise);
         }
 
         @Override
@@ -69,30 +64,25 @@ public abstract class Maybe<T> implements Iterable<T> {
         }
 
         @Override
-        public <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise) {
-            return this.principal().match(function, otherwise);
+        public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise) {
+            return this.principal().matchLazy(function, otherwise);
+        }
+
+        @Override
+        public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise) {
+            return this.principal().matchLazy(function, otherwise);
         }
     }
 
     private static final Maybe<?> EMPTY = new Maybe<>() {
-        @Override
-        public <R> R matchLazy(Function<? super Supplier<Object>, ? extends R> function, R otherwise) {
-            return otherwise;
-        }
-
         @Override
         public <R> R matchLazy(Function<? super Supplier<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
             return otherwise.get();
         }
 
         @Override
-        public Maybe<Object> memoize() {
-            return this;
-        }
-
-        @Override
-        public Maybe<Object> eager() {
-            return this;
+        public <R> R matchLazy(Function<? super Supplier<Object>, ? extends R> function, R otherwise) {
+            return otherwise;
         }
 
         @Override
@@ -109,6 +99,11 @@ public abstract class Maybe<T> implements Iterable<T> {
         public Stream<Object> stream() {
             return Stream.empty();
         }
+
+        @Override
+        public Sequence<Object> sequence() {
+            return Sequence.empty();
+        }
     };
 
     private Maybe() {}
@@ -119,7 +114,8 @@ public abstract class Maybe<T> implements Iterable<T> {
      * <p>This is useful for deferring the decision as to whether or not a {@code Maybe} is empty.
      */
     public static <T> Maybe<T> lazy(Supplier<? extends Maybe<? extends T>> maybe) {
-        return new Maybe.Proxy<>() {
+        requireNonNull(maybe);
+        return new Proxy<>() {
             @Override
             protected Maybe<T> principal() {
                 return cast(maybe.get().memoize());
@@ -128,6 +124,26 @@ public abstract class Maybe<T> implements Iterable<T> {
             @Override
             public Maybe<T> memoize() {
                 return Maybe.memoize(this);
+            }
+        };
+    }
+
+    private static <T> Maybe<T> memoize(Maybe<T> maybe) {
+        Supplier<Maybe<T>> principal = Functions.memoize(
+            () -> maybe.matchLazy(
+                value -> Maybe.of(Functions.memoize(value)),
+                Maybe.empty()
+            )
+        );
+        return new Proxy<>() {
+            @Override
+            protected Maybe<T> principal() {
+                return principal.get();
+            }
+
+            @Override
+            public Maybe<T> memoize() {
+                return this;
             }
         };
     }
@@ -154,13 +170,8 @@ public abstract class Maybe<T> implements Iterable<T> {
         requireNonNull(value);
         return new Maybe<>() {
             @Override
-            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise) {
-                return function.apply((Supplier<T>) () -> value);
-            }
-
-            @Override
-            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply((Supplier<T>) () -> value);
+            public <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise) {
+                return function.apply(value);
             }
 
             @Override
@@ -169,8 +180,18 @@ public abstract class Maybe<T> implements Iterable<T> {
             }
 
             @Override
-            public <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(value);
+            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise) {
+                return function.apply((Supplier<T>) () -> value);
+            }
+
+            @Override
+            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise) {
+                return function.apply((Supplier<T>) () -> value);
+            }
+
+            @Override
+            public Sequence<T> sequence() {
+                return Sequence.of(value);
             }
         };
     }
@@ -180,19 +201,24 @@ public abstract class Maybe<T> implements Iterable<T> {
         requireNonNull(value);
         return new Maybe<>() {
             @Override
-            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise) {
-                return function.apply(Functions.map(Functions.memoize(value), Objects::requireNonNull));
+            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise) {
+                return function.apply(Functions.memoize(value));
             }
 
             @Override
-            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(Functions.map(Functions.memoize(value), Objects::requireNonNull));
+            public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise) {
+                return function.apply(Functions.memoize(value));
             }
 
             @Override
             public Maybe<T> memoize() {
                 Supplier<? extends T> memoized = Functions.memoize(value);
                 return memoized == value ? this : Maybe.of(memoized);
+            }
+
+            @Override
+            public Maybe<T> eager() {
+                return Maybe.of(value.get());
             }
         };
     }
@@ -249,7 +275,7 @@ public abstract class Maybe<T> implements Iterable<T> {
     }
 
     /**
-     * Wrap an eagerly evaluated nullable value if a condition is true.
+     * Wrap an eagerly evaluated non-null value if a condition is true.
      *
      * <p>This can be combined with {@link Maybe#lazy Maybe.lazy()} to defer evaluation of the condition:
      *
@@ -259,11 +285,12 @@ public abstract class Maybe<T> implements Iterable<T> {
      * @see Maybe#when(boolean, Supplier)
      */
     public static <T> Maybe<T> when(boolean condition, T value) {
-        return condition ? Maybe.nullable(value) : Maybe.empty();
+        requireNonNull(value);
+        return condition ? Maybe.of(value) : Maybe.empty();
     }
 
     /**
-     * Wrap a lazily evaluated nullable value if a condition is true.
+     * Wrap a lazily evaluated non-null value if a condition is true.
      *
      * <p>This can be combined with {@link Maybe#lazy Maybe.lazy()} to defer evaluation of the condition:
      *
@@ -273,11 +300,12 @@ public abstract class Maybe<T> implements Iterable<T> {
      * @see Maybe#when(boolean, Object)
      */
     public static <T> Maybe<T> when(boolean condition, Supplier<? extends T> value) {
-        return condition ? Maybe.nullable(value) : Maybe.empty();
+        requireNonNull(value);
+        return condition ? Maybe.of(value) : Maybe.empty();
     }
 
     /**
-     * Wrap an eagerly evaluated nullable value if a condition is false.
+     * Wrap an eagerly evaluated non-null value if a condition is false.
      *
      * <p>This can be combined with {@link Maybe#lazy Maybe.lazy()} to defer evaluation of the condition:
      *
@@ -291,7 +319,7 @@ public abstract class Maybe<T> implements Iterable<T> {
     }
 
     /**
-     * Wrap a lazily evaluated nullable value if a condition is false.
+     * Wrap a lazily evaluated non-null value if a condition is false.
      *
      * <p>This can be combined with {@link Maybe#lazy Maybe.lazy()} to defer evaluation of the condition:
      *
@@ -459,26 +487,11 @@ public abstract class Maybe<T> implements Iterable<T> {
         return this;
     }
 
-    private static <T> Maybe<T> memoize(Maybe<T> maybe) {
-        Supplier<Maybe<T>> principal = Functions.memoize(
-            () -> maybe.matchLazy(
-                value -> Maybe.of(Functions.memoize(value)),
-                Maybe.empty()
-            )
-        );
-        return new Maybe.Proxy<>() {
-            @Override
-            protected Maybe<T> principal() {
-                return principal.get();
-            }
-        };
-    }
-
     /**
      * Force the evaluation of and rewrap the contained value if it exists, otherwise return an empty {@code Maybe}.
      */
     public Maybe<T> eager() {
-        return this.match(Maybe::of, Maybe.empty());
+        return this;
     }
 
     /** Eagerly convert this to an {@code Optional}. */

@@ -43,20 +43,28 @@ public abstract class Pair<T, U> {
         protected abstract Pair<T, U> principal();
 
         @Override
-        public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
-            return this.principal().matchLazy(function);
+        public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
+            return this.principal().match(function);
         }
 
         @Override
-        public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
-            return this.principal().match(function);
+        public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
+            return this.principal().matchLazy(function);
         }
     }
 
     private Pair() {}
 
-    /** A lazily evaluated pair. */
+    /**
+     * A lazily evaluated pair.
+     *
+     * @see Pair#of(Object,Object)
+     * @see Pair#of(Object,Supplier)
+     * @see Pair#of(Supplier,Object)
+     * @see Pair#of(Supplier,Supplier)
+     */
     public static <T, U> Pair<T, U> lazy(Supplier<? extends Pair<? extends T, ? extends U>> pair) {
+        requireNonNull(pair);
         return new Pair.Proxy<>() {
             @Override
             protected Pair<T, U> principal() {
@@ -65,113 +73,154 @@ public abstract class Pair<T, U> {
         };
     }
 
-    /** A pair of eagerly evaluated elements. */
+    /**
+     * A pair of eagerly evaluated elements.
+     *
+     * @see Pair#of(Object,Supplier)
+     * @see Pair#of(Supplier,Object)
+     * @see Pair#of(Supplier,Supplier)
+     * @see Pair#lazy(Supplier)
+     * @see Pair#duplicate(Object)
+     */
     public static <T, U> Pair<T, U> of(T first, U second) {
         requireNonNull(first);
         requireNonNull(second);
         return new Pair<>() {
-            @Override
-            public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
-                return function.apply((Supplier<T>) () -> first, (Supplier<U>) () -> second);
-            }
-
             @Override
             public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
                 return function.apply(first, second);
             }
 
             @Override
+            public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
+                return function.apply((Supplier<T>) () -> first, (Supplier<U>) () -> second);
+            }
+
+            @Override
             public Pair<T, U> memoize() {
+                return this;
+            }
+
+            @Override
+            public Pair<T, U> eager() {
                 return this;
             }
         };
     }
 
-    /** A pair with an eagerly evaluated first element and a lazily evaluated second element. */
+    /**
+     * A pair with an eagerly evaluated first element and a lazily evaluated second element.
+     *
+     * @see Pair#of(Object,Object)
+     * @see Pair#of(Supplier,Object)
+     * @see Pair#of(Supplier,Supplier)
+     * @see Pair#lazy(Supplier)
+     */
     public static <T, U> Pair<T, U> of(T first, Supplier<? extends U> second) {
         requireNonNull(first);
         requireNonNull(second);
         return new Pair<>() {
+            @Override
+            public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
+                return function.apply(first, requireNonNull(second.get()));
+            }
+
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
                 return function.apply((Supplier<T>) () -> first, Functions.memoize(second));
             }
 
             @Override
-            public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
-                return function.apply(first, second.get());
-            }
-
-            @Override
             public Pair<T, U> memoize() {
-                Supplier<U> memoized = Functions.memoize(second);
+                var memoized = Functions.memoize(second);
                 return memoized == second ? this : Pair.of(first, memoized);
             }
         };
     }
 
-    /** A pair with a lazily evaluated first element and an eagerly evaluated second element. */
+    /**
+     * A pair with a lazily evaluated first element and an eagerly evaluated second element.
+     *
+     * @see Pair#of(Object,Object)
+     * @see Pair#of(Object,Supplier)
+     * @see Pair#of(Supplier,Supplier)
+     * @see Pair#lazy(Supplier)
+     */
     public static <T, U> Pair<T, U> of(Supplier<? extends T> first, U second) {
         requireNonNull(first);
         requireNonNull(second);
         return new Pair<>() {
+            @Override
+            public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
+                return function.apply(requireNonNull(first.get()), second);
+            }
+
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
                 return function.apply(Functions.memoize(first), (Supplier<U>) () -> second);
             }
 
             @Override
-            public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
-                return function.apply(first.get(), second);
-            }
-
-            @Override
             public Pair<T, U> memoize() {
-                Supplier<T> memoized = Functions.memoize(first);
+                var memoized = Functions.memoize(first);
                 return memoized == first ? this : Pair.of(memoized, second);
             }
         };
     }
 
-    /** A pair of lazily evaluated elements. */
+    /**
+     * A pair of lazily evaluated elements.
+     *
+     * @see Pair#of(Object,Object)
+     * @see Pair#of(Object,Supplier)
+     * @see Pair#of(Supplier,Object)
+     * @see Pair#lazy(Supplier)
+     * @see Pair#duplicate(Supplier)
+     */
     public static <T, U> Pair<T, U> of(Supplier<? extends T> first, Supplier<? extends U> second) {
         requireNonNull(first);
         requireNonNull(second);
         return new Pair<>() {
+            @Override
+            public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
+                return function.apply(requireNonNull(first.get()), requireNonNull(second.get()));
+            }
+
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
                 return function.apply(Functions.memoize(first), Functions.memoize(second));
             }
 
             @Override
-            public <R> R match(BiFunction<? super T, ? super U, ? extends R> function) {
-                return function.apply(first.get(), second.get());
-            }
-
-            @Override
             public Pair<T, U> memoize() {
-                Supplier<T> memoizedFirst = Functions.memoize(first);
-                Supplier<U> memoizedSecond = Functions.memoize(second);
-                return memoizedFirst == first && memoizedSecond == second ? this : Pair.of(
-                    memoizedFirst,
-                    memoizedSecond
-                );
+                var x = Functions.memoize(first);
+                var y = Functions.memoize(second);
+                return x == first && y == second ? this : Pair.of(x, y);
             }
         };
     }
 
     /** A lazy view of a map entry as a pair. */
     public static <T, U> Pair<T, U> from(Map.Entry<? extends T, ? extends U> entry) {
+        requireNonNull(entry);
         return Pair.of(entry::getKey, entry::getValue);
     }
 
-    /** A pair where both elements are the same value. */
+    /**
+     * A pair where both elements are the same value.
+     *
+     * @see Pair#of(Object,Object)
+     */
     public static <T> Pair<T, T> duplicate(T value) {
         requireNonNull(value);
         return Pair.of(value, value);
     }
 
-    /** A pair where both elements are the same lazy value. */
+    /**
+     * A pair where both elements are the same lazy value.
+     *
+     * @see Pair#of(Supplier,Supplier)
+     */
     public static <T> Pair<T, T> duplicate(Supplier<? extends T> value) {
         requireNonNull(value);
         return Pair.lazy(() -> let(Functions.memoize(value), memoized -> Pair.of(memoized, memoized)));
@@ -185,7 +234,11 @@ public abstract class Pair<T, U> {
         return widened;
     }
 
-    /** Perform an action on each element of a pair. */
+    /**
+     * Perform an action on each element of a pair.
+     *
+     * @see Pair#forBoth(BiConsumer)
+     */
     public static <T> void forEach(Pair<? extends T, ? extends T> pair, Consumer<? super T> action) {
         pair.forBoth(
             (first, second) -> {
@@ -195,7 +248,13 @@ public abstract class Pair<T, U> {
         );
     }
 
-    /** Apply to each element a function that accepts a common supertype of the two elements. */
+    /**
+     * Apply to each element a function that accepts a common supertype of the two elements.
+     *
+     * @see Pair#mapBoth(Function,Function)
+     * @see Pair#mapFirst(Function)
+     * @see Pair#mapSecond(Function)
+     */
     public static <T, R> Pair<R, R> map(Pair<? extends T, ? extends T> pair, Function<? super T, ? extends R> function) {
         return pair.mapBoth(function, function);
     }
@@ -249,7 +308,7 @@ public abstract class Pair<T, U> {
     /**
      * Perform a binary action on the elements of this pair.
      *
-     * @see Pair#forEach(Pair, Consumer)
+     * @see Pair#forEach(Pair,Consumer)
      */
     public void forBoth(BiConsumer<? super T, ? super U> action) {
         this.match(
@@ -305,8 +364,16 @@ public abstract class Pair<T, U> {
         return this.matchLazy((first, second) -> second.get());
     }
 
-    /** Lazily apply two functions to the elements of this pair. */
+    /**
+     * Lazily apply one function to the first element of this pair, and another function to the second element.
+     *
+     * @see Pair#mapFirst(Function)
+     * @see Pair#mapSecond(Function)
+     * @see Pair#map(Pair,Function)
+     */
     public <R, S> Pair<R, S> mapBoth(Function<? super T, ? extends R> first, Function<? super U, ? extends S> second) {
+        requireNonNull(first);
+        requireNonNull(second);
         return Pair.lazy(
             () -> this.matchLazy(
                 (x, y) -> Pair.of(
@@ -317,13 +384,27 @@ public abstract class Pair<T, U> {
         );
     }
 
-    /** Lazily apply a function to the first element of this pair. */
+    /**
+     * Lazily apply a function to the first element of this pair.
+     *
+     * @see Pair#mapSecond(Function)
+     * @see Pair#mapBoth(Function,Function)
+     * @see Pair#map(Pair,Function)
+     */
     public <R> Pair<R, U> mapFirst(Function<? super T, ? extends R> function) {
+        requireNonNull(function);
         return Pair.lazy(() -> this.matchLazy((x, y) -> Pair.of(() -> function.apply(x.get()), y)));
     }
 
-    /** Lazily apply a function to the second element of this pair. */
+    /**
+     * Lazily apply a function to the second element of this pair.
+     *
+     * @see Pair#mapFirst(Function)
+     * @see Pair#mapBoth(Function,Function)
+     * @see Pair#map(Pair,Function)
+     */
     public <R> Pair<T, R> mapSecond(Function<? super U, ? extends R> function) {
+        requireNonNull(function);
         return Pair.lazy(() -> this.matchLazy((x, y) -> Pair.of(x, () -> function.apply(y.get()))));
     }
 
@@ -337,6 +418,10 @@ public abstract class Pair<T, U> {
         return this.match(Map::entry);
     }
 
+    /**
+     * True if and only if the argument is a pair and contains exactly the same elements as this pair in the same
+     * order.
+     */
     @Override
     public boolean equals(Object object) {
         if (this == object) {
