@@ -1,8 +1,9 @@
-[![Artifact repository](https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue)][jitpack]
-[![Javadoc](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)][javadoc]
-[![License](https://img.shields.io/github/license/gdejohn/procrastination.svg)][license]
-[![Build status](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)][build]
-[![Code coverage](https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg)][coverage]
+[![repository](https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue)][jitpack]
+[![docs](https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg)][javadoc]
+[![license](https://img.shields.io/github/license/gdejohn/procrastination.svg)][apache]
+[![build](https://travis-ci.com/gdejohn/procrastination.svg?branch=master)][travis]
+[![coverage](https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg)][codecov]
+[![chat](https://badges.gitter.im/gdejohn/procrastination.svg)][gitter]
 
 # procrastination
 
@@ -282,14 +283,14 @@ imports all of the types and static members.
 
 ## Versioning
 
-This project uses [semantic versioning][versioning]. Check the [releases] for the available versions.
+This project uses [semantic versioning][semver]. Check the [releases] for the available versions.
 
-[build]: https://travis-ci.com/gdejohn/procrastination
+[apache]: http://www.apache.org/licenses/LICENSE-2.0
 [call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
+[codecov]: https://codecov.io/gh/gdejohn/procrastination
 [combinator]: https://mvanier.livejournal.com/2897.html
 [complement]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
 [cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
-[coverage]: https://codecov.io/gh/gdejohn/procrastination
 [either]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
 [empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
@@ -297,12 +298,12 @@ This project uses [semantic versioning][versioning]. Check the [releases] for th
 [filter]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#filter(java.util.function.Predicate)
 [find]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#find(java.util.function.Predicate)
 [fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
+[gitter]: https://gitter.im/gdejohn/procrastination
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [javadoc]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [last]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#last()
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
-[license]: http://www.apache.org/licenses/LICENSE-2.0
 [map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
@@ -313,10 +314,11 @@ This project uses [semantic versioning][versioning]. Check the [releases] for th
 [right]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#right(B)
 [scan]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#scanLeft(R,java.util.function.BiFunction)
 [script]: https://github.com/gdejohn/procrastination/blob/master/procrastination.jsh
+[semver]: https://semver.org/
 [sequence]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html
 [spliterator]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Spliterator.html
 [stream]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/Stream.html
 [supplier]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Supplier.html
 [terminate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#terminate(T)
 [trampoline]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html
-[versioning]: http://semver.org/
+[travis]: https://travis-ci.com/gdejohn/procrastination
