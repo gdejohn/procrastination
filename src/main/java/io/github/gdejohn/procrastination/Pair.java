@@ -354,6 +354,40 @@ public abstract class Pair<T, U> {
         return this.match(Pair::of);
     }
 
+    /** This pair as a map entry. */
+    public Map.Entry<T, U> entry() {
+        return this.match(Map::entry);
+    }
+
+    /**
+     * True if and only if the argument is a pair and contains exactly the same elements as this pair in the same
+     * order.
+     */
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        } else if (object instanceof Pair) {
+            return this.matchLazy(
+                (a, b) -> ((Pair<?, ?>) object).matchLazy(
+                    (c, d) -> Objects.equals(a.get(), c.get()) && Objects.equals(b.get(), d.get())
+                )
+            );
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.match((first, second) -> (31 + first.hashCode()) * 31 + second.hashCode());
+    }
+
+    @Override
+    public String toString() {
+        return this.match((first, second) -> String.format("(%s, %s)", first, second));
+    }
+
     /** The first element of this pair. */
     public T first() {
         return this.matchLazy((first, second) -> first.get());
@@ -411,39 +445,5 @@ public abstract class Pair<T, U> {
     /** Swap the elements of this pair. */
     public Pair<U, T> swap() {
         return Pair.lazy(() -> this.matchLazy(Functions.flip(Pair::of)));
-    }
-
-    /** This pair as a map entry. */
-    public Map.Entry<T, U> entry() {
-        return this.match(Map::entry);
-    }
-
-    /**
-     * True if and only if the argument is a pair and contains exactly the same elements as this pair in the same
-     * order.
-     */
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        } else if (object instanceof Pair) {
-            return this.matchLazy(
-                (a, b) -> ((Pair<?, ?>) object).matchLazy(
-                    (c, d) -> Objects.equals(a.get(), c.get()) && Objects.equals(b.get(), d.get())
-                )
-            );
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return this.match((first, second) -> (31 + first.hashCode()) * 31 + second.hashCode());
-    }
-
-    @Override
-    public String toString() {
-        return this.match((first, second) -> String.format("(%s, %s)", first, second));
     }
 }
