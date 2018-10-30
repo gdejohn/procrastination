@@ -434,49 +434,34 @@ public abstract class Maybe<T> implements Iterable<T> {
      */
     public abstract <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise);
 
-    /** If non-empty, rewrap the contained value, otherwise return another {@code Maybe}. */
-    public Maybe<T> or(Maybe<? extends T> otherwise) {
-        requireNonNull(otherwise);
-        return Maybe.lazy(() -> this.matchLazy(Maybe::of, otherwise));
-    }
-
-    /** If non-empty, return the contained value, otherwise return a default value. */
-    public T or(T otherwise) {
-        requireNonNull(otherwise);
-        return this.match(Function.identity(), otherwise);
-    }
-
-    /** If non-empty, return the contained value, otherwise return a lazily evaluated default value. */
-    public T or(Supplier<? extends T> otherwise) {
-        requireNonNull(otherwise);
-        return requireNonNull(this.match(Function.identity(), otherwise));
+    /**
+     * Perform an action on the contained value if it exists.
+     *
+     * @see Maybe#forEachOrElse(Consumer, Runnable)
+     */
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        this.forEachOrElse(action, () -> {});
     }
 
     /**
-     * If non-empty, return the contained value, otherwise throw an {@code AssertionError}.
+     * If non-empty, perform an action on the contained value, otherwise perform a default action.
      *
-     * @throws AssertionError if empty
+     * @see Maybe#forEach(Consumer)
      */
-    public T orThrow() {
-        return this.match(
-            Function.identity(),
+    public void forEachOrElse(Consumer<? super T> action, Runnable otherwise) {
+        requireNonNull(action);
+        requireNonNull(otherwise);
+        this.match(
+            value -> {
+                action.accept(value);
+                return unit();
+            },
             () -> {
-                throw new AssertionError("value does not exist");
+                otherwise.run();
+                return unit();
             }
         );
-    }
-
-    /**
-     * If non-empty, return the contained value, otherwise throw a custom exception.
-     *
-     * @throws X if empty
-     */
-    public <X extends Throwable> T orThrow(Supplier<X> exception) throws X {
-        try {
-            return this.match(Function.identity(), undefined());
-        } catch (Undefined e) {
-            throw exception.get();
-        }
     }
 
     /**
@@ -497,6 +482,16 @@ public abstract class Maybe<T> implements Iterable<T> {
     /** Eagerly convert this to an {@code Optional}. */
     public Optional<T> optional() {
         return this.match(Optional::of, Optional.empty());
+    }
+
+    /** Lazily view this as a singleton sequence if non-empty, otherwise as an empty sequence. */
+    public Sequence<T> sequence() {
+        return Sequence.lazy(() -> this.matchLazy(Sequence::of, Sequence.empty()));
+    }
+
+    /** Lazily view this as a singleton stream if non-empty, otherwise as an empty stream. */
+    public Stream<T> stream() {
+        return StreamSupport.stream(this.spliterator(), false);
     }
 
     /**
@@ -561,44 +556,86 @@ public abstract class Maybe<T> implements Iterable<T> {
         return new MaybeSpliterator(maybe);
     }
 
-    /** Lazily view this as a singleton stream if non-empty, otherwise as an empty stream. */
-    public Stream<T> stream() {
-        return StreamSupport.stream(this.spliterator(), false);
-    }
-
-    /** Lazily view this as a singleton sequence if non-empty, otherwise as an empty sequence. */
-    public Sequence<T> sequence() {
-        return Sequence.lazy(() -> this.matchLazy(Sequence::of, Sequence.empty()));
-    }
-
     /**
-     * Perform an action on the contained value if it exists.
-     *
-     * @see Maybe#forEachOrElse(Consumer, Runnable)
+     * True if and only if the argument is an instance of {@code Maybe} and either this and the argument are both empty
+     * or both are non-empty and the contained values are equal.
      */
     @Override
-    public void forEach(Consumer<? super T> action) {
-        this.forEachOrElse(action, () -> {});
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        } else if (object instanceof Maybe) {
+            var that = (Maybe<?>) object;
+            return this.matchLazy(
+                value -> that.matchLazy(
+                    Functions.apply(on(Objects::equals, Supplier::get), value),
+                    false
+                ),
+                that::isEmpty
+            );
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.match(value -> 31 + value.hashCode(), 1);
+    }
+
+    @Override
+    public String toString() {
+        return this.match(Functions.apply(String::format, "(%s)"), "()");
+    }
+
+    /** True if and only if no value is contained in this. */
+    public boolean isEmpty() {
+        return this.matchLazy(Functions.constant(false), true);
+    }
+
+    /** If non-empty, rewrap the contained value, otherwise return another {@code Maybe}. */
+    public Maybe<T> or(Maybe<? extends T> otherwise) {
+        requireNonNull(otherwise);
+        return Maybe.lazy(() -> this.matchLazy(Maybe::of, otherwise));
+    }
+
+    /** If non-empty, return the contained value, otherwise return a default value. */
+    public T or(T otherwise) {
+        requireNonNull(otherwise);
+        return this.match(Function.identity(), otherwise);
+    }
+
+    /** If non-empty, return the contained value, otherwise return a lazily evaluated default value. */
+    public T or(Supplier<? extends T> otherwise) {
+        requireNonNull(otherwise);
+        return requireNonNull(this.match(Function.identity(), otherwise));
     }
 
     /**
-     * If non-empty, perform an action on the contained value, otherwise perform a default action.
+     * If non-empty, return the contained value, otherwise throw an {@code AssertionError}.
      *
-     * @see Maybe#forEach(Consumer)
+     * @throws AssertionError if empty
      */
-    public void forEachOrElse(Consumer<? super T> action, Runnable otherwise) {
-        requireNonNull(action);
-        requireNonNull(otherwise);
-        this.match(
-            value -> {
-                action.accept(value);
-                return unit();
-            },
+    public T orThrow() {
+        return this.match(
+            Function.identity(),
             () -> {
-                otherwise.run();
-                return unit();
+                throw new AssertionError("value does not exist");
             }
         );
+    }
+
+    /**
+     * If non-empty, return the contained value, otherwise throw a custom exception.
+     *
+     * @throws X if empty
+     */
+    public <X extends Throwable> T orThrow(Supplier<X> exception) throws X {
+        try {
+            return this.match(Function.identity(), undefined());
+        } catch (Undefined e) {
+            throw exception.get();
+        }
     }
 
     /**
@@ -647,11 +684,6 @@ public abstract class Maybe<T> implements Iterable<T> {
      */
     public <B> Either<T, B> leftOr(Supplier<? extends B> otherwise) {
         return Either.lazy(() -> this.matchLazy(Either::left, () -> Either.right(otherwise)));
-    }
-
-    /** True if and only if no value is contained in this. */
-    public boolean isEmpty() {
-        return this.matchLazy(Functions.constant(false), true);
     }
 
     /**
@@ -731,37 +763,5 @@ public abstract class Maybe<T> implements Iterable<T> {
     public <R extends T> Maybe<R> narrow(Class<? extends R> type) {
         requireNonNull(type);
         return this.filter(type::isInstance).map(type::cast);
-    }
-
-    /**
-     * True if and only if the argument is an instance of {@code Maybe} and either this and the argument are both empty
-     * or both are non-empty and the contained values are equal.
-     */
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        } else if (object instanceof Maybe) {
-            var that = (Maybe<?>) object;
-            return this.matchLazy(
-                value -> that.matchLazy(
-                    Functions.apply(on(Objects::equals, Supplier::get), value),
-                    false
-                ),
-                that::isEmpty
-            );
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return this.match(value -> 31 + value.hashCode(), 1);
-    }
-
-    @Override
-    public String toString() {
-        return this.match(Functions.apply(String::format, "(%s)"), "()");
     }
 }
