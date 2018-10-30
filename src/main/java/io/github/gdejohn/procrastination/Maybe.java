@@ -72,9 +72,24 @@ public abstract class Maybe<T> implements Iterable<T> {
         public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, R otherwise) {
             return this.principal().matchLazy(function, otherwise);
         }
+
+        @Override
+        public Maybe<T> eager() {
+            return this.principal().eager();
+        }
     }
 
     private static final Maybe<?> EMPTY = new Maybe<>() {
+        @Override
+        public <R> R match(Function<? super Object, ? extends R> function, Supplier<? extends R> otherwise) {
+            return otherwise.get();
+        }
+
+        @Override
+        public <R> R match(Function<? super Object, ? extends R> function, R otherwise) {
+            return otherwise;
+        }
+
         @Override
         public <R> R matchLazy(Function<? super Supplier<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
             return otherwise.get();
@@ -128,22 +143,12 @@ public abstract class Maybe<T> implements Iterable<T> {
         };
     }
 
-    private static <T> Maybe<T> memoize(Maybe<T> maybe) {
-        Supplier<Maybe<T>> principal = Functions.memoize(
-            () -> maybe.matchLazy(
-                value -> Maybe.of(Functions.memoize(value)),
-                Maybe.empty()
-            )
-        );
+    private static <T> Maybe<T> memoize(Proxy<T> maybe) {
+        var principal = Functions.memoize(maybe::principal);
         return new Proxy<>() {
             @Override
             protected Maybe<T> principal() {
                 return principal.get();
-            }
-
-            @Override
-            public Maybe<T> memoize() {
-                return this;
             }
         };
     }
@@ -200,6 +205,16 @@ public abstract class Maybe<T> implements Iterable<T> {
     public static <T> Maybe<T> of(Supplier<? extends T> value) {
         requireNonNull(value);
         return new Maybe<>() {
+            @Override
+            public <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise) {
+                return function.apply(requireNonNull(value.get()));
+            }
+
+            @Override
+            public <R> R match(Function<? super T, ? extends R> function, R otherwise) {
+                return function.apply(requireNonNull(value.get()));
+            }
+
             @Override
             public <R> R matchLazy(Function<? super Supplier<T>, ? extends R> function, Supplier<? extends R> otherwise) {
                 return function.apply(Functions.memoize(value));
@@ -371,9 +386,7 @@ public abstract class Maybe<T> implements Iterable<T> {
      * @see Maybe#matchLazy(Function, Supplier)
      * @see Maybe#or(Supplier)
      */
-    public <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise) {
-        return this.matchLazy(function.compose(Supplier::get), otherwise);
-    }
+    public abstract <R> R match(Function<? super T, ? extends R> function, Supplier<? extends R> otherwise);
 
     /**
      * Return a value defined in terms of the eagerly evaluated element contained in this Maybe if it exists, otherwise
@@ -389,9 +402,7 @@ public abstract class Maybe<T> implements Iterable<T> {
      * @see Maybe#matchLazy(Function, Object)
      * @see Maybe#or(Object)
      */
-    public <R> R match(Function<? super T, ? extends R> function, R otherwise) {
-        return this.matchLazy(function.compose(Supplier::get), otherwise);
-    }
+    public abstract <R> R match(Function<? super T, ? extends R> function, R otherwise);
 
     /**
      * Return a value defined in terms of the lazily evaluated element contained in this Maybe if it exists, otherwise

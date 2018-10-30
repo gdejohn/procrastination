@@ -70,6 +70,21 @@ public abstract class Pair<T, U> {
             protected Pair<T, U> principal() {
                 return cast(pair.get().memoize());
             }
+
+            @Override
+            public Pair<T, U> memoize() {
+                return Pair.memoize(this);
+            }
+        };
+    }
+
+    private static <T, U> Pair<T, U> memoize(Proxy<T, U> pair) {
+        var principal = Functions.memoize(pair::principal);
+        return new Pair.Proxy<>() {
+            @Override
+            protected Pair<T, U> principal() {
+                return principal.get();
+            }
         };
     }
 
@@ -94,11 +109,6 @@ public abstract class Pair<T, U> {
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
                 return function.apply((Supplier<T>) () -> first, (Supplier<U>) () -> second);
-            }
-
-            @Override
-            public Pair<T, U> memoize() {
-                return this;
             }
 
             @Override
@@ -324,29 +334,7 @@ public abstract class Pair<T, U> {
      * caching the result.
      */
     public Pair<T, U> memoize() {
-        return Pair.memoize(this);
-    }
-
-    private static <T, U> Pair<T, U> memoize(Pair<T, U> pair) {
-        Supplier<Pair<T, U>> principal = Functions.memoize(
-            () -> pair.matchLazy(
-                (first, second) -> Pair.of(
-                    Functions.memoize(first),
-                    Functions.memoize(second)
-                )
-            )
-        );
-        return new Pair.Proxy<>() {
-            @Override
-            protected Pair<T, U> principal() {
-                return principal.get();
-            }
-
-            @Override
-            public Pair<T, U> memoize() {
-                return this;
-            }
-        };
+        return this;
     }
 
     /** Eagerly evaluate the elements of this pair and return the results as a new pair. */

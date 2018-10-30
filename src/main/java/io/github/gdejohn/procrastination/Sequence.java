@@ -166,6 +166,11 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
 
         @Override
+        public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
+            return this.principal().match(function);
+        }
+
+        @Override
         public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
             return this.principal().matchLazy(function, otherwise);
         }
@@ -173,6 +178,11 @@ public abstract class Sequence<T> implements Iterable<T> {
         @Override
         public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise) {
             return this.principal().matchLazy(function, otherwise);
+        }
+
+        @Override
+        public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
+            return this.principal().matchLazy(function);
         }
 
         @Override
@@ -184,32 +194,57 @@ public abstract class Sequence<T> implements Iterable<T> {
         public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
             return this.principal().matchNonEmpty(function, otherwise);
         }
+
+        @Override
+        public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
+            return this.principal().matchNonEmpty(function);
+        }
     }
 
     private static final Sequence<?> EMPTY = new Sequence<>() {
         @Override
         public <R> R match(BiFunction<? super Object, ? super Sequence<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
-            return requireNonNull(otherwise.get());
+            return otherwise.get();
         }
 
         @Override
         public <R> R match(BiFunction<? super Object, ? super Sequence<Object>, ? extends R> function, R otherwise) {
-            return requireNonNull(otherwise);
+            return otherwise;
+        }
+
+        @Override
+        public <R> Maybe<R> match(BiFunction<? super Object, ? super Sequence<Object>, ? extends R> function) {
+            return Maybe.empty();
         }
 
         @Override
         public <R> R matchLazy(BiFunction<? super Supplier<Object>, ? super Sequence<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
-            return requireNonNull(otherwise.get());
+            return otherwise.get();
         }
 
         @Override
         public <R> R matchLazy(BiFunction<? super Supplier<Object>, ? super Sequence<Object>, ? extends R> function, R otherwise) {
-            return requireNonNull(otherwise);
+            return otherwise;
         }
 
         @Override
-        public Sequence<Object> memoize() {
-            return this;
+        public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<Object>, ? super Sequence<Object>, ? extends R> function) {
+            return Maybe.empty();
+        }
+
+        @Override
+        public <R> R matchNonEmpty(Function<? super Sequence<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
+            return otherwise.get();
+        }
+
+        @Override
+        public <R> R matchNonEmpty(Function<? super Sequence<Object>, ? extends R> function, R otherwise) {
+            return otherwise;
+        }
+
+        @Override
+        public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<Object>, ? extends R> function) {
+            return Maybe.empty();
         }
 
         @Override
@@ -255,7 +290,42 @@ public abstract class Sequence<T> implements Iterable<T> {
             protected Sequence<T> principal() {
                 return cast(sequence.get().memoize());
             }
+
+            @Override
+            public Sequence<T> memoize() {
+                return Sequence.memoize(this);
+            }
         };
+    }
+
+    private static <T> Sequence<T> memoize(Sequence<T> sequence) {
+        class MemoizedSequence extends Sequence.Proxy<T> {
+            private final Supplier<Sequence<T>> principal;
+
+            MemoizedSequence(Supplier<Sequence<T>> principal) {
+                this.principal = principal;
+            }
+
+            @Override
+            protected Sequence<T> principal() {
+                return this.principal.get();
+            }
+        }
+
+        if (sequence instanceof MemoizedSequence) {
+            return sequence;
+        } else {
+            Supplier<Sequence<T>> principal = Functions.memoize(
+                () -> sequence.matchLazy(
+                    (head, tail) -> Sequence.cons(
+                        Functions.memoize(head),
+                        tail.memoize()
+                    ),
+                    Sequence.empty()
+                )
+            );
+            return new MemoizedSequence(principal);
+        }
     }
 
     /**
@@ -289,38 +359,34 @@ public abstract class Sequence<T> implements Iterable<T> {
         return new Sequence<>() {
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(head, Sequence.cast(tail));
+                return function.apply(head, cast(tail));
             }
 
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(head, Sequence.cast(tail));
+                return function.apply(head, cast(tail));
+            }
+
+            @Override
+            public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
+                requireNonNull(function);
+                return Maybe.of(() -> function.apply(head, cast(tail)));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply((Supplier<T>) () -> head, Sequence.cast(tail));
+                return function.apply((Supplier<T>) () -> head, cast(tail));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply((Supplier<T>) () -> head, Sequence.cast(tail));
+                return function.apply((Supplier<T>) () -> head, cast(tail));
             }
 
             @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(this);
-            }
-
-            @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(this);
-            }
-
-            @Override
-            public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
+            public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
                 requireNonNull(function);
-                return Maybe.of(() -> function.apply(this));
+                return Maybe.of(() -> function.apply((Supplier<T>) () -> head, cast(tail)));
             }
 
             @Override
@@ -346,42 +412,39 @@ public abstract class Sequence<T> implements Iterable<T> {
         return new Sequence<>() {
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(head, Sequence.cast(tail.get()));
+                return function.apply(head, cast(tail.get()));
             }
 
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(head, Sequence.cast(tail.get()));
+                return function.apply(head, cast(tail.get()));
+            }
+
+            @Override
+            public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
+                requireNonNull(function);
+                return Maybe.of(() -> function.apply(head, cast(tail.get())));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply((Supplier<T>) () -> head, Sequence.cast(tail.get()));
+                return function.apply((Supplier<T>) () -> head, cast(tail.get()));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply((Supplier<T>) () -> head, Sequence.cast(tail.get()));
+                return function.apply((Supplier<T>) () -> head, cast(tail.get()));
             }
 
             @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(this);
-            }
-
-           @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(this);
-            }
-
-            @Override
-            public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
-                return Maybe.of(() -> function.apply(this));
+            public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
+                requireNonNull(function);
+                return Maybe.of(() -> function.apply((Supplier<T>) () -> head, cast(tail.get())));
             }
 
             @Override
             public Sequence<T> memoize() {
-                return Sequence.cons(head, Sequence.memoize(tail.get()));
+                return Sequence.cons(head, Functions.memoize(() -> Sequence.memoize(tail.get())));
             }
         };
     }
@@ -401,37 +464,34 @@ public abstract class Sequence<T> implements Iterable<T> {
         return new Sequence<>() {
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(requireNonNull(head.get()), Sequence.cast(tail));
+                return function.apply(requireNonNull(head.get()), cast(tail));
             }
 
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(requireNonNull(head.get()), Sequence.cast(tail));
+                return function.apply(requireNonNull(head.get()), cast(tail));
+            }
+
+            @Override
+            public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
+                requireNonNull(function);
+                return Maybe.of(() -> function.apply(requireNonNull(head.get()), cast(tail)));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(Functions.memoize(head), Sequence.cast(tail));
+                return function.apply(Functions.memoize(head), cast(tail));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(Functions.memoize(head), Sequence.cast(tail));
+                return function.apply(Functions.memoize(head), cast(tail));
             }
 
             @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(this);
-            }
-
-            @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(this);
-            }
-
-            @Override
-            public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
-                return Maybe.of(() -> function.apply(this));
+            public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
+                requireNonNull(function);
+                return Maybe.of(() -> function.apply(Functions.memoize(head), cast(tail)));
             }
 
             @Override
@@ -458,42 +518,39 @@ public abstract class Sequence<T> implements Iterable<T> {
         return new Sequence<>() {
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(requireNonNull(head.get()), Sequence.cast(tail.get()));
+                return function.apply(requireNonNull(head.get()), cast(tail.get()));
             }
 
             @Override
             public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(requireNonNull(head.get()), Sequence.cast(tail.get()));
+                return function.apply(requireNonNull(head.get()), cast(tail.get()));
+            }
+
+            @Override
+            public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
+                requireNonNull(function);
+                return Maybe.of(() -> function.apply(requireNonNull(head.get()), cast(tail.get())));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(Functions.memoize(head), Sequence.cast(tail.get()));
+                return function.apply(Functions.memoize(head), cast(tail.get()));
             }
 
             @Override
             public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(Functions.memoize(head), Sequence.cast(tail.get()));
+                return function.apply(Functions.memoize(head), cast(tail.get()));
             }
 
             @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-                return function.apply(this);
-            }
-
-            @Override
-            public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
-                return function.apply(this);
-            }
-
-            @Override
-            public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
-                return Maybe.of(() -> function.apply(this));
+            public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
+                requireNonNull(function);
+                return Maybe.of(() -> function.apply(Functions.memoize(head), cast(tail.get())));
             }
 
             @Override
             public Sequence<T> memoize() {
-                return Sequence.cons(Functions.memoize(head), Sequence.memoize(tail.get()));
+                return Sequence.cons(Functions.memoize(head), Functions.memoize(() -> Sequence.memoize(tail.get())));
             }
         };
     }
@@ -1163,15 +1220,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#match(BiFunction,Object)
      * @see Sequence#matchOrThrow(BiFunction)
      */
-    public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
-        requireNonNull(function);
-        return Maybe.lazy(
-            () -> this.matchLazy(
-                (head, tail) -> Maybe.of(() -> function.apply(head.get(), tail)),
-                Maybe.empty()
-            )
-        );
-    }
+    public abstract <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function);
 
     /**
      * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
@@ -1277,15 +1326,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazy(BiFunction,Object)
      * @see Sequence#matchLazyOrThrow(BiFunction)
      */
-    public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
-        requireNonNull(function);
-        return Maybe.lazy(
-            () -> this.matchLazy(
-                (head, tail) -> Maybe.of(() -> function.apply(head, tail)),
-                Maybe.empty()
-            )
-        );
-    }
+    public abstract <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function);
 
     /**
      * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
@@ -1350,10 +1391,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchNonEmpty(Function)
      */
     public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
-        return this.matchLazy(
-            (head, tail) -> function.apply(Sequence.cons(head, tail)),
-            otherwise
-        );
+        return function.apply(this);
     }
 
     /**
@@ -1373,10 +1411,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchNonEmpty(Function)
      */
     public <R> R matchNonEmpty(Function<? super Sequence<T>, ? extends R> function, R otherwise) {
-        return this.matchLazy(
-            (head, tail) -> function.apply(Sequence.cons(head, tail)),
-            otherwise
-        );
+        return function.apply(this);
     }
 
     /**
@@ -1397,9 +1432,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      */
     public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
         requireNonNull(function);
-        return Maybe.lazy(
-            () -> this.matchNonEmpty(sequence -> Maybe.of(() -> function.apply(sequence)), Maybe.empty())
-        );
+        return Maybe.of(() -> function.apply(this));
     }
 
     /**
@@ -1432,42 +1465,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * is asked for, and then caching it.
      */
     public Sequence<T> memoize() {
-        return Sequence.memoize(this);
-    }
-
-    private static <T> Sequence<T> memoize(Sequence<T> sequence) {
-        class MemoizedSequence extends Sequence.Proxy<T> {
-            private final Supplier<Sequence<T>> principal;
-
-            MemoizedSequence(Supplier<Sequence<T>> principal) {
-                this.principal = principal;
-            }
-
-            @Override
-            protected Sequence<T> principal() {
-                return this.principal.get();
-            }
-
-            @Override
-            public Sequence<T> memoize() {
-                return this;
-            }
-        }
-
-        if (sequence instanceof MemoizedSequence) {
-            return sequence;
-        } else {
-            Supplier<Sequence<T>> principal = Functions.memoize(
-                () -> sequence.matchLazy(
-                    (head, tail) -> Sequence.cons(
-                        Functions.memoize(head),
-                        tail.memoize()
-                    ),
-                    Sequence.empty()
-                )
-            );
-            return new MemoizedSequence(principal);
-        }
+        return this;
     }
 
     /**

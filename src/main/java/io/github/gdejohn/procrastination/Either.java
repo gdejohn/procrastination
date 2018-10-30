@@ -62,6 +62,11 @@ public abstract class Either<A, B> {
         public <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right) {
             return this.principal().match(left, right);
         }
+
+        @Override
+        public Either<A, B> eager() {
+            return this.principal().eager();
+        }
     }
 
     private Either() {}
@@ -78,6 +83,21 @@ public abstract class Either<A, B> {
             protected Either<A, B> principal() {
                 return cast(either.get().memoize());
             }
+
+            @Override
+            public Either<A, B> memoize() {
+                return Either.memoize(this);
+            }
+        };
+    }
+
+    private static <A, B> Either<A, B> memoize(Proxy<A, B> either) {
+        var principal = Functions.memoize(either::principal);
+        return new Either.Proxy<>() {
+            @Override
+            protected Either<A, B> principal() {
+                return principal.get();
+            }
         };
     }
 
@@ -93,23 +113,13 @@ public abstract class Either<A, B> {
         requireNonNull(value);
         return new Either<>() {
             @Override
-            public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
-                return right.apply((Supplier<B>) () -> value);
-            }
-
-            @Override
             public <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right) {
                 return right.apply(value);
             }
 
             @Override
-            public Either<A, B> memoize() {
-                return this;
-            }
-
-            @Override
-            public Either<A, B> eager() {
-                return this;
+            public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
+                return right.apply((Supplier<B>) () -> value);
             }
         };
     }
@@ -126,23 +136,13 @@ public abstract class Either<A, B> {
         requireNonNull(value);
         return new Either<>() {
             @Override
-            public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
-                return left.apply((Supplier<A>) () -> value);
-            }
-
-            @Override
             public <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right) {
                 return left.apply(value);
             }
 
             @Override
-            public Either<A, B> memoize() {
-                return this;
-            }
-
-            @Override
-            public Either<A, B> eager() {
-                return this;
+            public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
+                return left.apply((Supplier<A>) () -> value);
             }
         };
     }
@@ -159,6 +159,11 @@ public abstract class Either<A, B> {
         requireNonNull(value);
         return new Either<>() {
             @Override
+            public <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right) {
+                return right.apply(requireNonNull(value.get()));
+            }
+
+            @Override
             public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
                 return right.apply(Functions.memoize(value));
             }
@@ -167,6 +172,11 @@ public abstract class Either<A, B> {
             public Either<A, B> memoize() {
                 var memoized = Functions.memoize(value);
                 return memoized == value ? this : Either.right(memoized);
+            }
+
+            @Override
+            public Either<A, B> eager() {
+                return Either.right(value.get());
             }
         };
     }
@@ -183,6 +193,11 @@ public abstract class Either<A, B> {
         requireNonNull(value);
         return new Either<>() {
             @Override
+            public <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right) {
+                return left.apply(requireNonNull(value.get()));
+            }
+
+            @Override
             public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
                 return left.apply(Functions.memoize(value));
             }
@@ -191,6 +206,11 @@ public abstract class Either<A, B> {
             public Either<A, B> memoize() {
                 var memoized = Functions.memoize(value);
                 return memoized == value ? this : Either.left(memoized);
+            }
+
+            @Override
+            public Either<A, B> eager() {
+                return Either.left(value.get());
             }
         };
     }
@@ -330,9 +350,7 @@ public abstract class Either<A, B> {
      * passed to the first function if it's on the left, or to the second function if it's on the right, and the result
      * of whichever function was called is returned.
      */
-    public <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right) {
-        return this.matchLazy(left.compose(Supplier::get), right.compose(Supplier::get));
-    }
+    public abstract <C> C match(Function<? super A, ? extends C> left, Function<? super B, ? extends C> right);
 
     /**
      * Return a value defined in terms of either of the possible lazily evaluated elements contained in this Either.
@@ -389,32 +407,12 @@ public abstract class Either<A, B> {
      * caching the result.
      */
     public Either<A, B> memoize() {
-        return Either.memoize(this);
-    }
-
-    private static <A, B> Either<A, B> memoize(Either<A, B> either) {
-        Supplier<Either<A, B>> principal = Functions.memoize(
-            () -> either.matchLazy(
-                Functions.compose(Either::left, Functions::memoize),
-                Functions.compose(Either::right, Functions::memoize)
-            )
-        );
-        return new Either.Proxy<>() {
-            @Override
-            protected Either<A, B> principal() {
-                return principal.get();
-            }
-
-            @Override
-            public Either<A, B> memoize() {
-                return this;
-            }
-        };
+        return this;
     }
 
     /** Force the evaluation of the contained value and rewrap it on the same side. */
     public Either<A, B> eager() {
-        return this.match(Either::left, Either::right);
+        return this;
     }
 
     /**
