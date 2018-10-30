@@ -34,14 +34,14 @@ import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 /**
- * A lazily evaluated, persistent collection with at most one element.
+ * A lazily evaluated, persistent container that either holds a single non-null element or is empty.
  *
  * <p>{@code Maybe} is a lazy alternative to {@link Optional}. It implements {@link Iterable}, so it can be used in
  * for-each loops. An instance of {@code Maybe<T>} can be thought of as a value of type {@code T} that may or may not
- * exist, or as a {@link Sequence sequence} with a length of at most one, or as an {@code Either<Unit, T>} (i.e., the
- * sum of {@code T} and {@link Unit}).
+ * exist, or as a {@link Sequence Sequence&lt;T&gt;} with at most one element, or as an
+ * {@link Either Either&lt;Unit,T&gt;} (i.e., the sum of {@code T} and {@link Unit}).
  *
- * <p>{@code Maybe} is often used to model the possibility of failure. {@link Either} offers an alternative where the
+ * <p>{@code Maybe} is often used to model the possibility of failure. {@code Either} offers an alternative where the
  * failure case can have information associated with it (e.g., an exception, or an error message).
  *
  * @param <T> the type of the value, if it exists

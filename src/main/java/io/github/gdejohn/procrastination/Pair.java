@@ -27,10 +27,10 @@ import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 /**
- * A lazily evaluated, persistent, ordered, heterogeneous collection with exactly two elements, allowing duplicates (a
- * 2-tuple).
+ * A lazily evaluated, persistent, ordered collection with exactly two elements, which may have different types and
+ * must be non-null.
  *
- * <p>Whereas {@link Either} represents the sum of two types, {@link Pair} represents the product of two types (and
+ * <p>Whereas {@link Either} represents the sum of two types, {@code Pair} represents the product of two types (and
  * {@link Unit} represents the product of zero types).
  *
  * @param <T> the type of the first element

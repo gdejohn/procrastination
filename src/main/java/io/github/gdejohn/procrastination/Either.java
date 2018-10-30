@@ -27,8 +27,8 @@ import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
 /**
- * A lazily evaluated, persistent collection with exactly one element that can take on one of two heterogeneous
- * possible values, labeled left and right.
+ * A lazily evaluated, persistent container with exactly one non-null element that can take on one of two possible
+ * values, labeled {@link Either#left() left} and {@link Either#right() right}, which may have different types.
  *
  * <p>{@link Either} represents the sum of two types, whereas {@link Pair} represents the product of two types (and
  * {@link Unit} represents the product of zero types). {@link Maybe} represents the sum of a type and {@code Unit}.

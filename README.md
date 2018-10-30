@@ -44,11 +44,11 @@ they will always throw `NullPointerException` before returning a null element to
 
 ### Sequence
 
-[`Sequence`][sequence] is an ordered collection of zero or more elements (duplicates allowed). It is recursively
-defined: a sequence is either [`empty`][empty], or it's [`constructed`][cons] from a head element and a tail sequence.
-Conversely, the instance method [`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequence
-is non-empty, it applies the given binary function to the head and tail and returns the result, otherwise it returns a
-default value produced by the given supplier.
+[`Sequence`][sequence] is an ordered collection of zero or more elements. Sequences are recursively defined: either
+they are [`empty`][empty], or they are [`constructed`][cons] from a head element and a tail sequence. Conversely, the
+instance method [`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequence is non-empty, it
+applies the given binary function to the head and tail and returns the result, otherwise it returns a default value
+produced by the given supplier.
 
 Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! Some methods, like
 [`Sequence.last()`][last], must traverse an entire sequence and will never return if it's infinite. Other methods can
@@ -58,12 +58,12 @@ memoized, can't be garbage-collected, and doesn't fit in memory.
 
 ### Maybe
 
-[`Maybe`][maybe] is a collection that either contains a single element or is empty. It can be thought of as a value
-that may or may not exist, or as a sequence with at most one element. It is often used to model potential failure.
-`Maybe` is a lazy alternative to [`Optional`][optional].
+[`Maybe`][maybe] is a container that either holds a single element or is empty. It can be thought of as a value that
+may or may not exist, or as a sequence with at most one element. It is often used to model potential failure. `Maybe`
+is a lazy alternative to [`Optional`][optional].
 
 ### Either
- 
+
 [`Either`][either] is a container with exactly one element that can take on one of two possible values, labeled
 [`left`][left] and [`right`][right], which may have different types. `Either` can also be used to model failure, by
 convention failing on the left and succeeding on the right (mnemonically, *right* is *correct*). But unlike
@@ -72,7 +72,7 @@ message). In that sense, `Either` is the data-structure analogue of Java's check
 
 ### Pair
 
-[`Pair`][pair] is an ordered collection with exactly two elements which may have different types (i.e., a 2-tuple).
+[`Pair`][pair] is an ordered collection with exactly two elements, which may have different types (i.e., a 2-tuple).
 `Pair` is similar to [`Map.Entry`][entry], but by contrast it is persistent and conceptually more general.
 
 ## Sequences vs. Streams

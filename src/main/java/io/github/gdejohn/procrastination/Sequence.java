@@ -72,10 +72,9 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 
 /**
- * A lazily evaluated, persistent, ordered collection of zero or more non-null elements, possibly infinite, allowing
- * duplicates.
+ * A lazily evaluated, persistent, ordered collection of zero or more non-null elements.
  *
- * <p>Sequences are recursively defined: they are either {@link Sequence#empty() empty}, or
+ * <p>Sequences are recursively defined: either they are {@link Sequence#empty() empty}, or they are
  * {@link Sequence#cons(Object,Sequence) constructed} from a head element and a tail sequence. Conversely, the instance
  * method {@link Sequence#match(BiFunction,Supplier) match(BiFunction,Supplier)} pulls a sequence apart, simulating
  * pattern matching: if the sequence is non-empty, the binary function is applied to the head and tail and the result
