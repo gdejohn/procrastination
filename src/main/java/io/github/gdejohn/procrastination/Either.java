@@ -44,8 +44,8 @@ import static java.util.Objects.requireNonNull;
  *
  * <pre>    {@code Function<Integer, Either<String, Integer>> fizz = n -> n % 3 == 0 ? left("Fizz") : right(n);}</pre>
  *
- * @param <A> the type of the value if and only if it is on the left
- * @param <B> the type of the value if and only if it is on the right
+ * @param <A> the type of the element if it is on the left
+ * @param <B> the type of the element if it is on the right
  */
 public abstract class Either<A, B> {
     private static abstract class Proxy<A, B> extends Either<A, B> {
@@ -324,39 +324,6 @@ public abstract class Either<A, B> {
     }
 
     /**
-     * An Either that computes its value at most once, the first time it is asked for, delegating to this Either and
-     * caching the result.
-     */
-    public Either<A, B> memoize() {
-        return Either.memoize(this);
-    }
-
-    private static <A, B> Either<A, B> memoize(Either<A, B> either) {
-        Supplier<Either<A, B>> principal = Functions.memoize(
-            () -> either.matchLazy(
-                Functions.compose(Either::left, Functions::memoize),
-                Functions.compose(Either::right, Functions::memoize)
-            )
-        );
-        return new Either.Proxy<>() {
-            @Override
-            protected Either<A, B> principal() {
-                return principal.get();
-            }
-
-            @Override
-            public Either<A, B> memoize() {
-                return this;
-            }
-        };
-    }
-
-    /** Force the evaluation of the contained value and rewrap it on the same side. */
-    public Either<A, B> eager() {
-        return this.match(Either::left, Either::right);
-    }
-
-    /**
      * Return a value defined in terms of either of the possible eagerly evaluated elements contained in this Either.
      *
      * <p>This method simulates pattern matching on this Either, forcing evaluation of its element. The element is
@@ -414,6 +381,80 @@ public abstract class Either<A, B> {
                 right.accept(value);
                 return unit();
             }
+        );
+    }
+
+    /**
+     * An Either that computes its value at most once, the first time it is asked for, delegating to this Either and
+     * caching the result.
+     */
+    public Either<A, B> memoize() {
+        return Either.memoize(this);
+    }
+
+    private static <A, B> Either<A, B> memoize(Either<A, B> either) {
+        Supplier<Either<A, B>> principal = Functions.memoize(
+            () -> either.matchLazy(
+                Functions.compose(Either::left, Functions::memoize),
+                Functions.compose(Either::right, Functions::memoize)
+            )
+        );
+        return new Either.Proxy<>() {
+            @Override
+            protected Either<A, B> principal() {
+                return principal.get();
+            }
+
+            @Override
+            public Either<A, B> memoize() {
+                return this;
+            }
+        };
+    }
+
+    /** Force the evaluation of the contained value and rewrap it on the same side. */
+    public Either<A, B> eager() {
+        return this.match(Either::left, Either::right);
+    }
+
+    /**
+     * True if and only if the argument is an instance of {@code Either} and its value is on the same side as the value
+     * contained in this and the values are equal.
+     */
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        } else if (object instanceof Either) {
+            var that = (Either<?, ?>) object;
+            return this.matchLazy(
+                left -> that.matchLazy(
+                    Functions.apply(on(Objects::equals, Supplier::get), left),
+                    constant(false)
+                ),
+                right -> that.matchLazy(
+                    constant(false),
+                    Functions.apply(on(Objects::equals, Supplier::get), right)
+                )
+            );
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.match(
+            value -> (31 + value.hashCode()) * 31 + 1,
+            value -> (31 + 1) * 31 + value.hashCode()
+        );
+    }
+
+    @Override
+    public String toString() {
+        return this.match(
+            Functions.apply(String::format, "(%s, ())"),
+            Functions.apply(String::format, "((), %s)")
         );
     }
 
@@ -656,46 +697,5 @@ public abstract class Either<A, B> {
         requireNonNull(either);
         requireNonNull(function);
         return this.flatMapLeft(value -> either.mapLeft(Functions.apply(function, value)));
-    }
-
-    /**
-     * True if and only if the argument is an instance of {@code Either} and its value is on the same side as the value
-     * contained in this and the values are equal.
-     */
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        } else if (object instanceof Either) {
-            var that = (Either<?, ?>) object;
-            return this.matchLazy(
-                left -> that.matchLazy(
-                    Functions.apply(on(Objects::equals, Supplier::get), left),
-                    constant(false)
-                ),
-                right -> that.matchLazy(
-                    constant(false),
-                    Functions.apply(on(Objects::equals, Supplier::get), right)
-                )
-            );
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return this.match(
-            value -> (31 + value.hashCode()) * 31 + 1,
-            value -> (31 + 1) * 31 + value.hashCode()
-        );
-    }
-
-    @Override
-    public String toString() {
-        return this.match(
-            Functions.apply(String::format, "(%s, ())"),
-            Functions.apply(String::format, "((), %s)")
-        );
     }
 }
