@@ -398,24 +398,9 @@ public abstract class Pair<T, U> {
         return this.matchLazy((first, second) -> second.get());
     }
 
-    /**
-     * Lazily apply one function to the first element of this pair, and another function to the second element.
-     *
-     * @see Pair#mapFirst(Function)
-     * @see Pair#mapSecond(Function)
-     * @see Pair#map(Pair,Function)
-     */
-    public <R, S> Pair<R, S> mapBoth(Function<? super T, ? extends R> first, Function<? super U, ? extends S> second) {
-        requireNonNull(first);
-        requireNonNull(second);
-        return Pair.lazy(
-            () -> this.matchLazy(
-                (x, y) -> Pair.of(
-                    () -> first.apply(x.get()),
-                    () -> second.apply(y.get())
-                )
-            )
-        );
+    /** Swap the elements of this pair. */
+    public Pair<U, T> swap() {
+        return Pair.lazy(() -> this.matchLazy(Functions.flip(Pair::of)));
     }
 
     /**
@@ -442,8 +427,23 @@ public abstract class Pair<T, U> {
         return Pair.lazy(() -> this.matchLazy((x, y) -> Pair.of(x, () -> function.apply(y.get()))));
     }
 
-    /** Swap the elements of this pair. */
-    public Pair<U, T> swap() {
-        return Pair.lazy(() -> this.matchLazy(Functions.flip(Pair::of)));
+    /**
+     * Lazily apply one function to the first element of this pair, and another function to the second element.
+     *
+     * @see Pair#mapFirst(Function)
+     * @see Pair#mapSecond(Function)
+     * @see Pair#map(Pair,Function)
+     */
+    public <R, S> Pair<R, S> mapBoth(Function<? super T, ? extends R> first, Function<? super U, ? extends S> second) {
+        requireNonNull(first);
+        requireNonNull(second);
+        return Pair.lazy(
+            () -> this.matchLazy(
+                (x, y) -> Pair.of(
+                    () -> first.apply(x.get()),
+                    () -> second.apply(y.get())
+                )
+            )
+        );
     }
 }
