@@ -197,6 +197,11 @@ public abstract class Sequence<T> implements Iterable<T> {
         public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<T>, ? extends R> function) {
             return this.principal().matchNonEmpty(function);
         }
+
+        @Override
+        public Sequence<T> eager() {
+            return this.principal().eager();
+        }
     }
 
     private static final Sequence<?> EMPTY = new Sequence<>() {
