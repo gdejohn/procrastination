@@ -40,7 +40,7 @@ expose static factory methods and not their constructors, they are effectively s
 will always exhaustively cover every case.
 
 None of the data structures allow null elements. They can't determine up front if a lazy element is null, but they will
-will always throw `NullPointerException` instead of returning a null element to a caller.
+always throw `NullPointerException` instead of returning a null element to a caller.
 
 ### Sequence
 
