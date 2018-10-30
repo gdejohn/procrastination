@@ -243,6 +243,7 @@ public abstract class Maybe<T> implements Iterable<T> {
      * exception or returns null.
      *
      * @see Either#from(Callable)
+     * @see Sequence#from(Callable)
      */
     public static <T> Maybe<T> from(Callable<? extends T> value) {
         return Maybe.lazy(
@@ -261,6 +262,7 @@ public abstract class Maybe<T> implements Iterable<T> {
      * {@code CompletableFuture.get()} throws an exception or returns null.
      *
      * @see Either#from(CompletableFuture)
+     * @see Sequence#from(CompletableFuture)
      */
     public static <T> Maybe<T> from(CompletableFuture<? extends T> value) {
         return Maybe.lazy(
