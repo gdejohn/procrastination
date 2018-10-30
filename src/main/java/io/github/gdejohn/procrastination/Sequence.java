@@ -62,7 +62,6 @@ import static io.github.gdejohn.procrastination.Predicates.gather;
 import static io.github.gdejohn.procrastination.Predicates.on;
 import static io.github.gdejohn.procrastination.Trampoline.call;
 import static io.github.gdejohn.procrastination.Trampoline.terminate;
-import static io.github.gdejohn.procrastination.Undefined.undefined;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.lang.Math.multiplyExact;
 import static java.util.Comparator.naturalOrder;
@@ -1185,7 +1184,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazy(BiFunction,Supplier)
      * @see Sequence#match(BiFunction,Object)
      * @see Sequence#match(BiFunction)
-     * @see Sequence#matchOrThrow(BiFunction)
      */
     public abstract <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise);
 
@@ -1202,7 +1200,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazy(BiFunction,Object)
      * @see Sequence#match(BiFunction,Supplier)
      * @see Sequence#match(BiFunction)
-     * @see Sequence#matchOrThrow(BiFunction)
      */
     public abstract <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, R otherwise);
 
@@ -1218,55 +1215,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#matchLazy(BiFunction)
      * @see Sequence#match(BiFunction,Supplier)
      * @see Sequence#match(BiFunction,Object)
-     * @see Sequence#matchOrThrow(BiFunction)
      */
     public abstract <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function);
-
-    /**
-     * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
-     * otherwise throw an assertion error.
-     *
-     * @param <R> the type of the result
-     *
-     * @throws AssertionError if this sequence is empty
-     *
-     * @see Sequence#matchLazyOrThrow(BiFunction)
-     * @see Sequence#matchOrThrow(BiFunction,Supplier)
-     * @see Sequence#match(BiFunction)
-     * @see Sequence#match(BiFunction,Supplier)
-     * @see Sequence#match(BiFunction,Object)
-     */
-    public <R> R matchOrThrow(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
-        return this.match(
-            function,
-            () -> {
-                throw new AssertionError("sequence is not non-empty");
-            }
-        );
-    }
-
-    /**
-     * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
-     * otherwise throw a supplied exception.
-     *
-     * @param <R> the type of the result
-     * @param <X> the type of the exception
-     *
-     * @throws X if this sequence is empty
-     *
-     * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
-     * @see Sequence#matchOrThrow(BiFunction)
-     * @see Sequence#match(BiFunction)
-     * @see Sequence#match(BiFunction,Supplier)
-     * @see Sequence#match(BiFunction,Object)
-     */
-    public <R, X extends Throwable> R matchOrThrow(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<X> exception) throws X {
-        try {
-            return this.match(function, undefined());
-        } catch (Undefined e) {
-            throw exception.get();
-        }
-    }
 
     /**
      * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
@@ -1286,7 +1236,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#match(BiFunction,Supplier)
      * @see Sequence#matchLazy(BiFunction,Object)
      * @see Sequence#matchLazy(BiFunction)
-     * @see Sequence#matchLazyOrThrow(BiFunction)
      */
     public abstract <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise);
 
@@ -1308,7 +1257,6 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#match(BiFunction,Object)
      * @see Sequence#matchLazy(BiFunction,Supplier)
      * @see Sequence#matchLazy(BiFunction)
-     * @see Sequence#matchLazyOrThrow(BiFunction)
      */
     public abstract <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise);
 
@@ -1324,55 +1272,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#match(BiFunction)
      * @see Sequence#matchLazy(BiFunction,Supplier)
      * @see Sequence#matchLazy(BiFunction,Object)
-     * @see Sequence#matchLazyOrThrow(BiFunction)
      */
     public abstract <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function);
-
-    /**
-     * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
-     * otherwise throw an assertion error.
-     *
-     * @param <R> the type of the result
-     *
-     * @throws AssertionError if this sequence is empty
-     *
-     * @see Sequence#matchOrThrow(BiFunction)
-     * @see Sequence#matchLazyOrThrow(BiFunction,Supplier)
-     * @see Sequence#matchLazy(BiFunction)
-     * @see Sequence#matchLazy(BiFunction,Supplier)
-     * @see Sequence#matchLazy(BiFunction,Object)
-     */
-    public <R> R matchLazyOrThrow(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
-        return this.matchLazy(
-            function,
-            () -> {
-                throw new AssertionError("sequence is not non-empty");
-            }
-        );
-    }
-
-    /**
-     * Return a value defined in terms of the lazily evaluated head and the tail of this sequence if it is non-empty,
-     * otherwise throw a supplied exception.
-     *
-     * @param <R> the type of the result
-     * @param <X> the type of the exception
-     *
-     * @throws X if this sequence is empty
-     *
-     * @see Sequence#matchOrThrow(BiFunction, Supplier)
-     * @see Sequence#matchLazyOrThrow(BiFunction)
-     * @see Sequence#matchLazy(BiFunction)
-     * @see Sequence#matchLazy(BiFunction,Supplier)
-     * @see Sequence#matchLazy(BiFunction,Object)
-     */
-    public <R, X extends Throwable> R matchLazyOrThrow(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<X> exception) throws X {
-        try {
-            return this.matchLazy(function, undefined());
-        } catch (Undefined e) {
-            throw exception.get();
-        }
-    }
 
     /**
      * Return the result of applying a function to this sequence if it is non-empty, otherwise return a lazy default
@@ -1806,12 +1707,14 @@ public abstract class Sequence<T> implements Iterable<T> {
 
             @Override
             public T next() {
-                return this.sequence.matchOrThrow(
+                return this.sequence.match(
                     (head, tail) -> {
                         this.sequence = tail;
                         return head;
                     },
-                    NoSuchElementException::new
+                    () -> {
+                        throw new NoSuchElementException();
+                    }
                 );
             }
 

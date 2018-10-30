@@ -30,7 +30,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static io.github.gdejohn.procrastination.Functions.on;
-import static io.github.gdejohn.procrastination.Undefined.undefined;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
@@ -77,6 +76,11 @@ public abstract class Maybe<T> implements Iterable<T> {
         public Maybe<T> eager() {
             return this.principal().eager();
         }
+
+        @Override
+        public <X extends Throwable> T orThrow(Supplier<X> exception) throws X {
+            return this.principal().orThrow(exception);
+        }
     }
 
     private static final Maybe<?> EMPTY = new Maybe<>() {
@@ -118,6 +122,11 @@ public abstract class Maybe<T> implements Iterable<T> {
         @Override
         public Sequence<Object> sequence() {
             return Sequence.empty();
+        }
+
+        @Override
+        public <X extends Throwable> Object orThrow(Supplier<X> exception) throws X {
+            throw exception.get();
         }
     };
 
@@ -198,6 +207,11 @@ public abstract class Maybe<T> implements Iterable<T> {
             public Sequence<T> sequence() {
                 return Sequence.of(value);
             }
+
+            @Override
+            public <X extends Throwable> T orThrow(Supplier<X> exception) {
+                return value;
+            }
         };
     }
 
@@ -234,6 +248,11 @@ public abstract class Maybe<T> implements Iterable<T> {
             @Override
             public Maybe<T> eager() {
                 return Maybe.of(value.get());
+            }
+
+            @Override
+            public <X extends Throwable> T orThrow(Supplier<X> exception) {
+                return requireNonNull(value.get());
             }
         };
     }
@@ -621,7 +640,7 @@ public abstract class Maybe<T> implements Iterable<T> {
     /** If non-empty, return the contained value, otherwise return a lazily evaluated default value. */
     public T or(Supplier<? extends T> otherwise) {
         requireNonNull(otherwise);
-        return requireNonNull(this.match(Function.identity(), otherwise));
+        return this.match(Function.identity(), otherwise);
     }
 
     /**
@@ -630,8 +649,7 @@ public abstract class Maybe<T> implements Iterable<T> {
      * @throws AssertionError if empty
      */
     public T orThrow() {
-        return this.match(
-            Function.identity(),
+        return this.or(
             () -> {
                 throw new AssertionError("value does not exist");
             }
@@ -644,11 +662,12 @@ public abstract class Maybe<T> implements Iterable<T> {
      * @throws X if empty
      */
     public <X extends Throwable> T orThrow(Supplier<X> exception) throws X {
-        try {
-            return this.match(Function.identity(), undefined());
-        } catch (Undefined e) {
-            throw exception.get();
-        }
+        return this.or(() -> sneak(exception));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T, X extends Throwable> T sneak(Supplier<? extends Throwable> exception) throws X {
+        throw (X) exception.get();
     }
 
     /**

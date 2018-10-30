@@ -15,7 +15,6 @@ package io.github.gdejohn.procrastination;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
@@ -53,20 +52,6 @@ class FunctionsTest {
         var exception = catchThrowableOfType(memoized::get, NullPointerException.class);
         assertThatThrownBy(memoized::get).isSameAs(exception);
         list.set(0, "foo");
-        assertThatThrownBy(memoized::get).isSameAs(exception);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T, X extends Exception> T sneak(Supplier<? extends Exception> exception) throws X {
-        throw (X) exception.get();
-    }
-
-    @Test
-    void memoizeSneakyThrowing() {
-        Supplier<String> supplier = () -> sneak(IOException::new);
-        var memoized = Functions.memoize(supplier);
-        var exception = catchThrowableOfType(memoized::get, IOException.class);
-        assertThatThrownBy(supplier::get).isNotSameAs(exception);
         assertThatThrownBy(memoized::get).isSameAs(exception);
     }
 }

@@ -39,7 +39,6 @@ import static io.github.gdejohn.procrastination.Predicates.greaterThan;
 import static io.github.gdejohn.procrastination.Predicates.greaterThanOrEqualTo;
 import static io.github.gdejohn.procrastination.Predicates.lessThan;
 import static io.github.gdejohn.procrastination.Sequence.cons;
-import static io.github.gdejohn.procrastination.Undefined.undefined;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Collections.enumeration;
 import static java.util.concurrent.CompletableFuture.delayedExecutor;
@@ -476,7 +475,9 @@ class SequenceTest {
             () -> assertThat(Sequence.empty().length()).isEqualTo(0),
             () -> assertThat(cons("foo", Sequence.empty()).length()).isEqualTo(1),
             () -> assertThat(Sequences.range(0, 99).length()).isEqualTo(100),
-            () -> assertThat(Sequence.generate(undefined()).take(100_000).length()).isEqualTo(100_000L)
+            () -> assertThat(
+                Sequence.generate(() -> { throw new AssertionError(); }).take(100_000).length()
+            ).isEqualTo(100_000L)
         );
     }
 
@@ -1594,14 +1595,14 @@ class SequenceTest {
     @Test
     void sequenceRight() {
         assertThat(
-            Sequences.right(Sequences.ints().map(Either::right).insert(100_000, Either.left("foo"))).leftOr("bar")
+            Sequences.right(Sequences.ints().map(Either::right).insert(100_000, Either.left("foo"))).left().or("bar")
         ).isEqualTo("foo");
     }
 
     @Test
     void sequenceLeft() {
         assertThat(
-            Sequences.left(Sequences.ints().map(Either::left).insert(100_000, Either.right("foo"))).rightOr("bar")
+            Sequences.left(Sequences.ints().map(Either::left).insert(100_000, Either.right("foo"))).right().or("bar")
         ).isEqualTo("foo");
     }
 

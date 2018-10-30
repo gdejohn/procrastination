@@ -90,6 +90,52 @@ class MaybeTest {
     }
 
     @Test
+    void equals() {
+        assertAll(
+            () -> assertThat(Maybe.empty()).isEqualTo(Maybe.empty()),
+            () -> assertThat(Maybe.empty()).isNotEqualTo(Maybe.of("bar")),
+            () -> assertThat(Maybe.empty()).isNotEqualTo(Maybe.of(() -> "bar")),
+            () -> assertThat(Maybe.of("foo")).isNotEqualTo(Maybe.empty()),
+            () -> assertThat(Maybe.of("foo")).isNotEqualTo(Maybe.of("bar")),
+            () -> assertThat(Maybe.of("foo")).isEqualTo(Maybe.of("foo")),
+            () -> assertThat(Maybe.of("foo")).isEqualTo(Maybe.of(() -> "foo")),
+            () -> assertThat(Maybe.of("foo")).isNotEqualTo(Maybe.of(() -> "bar")),
+            () -> assertThat(Maybe.of(() -> "foo")).isNotEqualTo(Maybe.empty()),
+            () -> assertThat(Maybe.of(() -> "foo")).isNotEqualTo(Maybe.of("bar")),
+            () -> assertThat(Maybe.of(() -> "foo")).isEqualTo(Maybe.of("foo")),
+            () -> assertThat(Maybe.of(() -> "foo")).isEqualTo(Maybe.of(() -> "foo")),
+            () -> assertThat(Maybe.of(() -> "foo")).isNotEqualTo(Maybe.of(() -> "bar"))
+        );
+    }
+
+    @Test
+    void hash() {
+        assertAll(
+            () -> assertThat(Maybe.empty().hashCode()).isEqualTo(1),
+            () -> assertThat(Maybe.empty()).hasSameHashCodeAs(Sequence.empty()),
+            () -> assertThat(Maybe.empty()).hasSameHashCodeAs(unit()),
+            () -> assertThat(Maybe.empty()).hasSameHashCodeAs(Collections.emptyList()),
+            () -> assertThat(Maybe.of("foo")).hasSameHashCodeAs(Sequence.of("foo")),
+            () -> assertThat(Maybe.of("foo")).hasSameHashCodeAs(Sequence.of(() -> "foo")),
+            () -> assertThat(Maybe.of(() -> "foo")).hasSameHashCodeAs(Sequence.of("foo")),
+            () -> assertThat(Maybe.of(() -> "foo")).hasSameHashCodeAs(Sequence.of(() -> "foo")),
+            () -> assertThat(Maybe.of("foo")).hasSameHashCodeAs(List.of("foo")),
+            () -> assertThat(Maybe.of(() -> "foo")).hasSameHashCodeAs(List.of("foo")),
+            () -> assertThat(Maybe.of("foo").hashCode()).isEqualTo(Objects.hash("foo")),
+            () -> assertThat(Maybe.of(() -> "foo").hashCode()).isEqualTo(Objects.hash("foo"))
+        );
+    }
+
+    @Test
+    void string() {
+        assertAll(
+            () -> assertThat(Maybe.empty()).hasToString("()"),
+            () -> assertThat(Maybe.of("foo")).hasToString("(foo)"),
+            () -> assertThat(Maybe.of(() -> "foo")).hasToString("(foo)")
+        );
+    }
+
+    @Test
     void orMaybe() {
         assertAll(
             () -> assertThat(Maybe.empty().or(Maybe.empty())).isEmpty(),
@@ -144,48 +190,48 @@ class MaybeTest {
     @Test
     void right() {
         assertAll(
-            () -> assertThat(Maybe.empty().right().leftOrThrow()).isInstanceOf(AssertionError.class),
-            () -> assertThat(Maybe.of("foo").right().rightOr("bar")).isEqualTo("foo")
+            () -> assertThat(Maybe.empty().right().left().optional()).containsInstanceOf(AssertionError.class),
+            () -> assertThat(Maybe.of("foo").right().right().or("bar")).isEqualTo("foo")
         );
     }
 
     @Test
     void rightOrDefault() {
         assertAll(
-            () -> assertThat(Maybe.empty().rightOr("foo").leftOr("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").rightOr("bar").rightOr(identity())).isEqualTo("foo")
+            () -> assertThat(Maybe.empty().rightOr("foo").left().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of("foo").rightOr("bar").right().or("baz")).isEqualTo("foo")
         );
     }
 
     @Test
     void rightOrDefaultLazy() {
         assertAll(
-            () -> assertThat(Maybe.empty().rightOr(() -> "foo").leftOr("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").rightOr(() -> "bar").rightOr(identity())).isEqualTo("foo")
+            () -> assertThat(Maybe.empty().rightOr(() -> "foo").left().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of("foo").rightOr(() -> "bar").right().or("baz")).isEqualTo("foo")
         );
     }
 
     @Test
     void left() {
         assertAll(
-            () -> assertThat(Maybe.empty().left().rightOrThrow()).isInstanceOf(AssertionError.class),
-            () -> assertThat(Maybe.of("foo").left().leftOr("bar")).isEqualTo("foo")
+            () -> assertThat(Maybe.empty().left().right().optional()).containsInstanceOf(AssertionError.class),
+            () -> assertThat(Maybe.of("foo").left().left().or("bar")).isEqualTo("foo")
         );
     }
 
     @Test
     void leftOrDefault() {
         assertAll(
-            () -> assertThat(Maybe.empty().leftOr("foo").rightOr("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").leftOr("bar").leftOr(identity())).isEqualTo("foo")
+            () -> assertThat(Maybe.empty().leftOr("foo").right().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of("foo").leftOr("bar").left().or("baz")).isEqualTo("foo")
         );
     }
 
     @Test
     void leftOrDefaultLazy() {
         assertAll(
-            () -> assertThat(Maybe.empty().leftOr(() -> "foo").rightOr("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").leftOr(() -> "bar").leftOr(identity())).isEqualTo("foo")
+            () -> assertThat(Maybe.empty().leftOr(() -> "foo").right().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of("foo").leftOr(() -> "bar").left().or("baz")).isEqualTo("foo")
         );
     }
 
@@ -231,52 +277,6 @@ class MaybeTest {
             () -> assertThat(Maybe.<Number>empty().narrow(Integer.class)).isEmpty(),
             () -> assertThat(Maybe.<Number>of(0).narrow(Long.class)).isEmpty(),
             () -> assertThat(Maybe.<Number>of(0).narrow(Integer.class)).containsExactly(0)
-        );
-    }
-
-    @Test
-    void equals() {
-        assertAll(
-            () -> assertThat(Maybe.empty()).isEqualTo(Maybe.empty()),
-            () -> assertThat(Maybe.empty()).isNotEqualTo(Maybe.of("bar")),
-            () -> assertThat(Maybe.empty()).isNotEqualTo(Maybe.of(() -> "bar")),
-            () -> assertThat(Maybe.of("foo")).isNotEqualTo(Maybe.empty()),
-            () -> assertThat(Maybe.of("foo")).isNotEqualTo(Maybe.of("bar")),
-            () -> assertThat(Maybe.of("foo")).isEqualTo(Maybe.of("foo")),
-            () -> assertThat(Maybe.of("foo")).isEqualTo(Maybe.of(() -> "foo")),
-            () -> assertThat(Maybe.of("foo")).isNotEqualTo(Maybe.of(() -> "bar")),
-            () -> assertThat(Maybe.of(() -> "foo")).isNotEqualTo(Maybe.empty()),
-            () -> assertThat(Maybe.of(() -> "foo")).isNotEqualTo(Maybe.of("bar")),
-            () -> assertThat(Maybe.of(() -> "foo")).isEqualTo(Maybe.of("foo")),
-            () -> assertThat(Maybe.of(() -> "foo")).isEqualTo(Maybe.of(() -> "foo")),
-            () -> assertThat(Maybe.of(() -> "foo")).isNotEqualTo(Maybe.of(() -> "bar"))
-        );
-    }
-
-    @Test
-    void hash() {
-        assertAll(
-            () -> assertThat(Maybe.empty().hashCode()).isEqualTo(1),
-            () -> assertThat(Maybe.empty()).hasSameHashCodeAs(Sequence.empty()),
-            () -> assertThat(Maybe.empty()).hasSameHashCodeAs(unit()),
-            () -> assertThat(Maybe.empty()).hasSameHashCodeAs(Collections.emptyList()),
-            () -> assertThat(Maybe.of("foo")).hasSameHashCodeAs(Sequence.of("foo")),
-            () -> assertThat(Maybe.of("foo")).hasSameHashCodeAs(Sequence.of(() -> "foo")),
-            () -> assertThat(Maybe.of(() -> "foo")).hasSameHashCodeAs(Sequence.of("foo")),
-            () -> assertThat(Maybe.of(() -> "foo")).hasSameHashCodeAs(Sequence.of(() -> "foo")),
-            () -> assertThat(Maybe.of("foo")).hasSameHashCodeAs(List.of("foo")),
-            () -> assertThat(Maybe.of(() -> "foo")).hasSameHashCodeAs(List.of("foo")),
-            () -> assertThat(Maybe.of("foo").hashCode()).isEqualTo(Objects.hash("foo")),
-            () -> assertThat(Maybe.of(() -> "foo").hashCode()).isEqualTo(Objects.hash("foo"))
-        );
-    }
-
-    @Test
-    void string() {
-        assertAll(
-            () -> assertThat(Maybe.empty()).hasToString("()"),
-            () -> assertThat(Maybe.of("foo")).hasToString("(foo)"),
-            () -> assertThat(Maybe.of(() -> "foo")).hasToString("(foo)")
         );
     }
 }

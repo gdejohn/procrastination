@@ -23,7 +23,6 @@ import java.util.function.Supplier;
 
 import static io.github.gdejohn.procrastination.Functions.constant;
 import static io.github.gdejohn.procrastination.Functions.on;
-import static io.github.gdejohn.procrastination.Undefined.undefined;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
@@ -250,66 +249,6 @@ public abstract class Either<A, B> {
     }
 
     /**
-     * Lift and apply to an {@code Either} a function that accepts the value from either side, putting the result on
-     * whichever side the value was on.
-     *
-     * @see Either#flatMap(Function, Either)
-     * @see Either#apply(Either, Either)
-     * @see Either#join(Either)
-     * @see Either#mapEither(Function, Function)
-     */
-    public static <T, R> Either<R, R> map(Function<? super T, ? extends R> function, Either<? extends T, ? extends T> either) {
-        requireNonNull(function);
-        requireNonNull(either);
-        return either.mapEither(function, function);
-    }
-
-    /**
-     * Lift and apply to an {@code Either} a function that accepts the value from either side and returns an
-     * {@code Either}, flattening the result.
-     *
-     * @see Either#map(Function, Either)
-     * @see Either#apply(Either, Either)
-     * @see Either#join(Either)
-     * @see Either#flatMapEither(Function, Function)
-     */
-    public static <T, A, B> Either<A, B> flatMap(Function<? super T, ? extends Either<? extends A, ? extends B>> function, Either<? extends T, ? extends T> either) {
-        requireNonNull(function);
-        requireNonNull(either);
-        return either.flatMapEither(function, function);
-    }
-
-    /**
-     * Apply to an {@code Either} a lifted function that accepts the value from either side, putting the result on
-     * whichever side the function was on.
-     *
-     * @see Either#map(Function, Either)
-     * @see Either#flatMap(Function, Either)
-     * @see Either#join(Either)
-     * @see Either#applyRight(Either)
-     * @see Either#applyLeft(Either)
-     */
-    public static <T, A, B> Either<A, B> apply(Either<? extends Function<? super T, ? extends A>, ? extends Function<? super T, ? extends B>> function, Either<? extends T, ? extends T> either) {
-        requireNonNull(function);
-        requireNonNull(either);
-        return flatMap(value -> function.mapEither(Functions.apply(value), Functions.apply(value)), either);
-    }
-
-    /**
-     * Lazily flatten a nested {@code Either}.
-     *
-     * @see Either#map(Function, Either)
-     * @see Either#flatMap(Function, Either)
-     * @see Either#apply(Either, Either)
-     * @see Either#joinRight(Either)
-     * @see Either#joinLeft(Either)
-     */
-    public static <A, B> Either<A, B> join(Either<? extends Either<? extends A, ? extends B>, ? extends Either<? extends A, ? extends B>> either) {
-        requireNonNull(either);
-        return Either.lazy(() -> either.matchLazy(Either::lazy, Either::lazy));
-    }
-
-    /**
      * Lazily flatten a right-nested {@code Either}.
      *
      * @see Either#flatMapRight(Function)
@@ -334,10 +273,18 @@ public abstract class Either<A, B> {
     }
 
     /**
-     * Extract the value from an {@code Either}.
+     * Lazily flatten a nested {@code Either}.
      *
-     * @see Either#rightOr(Function)
-     * @see Either#leftOr(Function)
+     * @see Either#joinRight(Either)
+     * @see Either#joinLeft(Either)
+     */
+    public static <A, B> Either<A, B> join(Either<? extends Either<? extends A, ? extends B>, ? extends Either<? extends A, ? extends B>> either) {
+        requireNonNull(either);
+        return Either.lazy(() -> either.matchLazy(Either::lazy, Either::lazy));
+    }
+
+    /**
+     * Extract the value from an {@code Either}.
      */
     public static <T> T merge(Either<? extends T, ? extends T> either) {
         return either.match(Function.identity(), Function.identity());
@@ -471,114 +418,9 @@ public abstract class Either<A, B> {
         return Maybe.lazy(() -> this.matchLazy(constant(Maybe.empty()), Maybe::of));
     }
 
-    /** Return the value if it is on the right, otherwise return a default value. */
-    public B rightOr(B otherwise) {
-        return this.matchLazy(constant(otherwise), Supplier::get);
-    }
-
-    /** Return the value if it is on the right, otherwise return a lazily evaluated default value. */
-    public B rightOr(Supplier<? extends B> otherwise) {
-        requireNonNull(otherwise);
-        return this.matchLazy(value -> requireNonNull(otherwise.get()), Supplier::get);
-    }
-
-    /**
-     * Return the value if it is on the right, otherwise apply a function to the value on the left.
-     *
-     * @see Either#right()
-     * @see Either#rightOr(Object)
-     * @see Either#rightOr(Supplier)
-     * @see Either#rightOrThrow()
-     * @see Either#rightOrThrow(Supplier)
-     * @see Either#leftOr(Function)
-     * @see Either#merge(Either)
-     */
-    public B rightOr(Function<? super A, ? extends B> otherwise) {
-        return this.match(otherwise, Function.identity());
-    }
-
-    /**
-     * Return the value if it is on the right, otherwise throw an {@code AssertionError}.
-     *
-     * @throws AssertionError if the value is not on the right
-     */
-    public B rightOrThrow() {
-        return this.rightOr(
-            () -> {
-                throw new AssertionError("value is not on the right");
-            }
-        );
-    }
-
-    /**
-     * Return the value if it is on the right, otherwise throw a custom exception.
-     *
-     * @throws X if the value is not on the right
-     */
-    public <X extends Throwable> B rightOrThrow(Supplier<X> exception) throws X {
-        try {
-            return this.rightOr(undefined());
-        } catch (Undefined e) {
-            throw exception.get();
-        }
-    }
-
     /** Return a {@code Maybe} containing the value if it is on the left, otherwise return an empty {@code Maybe}. */
     public Maybe<A> left() {
         return Maybe.lazy(() -> this.matchLazy(Maybe::of, constant(Maybe.empty())));
-    }
-
-    /** Return the value if it is on the left, otherwise return a default value. */
-    public A leftOr(A otherwise) {
-        requireNonNull(otherwise);
-        return this.matchLazy(Supplier::get, constant(otherwise));
-    }
-
-    /** Return the value if it is on the left, otherwise return a lazily evaluated default value. */
-    public A leftOr(Supplier<? extends A> otherwise) {
-        requireNonNull(otherwise);
-        return this.matchLazy(Supplier::get, value -> requireNonNull(otherwise.get()));
-    }
-
-    /**
-     * Return the value if it is on the left, otherwise apply a function to the value on the right.
-     *
-     * @see Either#left()
-     * @see Either#leftOr(Object)
-     * @see Either#leftOr(Supplier)
-     * @see Either#leftOrThrow()
-     * @see Either#leftOrThrow(Supplier)
-     * @see Either#rightOr(Function)
-     * @see Either#merge(Either)
-     */
-    public A leftOr(Function<? super B, ? extends A> otherwise) {
-        return this.match(Function.identity(), otherwise);
-    }
-
-    /**
-     * Return the value if it is on the left, otherwise throw an {@code AssertionError}.
-     *
-     * @throws AssertionError if the value is not on the left
-     */
-    public A leftOrThrow() {
-        return this.leftOr(
-            () -> {
-                throw new AssertionError("value is not on the left");
-            }
-        );
-    }
-
-    /**
-     * Return the value if it is on the left, otherwise throw a custom exception.
-     *
-     * @throws X if the value is not on the left
-     */
-    public <X extends Throwable> A leftOrThrow(Supplier<X> exception) throws X {
-        try {
-            return this.leftOr(undefined());
-        } catch (Undefined e) {
-            throw exception.get();
-        }
     }
 
     /** If the value is on the right, put it on the left; if the value is on the left, put it on the right. */
