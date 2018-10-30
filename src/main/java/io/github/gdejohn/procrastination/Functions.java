@@ -87,8 +87,7 @@ public final class Functions {
             }
         }
 
-        requireNonNull(supplier);
-        return supplier instanceof Proxy ? (Proxy) supplier : new Proxy(supplier);
+        return supplier instanceof Proxy ? (Proxy) supplier : new Proxy(requireNonNull(supplier));
     }
 
     /**

@@ -115,30 +115,6 @@ public abstract class Either<A, B> {
     }
 
     /**
-     * Put a lazy value on the right.
-     *
-     * @see Either#left(Supplier)
-     * @see Either#right(Object)
-     * @see Either#lazy(Supplier)
-     * @see Either#isRight()
-     */
-    public static <A, B> Either<A, B> right(Supplier<? extends B> value) {
-        requireNonNull(value);
-        return new Either<>() {
-            @Override
-            public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
-                return right.apply(Functions.memoize(value));
-            }
-
-            @Override
-            public Either<A, B> memoize() {
-                var memoized = Functions.memoize(value);
-                return memoized == value ? this : Either.right(memoized);
-            }
-        };
-    }
-
-    /**
      * Put an eager value on the left.
      *
      * @see Either#right(Object)
@@ -167,6 +143,30 @@ public abstract class Either<A, B> {
             @Override
             public Either<A, B> eager() {
                 return this;
+            }
+        };
+    }
+
+    /**
+     * Put a lazy value on the right.
+     *
+     * @see Either#left(Supplier)
+     * @see Either#right(Object)
+     * @see Either#lazy(Supplier)
+     * @see Either#isRight()
+     */
+    public static <A, B> Either<A, B> right(Supplier<? extends B> value) {
+        requireNonNull(value);
+        return new Either<>() {
+            @Override
+            public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
+                return right.apply(Functions.memoize(value));
+            }
+
+            @Override
+            public Either<A, B> memoize() {
+                var memoized = Functions.memoize(value);
+                return memoized == value ? this : Either.right(memoized);
             }
         };
     }
