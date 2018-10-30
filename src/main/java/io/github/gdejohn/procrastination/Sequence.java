@@ -1114,56 +1114,6 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A sequence that lazily delegates to this sequence, only computing each element at most once, the first time it
-     * is asked for, and then caching it.
-     */
-    public Sequence<T> memoize() {
-        return Sequence.memoize(this);
-    }
-
-    private static <T> Sequence<T> memoize(Sequence<T> sequence) {
-        class MemoizedSequence extends Sequence.Proxy<T> {
-            private final Supplier<Sequence<T>> principal;
-
-            MemoizedSequence(Supplier<Sequence<T>> principal) {
-                this.principal = principal;
-            }
-
-            @Override
-            protected Sequence<T> principal() {
-                return this.principal.get();
-            }
-
-            @Override
-            public Sequence<T> memoize() {
-                return this;
-            }
-        }
-
-        if (sequence instanceof MemoizedSequence) {
-            return sequence;
-        } else {
-            Supplier<Sequence<T>> principal = Functions.memoize(
-                () -> sequence.matchLazy(
-                    (head, tail) -> Sequence.cons(
-                        Functions.memoize(head),
-                        tail.memoize()
-                    ),
-                    Sequence.empty()
-                )
-            );
-            return new MemoizedSequence(principal);
-        }
-    }
-
-    /**
-     * A fully materialized sequence containing exactly the elements of this sequence, in the same order.
-     */
-    public Sequence<T> eager() {
-        return this.collect(Sequences.toSequence());
-    }
-
-    /**
      * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
      * otherwise return a lazy default value.
      *
@@ -1475,6 +1425,56 @@ public abstract class Sequence<T> implements Iterable<T> {
                 return unit();
             }
         );
+    }
+
+    /**
+     * A sequence that lazily delegates to this sequence, only computing each element at most once, the first time it
+     * is asked for, and then caching it.
+     */
+    public Sequence<T> memoize() {
+        return Sequence.memoize(this);
+    }
+
+    private static <T> Sequence<T> memoize(Sequence<T> sequence) {
+        class MemoizedSequence extends Sequence.Proxy<T> {
+            private final Supplier<Sequence<T>> principal;
+
+            MemoizedSequence(Supplier<Sequence<T>> principal) {
+                this.principal = principal;
+            }
+
+            @Override
+            protected Sequence<T> principal() {
+                return this.principal.get();
+            }
+
+            @Override
+            public Sequence<T> memoize() {
+                return this;
+            }
+        }
+
+        if (sequence instanceof MemoizedSequence) {
+            return sequence;
+        } else {
+            Supplier<Sequence<T>> principal = Functions.memoize(
+                () -> sequence.matchLazy(
+                    (head, tail) -> Sequence.cons(
+                        Functions.memoize(head),
+                        tail.memoize()
+                    ),
+                    Sequence.empty()
+                )
+            );
+            return new MemoizedSequence(principal);
+        }
+    }
+
+    /**
+     * A fully materialized sequence containing exactly the elements of this sequence, in the same order.
+     */
+    public Sequence<T> eager() {
+        return this.collect(Sequences.toSequence());
     }
 
     /**
