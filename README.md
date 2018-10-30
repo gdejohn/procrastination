@@ -1,7 +1,7 @@
 [![artifacts]][jitpack]
-[![docs]][javadoc]
+[![javadoc]][snapshot]
 [![license]][apache]
-[![build]][travis]
+[![status]][travis]
 [![coverage]][codecov]
 [![chat]][gitter]
 
@@ -9,10 +9,10 @@
 
 **procrastination** is a modular, zero-dependency library for Java 11 that provides:
 
-* lazily evaluated, memoizing, purely functional data structures
-* ad hoc pattern matching
-* stack-safe tail-recursive lambda expressions via trampolines and fixed points
-* an extensible, reusable alternative to Java 8's [`Stream`][stream]
+- lazily evaluated, memoizing, purely functional data structures
+- ad hoc pattern matching
+- stack-safe tail-recursive lambda expressions via trampolines and fixed points
+- an extensible, reusable alternative to Java 8's [`Stream`][stream]
 
 ## Data Structures
 
@@ -39,9 +39,8 @@ While it is easy to define new operations on these types, it is impossible to ad
 expose static factory methods and not their constructors, they are effectively sealed types, so the `match()` methods
 will always exhaustively cover every case.
 
-None of the data structures allow null elements. One of the consequences of lazy evaluation is that it may not be
-possible to determine up front if an element is null, but `NullPointerException` will always be thrown instead of
-returning a null element to a caller.
+None of the data structures allow null elements. They can't determine up front if a lazy element is null, but they will
+will always throw `NullPointerException` instead of returning a null element to a caller.
 
 ### Sequence
 
@@ -150,7 +149,7 @@ parallelism, give `Sequence` a try!
 
 Applying imperative idioms to sequences is ugly and error prone; recursive data types call for recursive algorithms.
 Unfortunately, Java isn't very recursion friendly: deep call stacks quickly run afoul of stack overflow errors, and
-tail recursion doesn't help because there's no tail-call elimination. This isn't a problem for lazy operations like
+tail recursion doesn't help because tail calls aren't eliminated. This isn't a problem for lazy operations like
 [`Sequence.map(Function)`][map], but whenever a potentially large number of elements must be eagerly traversed, as in
 [`Sequence.filter(Predicate)`][filter], stack overflow is waiting to pounce. Enter trampolines.
 
@@ -287,7 +286,6 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
 [artifacts]: https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue
-[build]: https://travis-ci.com/gdejohn/procrastination.svg?branch=master
 [call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
 [chat]: https://badges.gitter.im/gdejohn/procrastination.svg
 [codecov]: https://codecov.io/gh/gdejohn/procrastination
@@ -295,7 +293,6 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [complement]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
 [cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
 [coverage]: https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg
-[docs]: https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg
 [either]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
 [empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
@@ -305,7 +302,7 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
 [gitter]: https://gitter.im/gdejohn/procrastination
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
-[javadoc]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
+[javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [last]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#last()
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
@@ -322,7 +319,9 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [script]: https://github.com/gdejohn/procrastination/blob/master/procrastination.jsh
 [semver]: https://semver.org/
 [sequence]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html
+[snapshot]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
 [spliterator]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Spliterator.html
+[status]: https://travis-ci.com/gdejohn/procrastination.svg?branch=master
 [stream]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/Stream.html
 [supplier]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Supplier.html
 [terminate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#terminate(T)
