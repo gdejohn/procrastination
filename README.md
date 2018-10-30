@@ -18,12 +18,12 @@
 
 Lazy evaluation means that the data structures procrastinate, doing the minimum amount of work required and putting it
 off for as long as possible, only computing each of their elements on demand. They can also be memoized such that each
-element is computed at most once, the first time it's asked for, and then cached.
+element is computed at most once, the first time it's requested, and then cached.
 
 And because the data structures are purely functional, they are fully persistent. Instead of mutators, methods are
-provided that return a new version of a given data structure reflecting the desired changes, leaving the previous
-version intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe
-because the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced).
+provided that return a new version of a given data structure reflecting the desired changes, leaving the original
+intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe because
+the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced).
 
 The data structures are designed to emulate algebraic data types, with basic "data constructor" static factory methods
 mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general pattern-matching
@@ -44,17 +44,17 @@ they will always throw `NullPointerException` before returning a null element to
 
 ### Sequence
 
-[`Sequence`][sequence] is an ordered collection of zero or more elements. Sequences are recursively defined: either
-they are [`empty`][empty], or they are [`constructed`][cons] from a head element and a tail sequence. Conversely, the
-instance method [`Sequence.match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequence is non-empty, it
-applies the given binary function to the head and tail and returns the result, otherwise it returns a default value
-produced by the given supplier.
+[`Sequence`][sequence] is an ordered collection of zero or more elements. It is recursively defined: either a sequence
+is [`empty`][empty], or it's [`constructed`][cons] from a head element and a tail sequence. Conversely, the instance
+method [`match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequence is non-empty, it applies the given
+binary function to its head and tail and returns the result, otherwise it returns a default value produced by the given
+supplier.
 
 Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! Some methods, like
-[`Sequence.last()`][last], must traverse an entire sequence and will never return if it's infinite. Other methods can
-short-circuit, like [`Sequence.find(Predicate)`][find], so they might return given an infinite sequence or they might
-not. Even if a sequence is finite, eager methods like these can still cause an `OutOfMemoryError` if the sequence is
-memoized, can't be garbage-collected, and doesn't fit in memory.
+[`last()`][last], must traverse an entire sequence and will never return if it's infinite. Other methods can
+short-circuit, like [`find(Predicate)`][find], so they might return given an infinite sequence or they might not. Even
+if a sequence is finite, eager methods like these can still throw `OutOfMemoryError` if the sequence is memoized, can't
+be garbage-collected, and doesn't fit in memory.
 
 ### Maybe
 
@@ -80,13 +80,13 @@ message). In that sense, `Either` is the data-structure analogue of Java's check
 `Sequence` offers an alternative to the Stream API introduced in Java 8. Like streams, there are a variety of methods
 to go back and forth between sequences and other representations, including collections, arrays, and streams. Unlike
 streams, sequences can be traversed any number of times (although this does mean that sequences derived from one-shot
-sources like iterators *must* be memoized). Sequences also provide a much more comprehensive API, and it's
-significantly easier to define new functionality for sequences. One of the biggest goals of the Stream API was parallel
-processing, which is why streams were designed around [`spliterators`][spliterator]. So, processing a given stream in a
-way that isn't covered by the API means working directly with its spliterator, and creating a new stream in a way that
-isn't covered by the API means implementing a spliterator. Consider the instance method
-[`Sequence.scanLeft(Object,BiFunction)`][scan], which returns the lazy sequence of intermediate results of a left fold.
-Here's a basic implementation for streams:
+sources like iterators *must* be memoized). Sequences provide a much more comprehensive API, and it's significantly
+easier to define new functionality for sequences. One of the biggest goals of the Stream API was parallel processing,
+which is why streams were designed around [`spliterators`][spliterator]. So, processing a given stream in a way that
+isn't covered by the API means working directly with its spliterator, and creating a new stream in a way that isn't
+covered by the API means implementing a spliterator. Consider the `Sequence` instance method
+[`scanLeft(Object,BiFunction)`][scan], which returns the lazy sequence of intermediate results of a left fold. Here's a
+basic implementation for streams:
 
 ```java
 import java.util.Spliterator;
@@ -148,8 +148,8 @@ parallelism, give `Sequence` a try!
 ## Trampolines
 
 Applying imperative idioms to sequences is ugly and error prone; recursive data types call for recursive algorithms.
-Unfortunately, Java isn't very recursion friendly: deep call stacks quickly run afoul of stack overflow errors, and
-tail recursion doesn't help because tail calls aren't eliminated. This isn't a problem for lazy operations like
+Unfortunately, Java isn't very recursion friendly: deep call stacks soon run into `StackOverflowError`, and tail
+recursion doesn't help because tail calls aren't eliminated. This isn't a problem for lazy operations like
 [`Sequence.map(Function)`][map], but whenever a potentially large number of elements must be eagerly traversed, as in
 [`Sequence.filter(Predicate)`][filter], stack overflow is waiting to pounce. Enter trampolines.
 
@@ -177,7 +177,7 @@ boolean result = any(sequence, predicate).evaluate();
 ### Anonymous Recursion
 
 Tail recursion often requires additional "accumulator" parameters, and trampolining means that the result must be
-unwrapped. These are irrelevant and burdensome implementation details that shouldn't be exposed to client code, so the
+unwrapped. These are irrelevant and burdensome implementation details that shouldn't be exposed to the caller, so the
 usual practice is to delegate to a private helper method. Alternatively, the recursive computation can be defined
 inline!
 
@@ -243,7 +243,7 @@ And add the dependency:
 
 ```gradle
 dependencies {
-    implementation 'io.github.gdejohn:procrastination:0.2.0'
+    implementation 'io.github.gdejohn:procrastination:0.3.0'
 }
 ```
 
@@ -266,7 +266,7 @@ And add the dependency:
 <dependency>
     <groupId>io.github.gdejohn</groupId>
     <artifactId>procrastination</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -275,7 +275,7 @@ string for the dependency with `master-SNAPSHOT`. See the [releases] for links t
 
 ### jshell
 
-The included jshell script [`procrastination.jsh`][script] makes it easy to play around with this library, assuming JDK
+The included jshell script [`procrastination.jsh`][jshell] makes it easy to play around with this library, assuming JDK
 11 and a recent version of Maven are installed and present on your `PATH`. Just clone the repository, and from the root
 directory run `mvn compile` and `jshell procrastination.jsh`. The script adds the module to the jshell environment and
 imports all of the types and static members.
@@ -304,6 +304,7 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
+[jshell]: procrastination.jsh
 [last]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#last()
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
 [license]: https://img.shields.io/badge/license-Apache--2.0-blue.svg
@@ -316,7 +317,6 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [releases]: https://github.com/gdejohn/procrastination/releases
 [right]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#right(B)
 [scan]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#scanLeft(R,java.util.function.BiFunction)
-[script]: https://github.com/gdejohn/procrastination/blob/master/procrastination.jsh
 [semver]: https://semver.org/
 [sequence]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html
 [snapshot]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
