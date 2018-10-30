@@ -351,8 +351,8 @@ class SequenceTest {
     @Test
     void uncons() {
         assertAll(
-            () -> assertThat(Sequence.empty().uncons()).isEmpty(),
-            () -> assertThat(Sequences.range(1, 5).uncons()).containsExactly(Pair.of(1, Sequence.of(2, 3, 4, 5)))
+            () -> assertThat(Sequence.empty().maybe()).isEmpty(),
+            () -> assertThat(Sequences.range(1, 5).maybe()).containsExactly(Pair.of(1, Sequence.of(2, 3, 4, 5)))
         );
     }
 

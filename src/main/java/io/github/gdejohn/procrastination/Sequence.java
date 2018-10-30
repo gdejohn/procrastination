@@ -1453,18 +1453,6 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * The head and tail of this sequence, if this sequence is non-empty.
-     *
-     * @see Sequence#head()
-     * @see Sequence#tail()
-     * @see Sequence#match(BiFunction)
-     * @see Sequence#matchLazy(BiFunction)
-     */
-    public Maybe<Pair<T, Sequence<T>>> uncons() {
-        return this.matchLazy(Pair::of);
-    }
-
-    /**
      * Perform an action on each element of this sequence.
      */
     @Override
@@ -1487,6 +1475,18 @@ public abstract class Sequence<T> implements Iterable<T> {
                 return unit();
             }
         );
+    }
+
+    /**
+     * The head and tail of this sequence as a pair, if this sequence is non-empty.
+     *
+     * @see Sequence#head()
+     * @see Sequence#tail()
+     * @see Sequence#match(BiFunction)
+     * @see Sequence#matchLazy(BiFunction)
+     */
+    public Maybe<Pair<T, Sequence<T>>> maybe() {
+        return this.matchLazy(Pair::of);
     }
 
     /**
@@ -2286,7 +2286,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#last()
      * @see Sequence#tail()
      * @see Sequence#initial()
-     * @see Sequence#uncons()
+     * @see Sequence#maybe()
      */
     public Maybe<T> head() {
         return this.match((head, tail) -> head);
@@ -3006,7 +3006,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#head()
      * @see Sequence#last()
      * @see Sequence#initial()
-     * @see Sequence#uncons()
+     * @see Sequence#maybe()
      */
     public Maybe<Sequence<T>> tail() {
         return this.matchLazy((head, tail) -> tail);
@@ -3018,7 +3018,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#head()
      * @see Sequence#last()
      * @see Sequence#tail()
-     * @see Sequence#uncons()
+     * @see Sequence#maybe()
      */
     public Maybe<Sequence<T>> initial() {
         return this.matchLazy(
