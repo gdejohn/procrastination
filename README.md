@@ -39,8 +39,8 @@ While it is easy to define new operations on these types, it is impossible to ad
 expose static factory methods and not their constructors, they are effectively sealed types, so the `match()` methods
 will always exhaustively cover every case.
 
-None of the data structures allow null elements. They can't determine up front if a lazy element is null, but they will
-always throw `NullPointerException` instead of returning a null element to a caller.
+None of the data structures allow null elements. Although they can't determine up front whether a lazy element is null,
+they will always throw `NullPointerException` before returning a null element to a caller.
 
 ### Sequence
 
@@ -302,11 +302,11 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
 [gitter]: https://gitter.im/gdejohn/procrastination
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
-[javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-brightgreen.svg
+[javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [last]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#last()
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
-[license]: https://img.shields.io/github/license/gdejohn/procrastination.svg
+[license]: https://img.shields.io/badge/license-Apache--2.0-blue.svg
 [map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
