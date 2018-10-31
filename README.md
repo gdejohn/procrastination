@@ -32,7 +32,7 @@ mirrored by abstract `match()` instance methods simulating pattern matching. Thi
 facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply makes it possible
 to distinguish which data constructor was used and extract the components in a single step.
 
-Everything else is ultimately defined in terms of the `match()` methods and data constructors. None of the classes hide
+Everything else is ultimately defined in terms of the data constructors and `match()` methods. None of the classes hide
 anything interesting. They don't have any instance fields. They each have just one constructor, declared private,
 taking no arguments, with an empty body, only used by the static factory methods. If some useful operation is missing,
 anyone can define it externally as a static method just as easily as writing an instance method inside the class.
