@@ -276,8 +276,8 @@ string for the dependency with `master-SNAPSHOT`. See the [releases] for links t
 
 The jshell script [`procrastination.jsh`][jshell] makes it easy to play around with this library, assuming JDK 11 and a
 recent version of Maven are installed and present on your `PATH`. Just clone or download the repository, and from the
-root directory run `mvn compile` and `jshell procrastination.jsh`. The script adds the module to the jshell environment
-and imports all of the types and static members.
+root directory run <code>mvn&nbsp;compile</code> and <code>jshell&nbsp;procrastination.jsh</code>. The script adds the
+module to the jshell environment and imports all of the types and static members.
 
 ## Versioning
 
