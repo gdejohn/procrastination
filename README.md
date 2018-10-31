@@ -201,12 +201,11 @@ static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
 This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, combinators aren't allowed to use
 explicit recursion. But it doesn't need to be a combinator, it only needs to output fixed points. And it does!
 
-This also works for trampolined functions and curried functions of arbitrarily many arguments.
-[`Trampoline.evaluate()`][helper] isn't just an instance method, it's also overloaded as an all-in-one static helper
-method that accepts a trampolined recursive lambda expression and an appropriate number of arguments, fixes the lambda
-expression, applies it to the arguments, evaluates the resulting trampoline, and returns the unwrapped value. And to
-complement this approach, the static factory method [`Trampoline.call()`][complement] is overloaded to accept curried
-functions and matching arguments. For example:
+This works for trampolined and curried functions as well. [`Trampoline.evaluate()`][helper] isn't just an instance
+method, it's also overloaded as an all-in-one static helper method that accepts a trampolined anonymous function and an
+appropriate number of arguments, fixes the function to make it recursive, applies it to the arguments, evaluates the
+resulting trampoline, and returns the unwrapped value. And to complement this pattern, the static factory method
+[`Trampoline.call()`][complement] is overloaded to accept curried functions and matching arguments. For example:
 
 ```java
 static int length(Sequence<?> sequence) {
