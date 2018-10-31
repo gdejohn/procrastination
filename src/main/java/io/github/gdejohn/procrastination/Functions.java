@@ -253,8 +253,7 @@ public final class Functions {
     }
 
     /**
-     * Return the fixed point of a unary operator on functions, enabling recursive lambda expressions (i.e., anonymous
-     * recursion).
+     * Return the fixed point of a unary operator on functions, enabling anonymous recursion.
      *
      * <p>Lambda expressions by definition are unnamed, making explicit recursion impossible. The trick here is to
      * abstract the recursive call by taking the function itself as another argument and letting {@code fix()} tie the

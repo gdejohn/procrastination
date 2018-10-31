@@ -258,8 +258,7 @@ public final class Predicates {
     }
 
     /**
-     * Return the fixed point of a unary operator on predicates, enabling recursive lambda expressions (i.e., anonymous
-     * recursion).
+     * Return the fixed point of a unary operator on predicates, enabling anonymous recursion.
      *
      * @see Functions#fix(UnaryOperator)
      * @see Consumers#fix(UnaryOperator)

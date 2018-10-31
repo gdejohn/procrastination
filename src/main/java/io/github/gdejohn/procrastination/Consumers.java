@@ -72,8 +72,7 @@ public final class Consumers {
     }
 
     /**
-     * Return the fixed point of a unary operator on actions, enabling recursive lambda expressions (i.e., anonymous
-     * recursion).
+     * Return the fixed point of a unary operator on actions, enabling anonymous recursion.
      *
      * @see Functions#fix(UnaryOperator)
      * @see Predicates#fix(UnaryOperator)
