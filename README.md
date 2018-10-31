@@ -14,6 +14,8 @@
 - stack-safe tail-recursive lambda expressions via trampolines and fixed points
 - an extensible, reusable alternative to Java 8's [`Stream`][stream]
 
+In short, it's a taste of Haskell for Java developers.
+
 ## Data Structures
 
 Lazy evaluation means that the data structures procrastinate, doing the minimum amount of work required and putting it
@@ -81,12 +83,13 @@ message). In that sense, `Either` is the data-structure analogue of Java's check
 to go back and forth between sequences and other representations, including collections, arrays, and streams. Unlike
 streams, sequences can be traversed any number of times (although this does mean that sequences derived from one-shot
 sources like iterators *must* be memoized). Sequences provide a much more comprehensive API, and it's significantly
-easier to define new functionality for sequences. One of the biggest goals of the Stream API was parallel processing,
-which is why streams were designed around [`spliterators`][spliterator]. So, processing a given stream in a way that
-isn't covered by the API means working directly with its spliterator, and creating a new stream in a way that isn't
-covered by the API means implementing a spliterator. Consider the `Sequence` instance method
-[`scanLeft(Object,BiFunction)`][scan], which returns the lazy sequence of intermediate results of a left fold. Here's a
-basic implementation for streams:
+easier to define new functionality for sequences.
+
+One of the biggest goals of the Stream API was parallel processing, which is why streams were designed around
+[`spliterators`][spliterator]. So, processing a given stream in a way that isn't covered by the API means working
+directly with its spliterator, and creating a new stream in a way that isn't covered by the API means implementing a
+spliterator. Consider the `Sequence` instance method [`scanLeft(Object,BiFunction)`][scan], which returns the lazy
+sequence of intermediate results of a left fold. Here's a basic implementation for streams:
 
 ```java
 import java.util.Spliterator;
@@ -140,10 +143,10 @@ static <T, R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R
 ```
 
 Compared to the stream implementation, it's declarative, straightforward, and a lot less code; not bad! (With a little
-bit of code golfing, the method body could even fit comfortably on a single line!) The trade-off is that sequences are,
-as the name suggests, sequential; there is no parallel processing. The priority here is developer ergonomics. If you
-ever find yourself reaching for something in the Stream API that isn't there, and your workload doesn't benefit from
-parallelism, give `Sequence` a try!
+bit of code golfing, the method body could even fit comfortably on a single line!) The trade-off is overhead from the
+extra allocation and indirection, and there's no parallel processing. The priority here is developer ergonomics. If you
+ever find yourself reaching for something in the Stream API that isn't there, and you don't need parallelism, give
+`Sequence` a try!
 
 ## Trampolines
 
@@ -277,7 +280,7 @@ string for the dependency with `master-SNAPSHOT`. See the [releases] for links t
 The jshell script [`procrastination.jsh`][jshell] makes it easy to play around with this library, assuming JDK 11 and a
 recent version of Maven are installed and present on your `PATH`. Just clone or download the repository, and from the
 root directory run <code>mvn&nbsp;compile</code> and <code>jshell&nbsp;procrastination.jsh</code>. The script adds the
-module to the jshell environment and imports all of the types and static members.
+module to the jshell environment and imports all of the top-level types and their public static members.
 
 ## Versioning
 
