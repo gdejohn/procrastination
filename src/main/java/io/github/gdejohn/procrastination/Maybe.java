@@ -15,6 +15,7 @@ package io.github.gdejohn.procrastination;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -533,7 +534,52 @@ public abstract class Maybe<T> implements Iterable<T> {
      */
     @Override
     public Iterator<T> iterator() {
-        return this.stream().iterator();
+        return Maybe.iterator(this);
+    }
+
+    private static <T> Iterator<T> iterator(Maybe<T> maybe) {
+        class Iterator implements java.util.Iterator<T> {
+            private Maybe<T> maybe;
+
+            Iterator(Maybe<T> maybe) {
+                this.maybe = maybe;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return this.maybe.matchLazy(
+                    value -> {
+                        this.maybe = Maybe.of(value);
+                        return true;
+                    },
+                    () -> {
+                        this.maybe = Maybe.empty();
+                        return false;
+                    }
+                );
+            }
+
+            @Override
+            public T next() {
+                return this.maybe.match(
+                    value -> {
+                        this.maybe = Maybe.empty();
+                        return value;
+                    },
+                    () -> {
+                        throw new NoSuchElementException();
+                    }
+                );
+            }
+
+            @Override
+            public void forEachRemaining(Consumer<? super T> action) {
+                this.maybe.forEach(action);
+                this.maybe = Maybe.empty();
+            }
+        }
+
+        return new Iterator(maybe);
     }
 
     @Override
