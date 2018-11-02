@@ -69,6 +69,7 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
 import static java.util.Spliterator.NONNULL;
 import static java.util.Spliterator.ORDERED;
+import static java.util.function.Predicate.isEqual;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 
@@ -2041,11 +2042,13 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * True if and only if the argument is an element of this sequence.
      *
+     * @throws NullPointerException if the argument is null
+     *
      * @see Sequence#containsAny(Sequence)
      * @see Sequence#containsAll(Sequence)
      */
     public boolean contains(T element) {
-        return this.any(Predicate.isEqual(element));
+        return this.any(isEqual(requireNonNull(element)));
     }
 
     /**
