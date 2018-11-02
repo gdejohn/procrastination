@@ -2414,8 +2414,12 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#collect(Supplier)
      * @see Collectors
      */
-    public <A, R> R collect(Collector<? super T, A, ? extends R> collector) {
-        return collector.finisher().apply(this.collect(collector.supplier(), collector.accumulator()));
+    public <R> R collect(Collector<? super T, ?, ? extends R> collector) {
+        return Sequence.collect(this, collector);
+    }
+
+    private static <T, A, R> R collect(Sequence<T> sequence, Collector<? super T, A, R> collector) {
+        return collector.finisher().apply(sequence.collect(collector.supplier(), collector.accumulator()));
     }
 
     /**
