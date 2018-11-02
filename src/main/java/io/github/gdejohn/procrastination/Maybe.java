@@ -542,10 +542,10 @@ public abstract class Maybe<T> implements Iterable<T> {
     }
 
     private static <T> Spliterator<T> spliterator(Maybe<T> maybe) {
-        class MaybeSpliterator implements Spliterator<T> {
+        class Spliterator implements java.util.Spliterator<T> {
             private Maybe<T> maybe;
 
-            MaybeSpliterator(Maybe<T> maybe) {
+            Spliterator(Maybe<T> maybe) {
                 this.maybe = maybe;
             }
 
@@ -570,7 +570,7 @@ public abstract class Maybe<T> implements Iterable<T> {
             }
 
             @Override
-            public Spliterator<T> trySplit() {
+            public java.util.Spliterator<T> trySplit() {
                 return null;
             }
 
@@ -585,7 +585,7 @@ public abstract class Maybe<T> implements Iterable<T> {
             }
         }
 
-        return new MaybeSpliterator(maybe);
+        return new Spliterator(maybe);
     }
 
     /**
