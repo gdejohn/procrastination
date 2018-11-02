@@ -11,10 +11,8 @@
 
 - lazily evaluated, memoizing, purely functional data structures
 - ad hoc pattern matching
-- stack-safe tail-recursive lambda expressions via trampolines and fixed points
+- stack-safe tail-recursive anonymous functions via trampolines and fixed points
 - an extensible, reusable alternative to Java 8's [`Stream`][stream]
-
-In short, it's a taste of Haskell for Java developers.
 
 ## Data Structures
 
