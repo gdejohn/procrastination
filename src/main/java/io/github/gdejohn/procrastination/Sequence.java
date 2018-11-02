@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.Spliterators.AbstractSpliterator;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -302,10 +303,10 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     private static <T> Sequence<T> memoize(Sequence<T> sequence) {
-        class MemoizedSequence extends Sequence.Proxy<T> {
+        final class Memoized extends Sequence.Proxy<T> {
             private final Supplier<Sequence<T>> principal;
 
-            MemoizedSequence(Supplier<Sequence<T>> principal) {
+            Memoized(Supplier<Sequence<T>> principal) {
                 this.principal = principal;
             }
 
@@ -315,7 +316,7 @@ public abstract class Sequence<T> implements Iterable<T> {
             }
         }
 
-        if (sequence instanceof MemoizedSequence) {
+        if (sequence instanceof Memoized) {
             return sequence;
         } else {
             Supplier<Sequence<T>> principal = Functions.memoize(
@@ -327,7 +328,7 @@ public abstract class Sequence<T> implements Iterable<T> {
                     Sequence.empty()
                 )
             );
-            return new MemoizedSequence(principal);
+            return new Memoized(principal);
         }
     }
 
@@ -1423,12 +1424,12 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     private static <T> List<T> list(Sequence<T> sequence) {
-        class SequenceList extends AbstractSequentialList<T> {
-            private final List<T> list = new LinkedList<>();
+        class List extends AbstractSequentialList<T> {
+            private final java.util.List<T> list = new LinkedList<>();
 
             private Spliterator<T> spliterator;
 
-            SequenceList(Sequence<T> sequence) {
+            List(Sequence<T> sequence) {
                 this.spliterator = sequence.spliterator();
             }
 
@@ -1467,7 +1468,7 @@ public abstract class Sequence<T> implements Iterable<T> {
             }
 
             @Override
-            public List<T> subList(int from, int to) {
+            public java.util.List<T> subList(int from, int to) {
                 if (from < 0) {
                     throw new IndexOutOfBoundsException();
                 } else if (from > to) {
@@ -1476,6 +1477,16 @@ public abstract class Sequence<T> implements Iterable<T> {
                     this.listIterator(to);
                     return this.list.subList(from, to);
                 }
+            }
+
+            @Override
+            public Stream<T> parallelStream() {
+                return this.stream();
+            }
+
+            @Override
+            public Spliterator<T> spliterator() {
+                return Spliterators.spliteratorUnknownSize(this.iterator(), NONNULL | ORDERED);
             }
 
             @Override
@@ -1497,11 +1508,11 @@ public abstract class Sequence<T> implements Iterable<T> {
                         private final ListIterator<T> iterator;
 
                         {
-                            int size = SequenceList.this.list.size();
+                            int size = List.this.list.size();
                             if (index <= size) {
-                                this.iterator = SequenceList.this.list.listIterator(index);
+                                this.iterator = List.this.list.listIterator(index);
                             } else {
-                                this.iterator = SequenceList.this.list.listIterator(size);
+                                this.iterator = List.this.list.listIterator(size);
                                 advance(index - size);
                             }
                         }
@@ -1520,7 +1531,7 @@ public abstract class Sequence<T> implements Iterable<T> {
                         public boolean hasNext() {
                             if (this.iterator.hasNext()) {
                                 return true;
-                            } else if (SequenceList.this.spliterator.tryAdvance(this.iterator::add)) {
+                            } else if (List.this.spliterator.tryAdvance(this.iterator::add)) {
                                 this.iterator.previous();
                                 return true;
                             } else {
@@ -1576,24 +1587,9 @@ public abstract class Sequence<T> implements Iterable<T> {
                     };
                 }
             }
-
-            @Override
-            public Spliterator<T> spliterator() {
-                return Spliterators.spliteratorUnknownSize(this.iterator(), NONNULL | ORDERED);
-            }
-
-            @Override
-            public Stream<T> stream() {
-                return StreamSupport.stream(this.spliterator(), false);
-            }
-
-            @Override
-            public Stream<T> parallelStream() {
-                return this.stream();
-            }
         }
 
-        return new SequenceList(sequence);
+        return new List(sequence);
     }
 
     /**
@@ -1630,10 +1626,11 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     private static <T> Spliterator<T> spliterator(Sequence<T> sequence) {
-        class SequenceSpliterator implements Spliterator<T> {
+        class Spliterator extends AbstractSpliterator<T> {
             private Sequence<T> sequence;
 
-            SequenceSpliterator(Sequence<T> sequence) {
+            Spliterator(Sequence<T> sequence) {
+                super(Long.MAX_VALUE, NONNULL);
                 this.sequence = sequence;
             }
 
@@ -1651,24 +1648,9 @@ public abstract class Sequence<T> implements Iterable<T> {
                     }
                 );
             }
-
-            @Override
-            public Spliterator<T> trySplit() {
-                return null;
-            }
-
-            @Override
-            public long estimateSize() {
-                return Long.MAX_VALUE;
-            }
-
-            @Override
-            public int characteristics() {
-                return NONNULL;
-            }
         }
 
-        return new SequenceSpliterator(sequence);
+        return new Spliterator(sequence);
     }
 
     /**
@@ -1688,10 +1670,10 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     private static <T> Iterator<T> iterator(Sequence<T> sequence) {
-        class SequenceIterator implements Iterator<T> {
+        class Iterator implements java.util.Iterator<T> {
             private Sequence<T> sequence;
 
-            SequenceIterator(Sequence<T> sequence) {
+            Iterator(Sequence<T> sequence) {
                 this.sequence = sequence;
             }
 
@@ -1727,14 +1709,9 @@ public abstract class Sequence<T> implements Iterable<T> {
                 this.sequence.forEach(action);
                 this.sequence = Sequence.empty();
             }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
         }
 
-        return new SequenceIterator(sequence);
+        return new Iterator(sequence);
     }
 
     /**
