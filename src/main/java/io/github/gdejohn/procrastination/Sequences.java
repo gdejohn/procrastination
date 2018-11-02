@@ -13,18 +13,12 @@
 
 package io.github.gdejohn.procrastination;
 
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 
 import static io.github.gdejohn.procrastination.Functions.constant;
 import static io.github.gdejohn.procrastination.Functions.gather;
@@ -34,7 +28,6 @@ import static io.github.gdejohn.procrastination.Predicates.compose;
 import static io.github.gdejohn.procrastination.Predicates.gather;
 import static io.github.gdejohn.procrastination.Trampoline.call;
 import static io.github.gdejohn.procrastination.Trampoline.terminate;
-import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
@@ -539,122 +532,6 @@ public final class Sequences {
      */
     public static <T, U, R> BiFunction<Sequence<T>, Sequence<U>, Sequence<R>> lift(BiFunction<? super T, ? super U, ? extends R> function) {
         return (xs, ys) -> xs.apply(ys, function);
-    }
-
-    /**
-     * Collect elements into a sequence, preserving any order imposed by the source.
-     *
-     * <p>All of the collector functions run in constant time, allowing optimal speedup for parallel reductions.
-     */
-    public static <T> Collector<T, ?, Sequence<T>> toSequence() {
-        class SequenceBuilder {
-            abstract class Node {
-                abstract void append(T element);
-
-                abstract void concatenate(SequenceBuilder elements);
-
-                abstract Sequence<T> sequence();
-            }
-
-            private final Node EMPTY = new Node() {
-                @Override
-                void append(T element) {
-                    SequenceBuilder.this.last = SequenceBuilder.this.first = new NonEmpty(element);
-                }
-
-                @Override
-                void concatenate(SequenceBuilder elements) {
-                    SequenceBuilder.this.first = elements.first;
-                    SequenceBuilder.this.last = elements.last;
-                }
-
-                @Override
-                Sequence<T> sequence() {
-                    return Sequence.empty();
-                }
-            };
-
-            class NonEmpty extends Node {
-                private final T head;
-
-                private Node tail = EMPTY;
-
-                NonEmpty(T head) {
-                    this.head = head;
-                }
-
-                @Override
-                void append(T element) {
-                    SequenceBuilder.this.last = this.tail = new NonEmpty(element);
-                }
-
-                @Override
-                void concatenate(SequenceBuilder elements) {
-                    this.tail = elements.first;
-                    SequenceBuilder.this.last = elements.last;
-                }
-
-                @Override
-                Sequence<T> sequence() {
-                    return Sequence.cons(this.head, () -> this.tail.sequence());
-                }
-            }
-
-            private Node first = this.EMPTY;
-
-            private Node last = this.EMPTY;
-
-            void append(T element) {
-                requireNonNull(element, "sequences do not permit null elements");
-                requireNonNull(this.last, "sequence builder cannot be reused");
-                this.last.append(element);
-            }
-
-            SequenceBuilder concatenate(SequenceBuilder elements) {
-                requireNonNull(this.last, "sequence builder cannot be reused");
-                requireNonNull(elements.first, "sequence builder cannot be reused");
-                requireNonNull(elements.last, "sequence builder cannot be reused");
-                this.last.concatenate(elements);
-                elements.first = null;
-                elements.last = null;
-                return this;
-            }
-
-            Sequence<T> build() {
-                requireNonNull(this.first, "sequence builder cannot be reused");
-                var sequence = this.first.sequence();
-                this.first = null;
-                this.last = null;
-                return sequence;
-            }
-        }
-
-        return new Collector<T, SequenceBuilder, Sequence<T>>() {
-            @Override
-            public Supplier<SequenceBuilder> supplier() {
-                return SequenceBuilder::new;
-            }
-
-            @Override
-            public BiConsumer<SequenceBuilder, T> accumulator() {
-                return SequenceBuilder::append;
-            }
-
-            @Override
-            public BinaryOperator<SequenceBuilder> combiner() {
-                return SequenceBuilder::concatenate;
-            }
-
-            @Override
-            public Function<SequenceBuilder, Sequence<T>> finisher() {
-                return SequenceBuilder::build;
-            }
-
-            @Override
-            public Set<Characteristics> characteristics() {
-                return Collections.emptySet();
-            }
-        };
     }
 
     /**

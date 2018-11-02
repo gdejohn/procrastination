@@ -23,10 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
 import static io.github.gdejohn.procrastination.Either.left;
@@ -39,6 +39,7 @@ import static io.github.gdejohn.procrastination.Predicates.greaterThan;
 import static io.github.gdejohn.procrastination.Predicates.greaterThanOrEqualTo;
 import static io.github.gdejohn.procrastination.Predicates.lessThan;
 import static io.github.gdejohn.procrastination.Sequence.cons;
+import static io.github.gdejohn.procrastination.Sequence.toSequence;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Collections.enumeration;
 import static java.util.concurrent.CompletableFuture.delayedExecutor;
@@ -46,6 +47,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Function.identity;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 class SequenceTest {
@@ -328,13 +330,19 @@ class SequenceTest {
     @Test
     void eager() {
         var list = new LinkedList<>(List.of(1, 2, 3));
-        var lazySequence = Sequence.from(list);
-        var eagerSequence = lazySequence.eager();
-        assertThat(lazySequence).containsExactly(1, 2, 3);
-        assertThat(eagerSequence).containsExactly(1, 2, 3);
+        var lazy = Sequence.from(list);
+        var eager = lazy.eager();
+        assertThat(lazy).containsExactly(1, 2, 3);
+        assertThat(eager).containsExactly(1, 2, 3);
         list.clear();
-        assertThat(lazySequence).isEmpty();
-        assertThat(eagerSequence).containsExactly(1, 2, 3);
+        assertThat(lazy).isEmpty();
+        assertThat(eager).containsExactly(1, 2, 3);
+        assertThat(eager.eager()).isSameAs(eager);
+        assertThat(eager.memoize()).isSameAs(eager);
+        var rest = eager.match((head, tail) -> tail, Sequence.<Integer>empty());
+        assertThat(rest.eager()).isSameAs(rest);
+        assertThat(rest.memoize()).isSameAs(rest);
+        assertThat(rest).containsExactly(2, 3);
     }
 
     @Test
@@ -1570,10 +1578,37 @@ class SequenceTest {
     }
 
     @Test
-    void sequenceCollector() {
-        assertThat(
-            new TreeSet<>(Set.of(1, 2, 3, 4, 5)).parallelStream().collect(Sequences.toSequence())
-        ).containsExactly(1, 2, 3, 4, 5);
+    void collectToSequence() {
+        sequenceCollectorTestHelper(Sequence.toSequence());
+    }
+
+    private <A> void sequenceCollectorTestHelper(Collector<Integer, A, Sequence<Integer>> collector) {
+        var supplier = collector.supplier();
+        var a = supplier.get();
+        var b = supplier.get();
+        var c = supplier.get();
+        var combiner = collector.combiner();
+        var d = combiner.apply(b, c);
+        var accumulator = collector.accumulator();
+        accumulator.accept(b, 1);
+        accumulator.accept(b, 2);
+        var e = combiner.apply(a, b);
+        assertThatThrownBy(() -> accumulator.accept(b, 0)).hasMessage("sequence builder cannot be reused");
+        assertThatThrownBy(() -> combiner.apply(b, supplier.get())).hasMessage("sequence builder cannot be reused");
+        assertThatThrownBy(() -> combiner.apply(supplier.get(), b)).hasMessage("sequence builder cannot be reused");
+        var finisher = collector.finisher();
+        assertThatThrownBy(() -> finisher.apply(b)).hasMessage("sequence builder cannot be reused");
+        accumulator.accept(a, 3);
+        assertThat(finisher.apply(a)).containsExactly(1, 2, 3);
+    }
+
+    @Test
+    void collectParallelStreamToSequence() {
+        for (var sequence : Sequences.range(1, 6).prefixes().flatMap(Sequence::permutations)) {
+            assertThat(
+                new TreeSet<>(sequence.list()).parallelStream().collect(toSequence())
+            ).containsExactlyElementsOf(Sequences.sort(sequence));
+        }
     }
 
     @Test

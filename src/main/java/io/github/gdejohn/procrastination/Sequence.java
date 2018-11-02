@@ -36,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -142,7 +143,7 @@ import static java.util.stream.Collectors.mapping;
  * <p>There's also a collector that produces sequences, and it can take advantage of parallelism:
  *
  * <ul>
- * <li>{@link Sequences#toSequence() Sequences.toSequence()}
+ * <li>{@link Sequence#toSequence() Sequence.toSequence()}
  * </ul>
  *
  * @param <T> the type of the elements of this sequence
@@ -203,6 +204,114 @@ public abstract class Sequence<T> implements Iterable<T> {
         @Override
         public Sequence<T> eager() {
             return this.principal().eager();
+        }
+    }
+
+    private static final class Eager<T> extends Sequence<T> {
+        private final T head;
+
+        private Sequence<T> tail = Sequence.empty();
+
+        Eager(T head) {
+            this.head = requireNonNull(head);
+        }
+
+        @Override
+        public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
+            return function.apply(head, tail);
+        }
+
+        @Override
+        public <R> R match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function, R otherwise) {
+            return function.apply(head, tail);
+        }
+
+        @Override
+        public <R> Maybe<R> match(BiFunction<? super T, ? super Sequence<T>, ? extends R> function) {
+            requireNonNull(function);
+            return Maybe.of(() -> function.apply(head, tail));
+        }
+
+        @Override
+        public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, Supplier<? extends R> otherwise) {
+            return function.apply((Supplier<T>) () -> head, tail);
+        }
+
+        @Override
+        public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function, R otherwise) {
+            return function.apply((Supplier<T>) () -> head, tail);
+        }
+
+        @Override
+        public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<T>, ? super Sequence<T>, ? extends R> function) {
+            requireNonNull(function);
+            return Maybe.of(() -> function.apply((Supplier<T>) () -> head, tail));
+        }
+
+        @Override
+        public Sequence<T> eager() {
+            return this;
+        }
+
+        void append(Sequence.Builder<T> builder, T element) {
+            var sequence = new Sequence.Eager<>(element);
+            builder.append = sequence::append;
+            builder.concatenate = sequence::concatenate;
+            this.tail = sequence;
+        }
+
+        Sequence.Builder<T> concatenate(Sequence.Builder<T> builder, Sequence.Builder<T> other) {
+            builder.append = other.append;
+            builder.concatenate = other.concatenate;
+            this.tail = other.build.get();
+            return builder;
+        }
+    }
+
+    private static final class Builder<T> {
+        private Sequence<T> sequence = Sequence.empty();
+
+        private BiConsumer<Sequence.Builder<T>, T> append = (builder, head) -> {
+            var sequence = new Sequence.Eager<>(head);
+            builder.append = sequence::append;
+            builder.concatenate = sequence::concatenate;
+            builder.sequence = sequence;
+        };
+
+        private BinaryOperator<Sequence.Builder<T>> concatenate = (builder, other) -> {
+            builder.append = other.append;
+            builder.concatenate = other.concatenate;
+            builder.sequence = other.build.get();
+            return builder;
+        };
+
+        private Supplier<Sequence<T>> build = () -> {
+            this.build = () -> {
+                throw new IllegalStateException("sequence builder cannot be reused");
+            };
+            this.append = (builder, element) -> {
+                throw new IllegalStateException("sequence builder cannot be reused");
+            };
+            this.concatenate = (builder, other) -> {
+                throw new IllegalStateException("sequence builder cannot be reused");
+            };
+            var sequence = this.sequence;
+            this.sequence = null;
+            return sequence;
+        };
+
+        Builder() {}
+
+        void append(T element) {
+            this.append.accept(this, element);
+        }
+
+        Sequence.Builder<T> concatenate(Sequence.Builder<T> builder) {
+            return this.concatenate.apply(this, builder);
+        }
+
+        Sequence<T> build() {
+            return this.build.get();
         }
     }
 
@@ -1176,6 +1285,40 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
+     * Collect values into a sequence, preserving any order imposed by the source.
+     *
+     * <p>All of the collector functions run in constant time, allowing optimal speedup for parallel reductions.
+     */
+    public static <T> Collector<T, ?, Sequence<T>> toSequence() {
+        return new Collector<T, Builder<T>, Sequence<T>>() {
+            @Override
+            public Supplier<Builder<T>> supplier() {
+                return Builder::new;
+            }
+
+            @Override
+            public BiConsumer<Builder<T>, T> accumulator() {
+                return Builder::append;
+            }
+
+            @Override
+            public BinaryOperator<Builder<T>> combiner() {
+                return Builder::concatenate;
+            }
+
+            @Override
+            public Function<Builder<T>, Sequence<T>> finisher() {
+                return Builder::build;
+            }
+
+            @Override
+            public Set<Characteristics> characteristics() {
+                return Set.of();
+            }
+        };
+    }
+
+    /**
      * Return a value defined in terms of the eagerly evaluated head and the tail of this sequence if it is non-empty,
      * otherwise return a lazy default value.
      *
@@ -1379,7 +1522,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * A fully materialized sequence containing exactly the elements of this sequence, in the same order.
      */
     public Sequence<T> eager() {
-        return this.collect(Sequences.toSequence());
+        return this.collect(toSequence());
     }
 
     /**
