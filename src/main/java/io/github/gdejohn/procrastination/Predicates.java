@@ -308,12 +308,12 @@ public final class Predicates {
      * <p>{@code constant(true)} represents a tautology: true regardless of input.
      * {@code constant(false)} represents a contradiction: false regardless of input.
      *
-     * @see Predicates#not(Predicate)
      * @see Predicates#not(BiPredicate)
      * @see Predicates#and(Predicate, Predicate)
      * @see Predicates#and(BiPredicate, BiPredicate)
      * @see Predicates#or(Predicate, Predicate)
      * @see Predicates#or(BiPredicate, BiPredicate)
+     * @see Predicate#not(Predicate)
      */
     public static Predicate<Object> constant(boolean value) {
         return value ? Predicates.TRUE : Predicates.FALSE;
@@ -324,29 +324,10 @@ public final class Predicates {
     private static final Predicate<Object> FALSE = argument -> false;
 
     /**
-     * The negation of a predicate.
-     *
-     * @see Predicates#and(Predicate, Predicate)
-     * @see Predicates#or(Predicate, Predicate)
-     * @see Predicates#nand(Predicate, Predicate)
-     * @see Predicates#nor(Predicate, Predicate)
-     * @see Predicates#xor(Predicate, Predicate)
-     * @see Predicates#implies(Predicate, Predicate)
-     * @see Predicates#impliedBy(Predicate, Predicate)
-     * @see Predicates#iff(Predicate, Predicate)
-     * @see Predicates#not(BiPredicate)
-     * @see Predicates#constant(boolean)
-     */
-    public static <T> Predicate<T> not(Predicate<? super T> predicate) {
-        return argument -> !predicate.test(argument);
-    }
-
-    /**
      * The disjunction of two predicates: at least one of {@code p} and {@code q}.
      *
      * @see Predicates#nor(Predicate, Predicate)
      * @see Predicates#xor(Predicate, Predicate)
-     * @see Predicates#not(Predicate)
      * @see Predicates#and(Predicate, Predicate)
      * @see Predicates#nand(Predicate, Predicate)
      * @see Predicates#implies(Predicate, Predicate)
@@ -354,6 +335,7 @@ public final class Predicates {
      * @see Predicates#iff(Predicate, Predicate)
      * @see Predicates#or(BiPredicate, BiPredicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> or(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> p.test(argument) || q.test(argument);
@@ -363,7 +345,6 @@ public final class Predicates {
      * The conjunction of two predicates: both {@code p} and {@code q}.
      *
      * @see Predicates#nand(Predicate, Predicate)
-     * @see Predicates#not(Predicate)
      * @see Predicates#or(Predicate, Predicate)
      * @see Predicates#nor(Predicate, Predicate)
      * @see Predicates#xor(Predicate, Predicate)
@@ -372,6 +353,7 @@ public final class Predicates {
      * @see Predicates#iff(Predicate, Predicate)
      * @see Predicates#and(BiPredicate, BiPredicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> and(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> p.test(argument) && q.test(argument);
@@ -382,7 +364,6 @@ public final class Predicates {
      *
      * @see Predicates#or(Predicate, Predicate)
      * @see Predicates#nor(Predicate, Predicate)
-     * @see Predicates#not(Predicate)
      * @see Predicates#and(Predicate, Predicate)
      * @see Predicates#nand(Predicate, Predicate)
      * @see Predicates#implies(Predicate, Predicate)
@@ -390,6 +371,7 @@ public final class Predicates {
      * @see Predicates#iff(Predicate, Predicate)
      * @see Predicates#xor(BiPredicate, BiPredicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> xor(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> p.test(argument) ^ q.test(argument);
@@ -398,7 +380,6 @@ public final class Predicates {
     /**
      * The negated disjunction (joint denial) of two predicates: neither {@code p} nor {@code q}.
      *
-     * @see Predicates#not(Predicate)
      * @see Predicates#or(Predicate, Predicate)
      * @see Predicates#xor(Predicate, Predicate)
      * @see Predicates#and(Predicate, Predicate)
@@ -408,6 +389,7 @@ public final class Predicates {
      * @see Predicates#iff(Predicate, Predicate)
      * @see Predicates#nor(BiPredicate, BiPredicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> nor(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> !(p.test(argument) || q.test(argument));
@@ -416,7 +398,6 @@ public final class Predicates {
     /**
      * The negated conjunction (alternative denial) of two predicates: at most one of {@code p} and {@code q}.
      *
-     * @see Predicates#not(Predicate)
      * @see Predicates#and(Predicate, Predicate)
      * @see Predicates#nor(Predicate, Predicate)
      * @see Predicates#or(Predicate, Predicate)
@@ -426,6 +407,7 @@ public final class Predicates {
      * @see Predicates#iff(Predicate, Predicate)
      * @see Predicates#nand(BiPredicate, BiPredicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> nand(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> !(p.test(argument) && q.test(argument));
@@ -440,7 +422,6 @@ public final class Predicates {
      *
      * @see Predicates#impliedBy(Predicate, Predicate)
      * @see Predicates#iff(Predicate, Predicate)
-     * @see Predicates#not(Predicate)
      * @see Predicates#or(Predicate, Predicate)
      * @see Predicates#nor(Predicate, Predicate)
      * @see Predicates#xor(Predicate, Predicate)
@@ -448,6 +429,7 @@ public final class Predicates {
      * @see Predicates#nand(Predicate, Predicate)
      * @see Predicates#implies(BiPredicate, BiPredicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> implies(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> (!p.test(argument)) || q.test(argument);
@@ -462,7 +444,6 @@ public final class Predicates {
      *
      * @see Predicates#implies(Predicate, Predicate)
      * @see Predicates#iff(Predicate, Predicate)
-     * @see Predicates#not(Predicate)
      * @see Predicates#or(Predicate, Predicate)
      * @see Predicates#nor(Predicate, Predicate)
      * @see Predicates#xor(Predicate, Predicate)
@@ -470,6 +451,7 @@ public final class Predicates {
      * @see Predicates#nand(Predicate, Predicate)
      * @see Predicates#impliedBy(BiPredicate, BiPredicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> impliedBy(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> p.test(argument) || !q.test(argument);
@@ -488,13 +470,13 @@ public final class Predicates {
      *
      * @see Predicates#implies(Predicate, Predicate)
      * @see Predicates#impliedBy(Predicate, Predicate)
-     * @see Predicates#not(Predicate)
      * @see Predicates#xor(Predicate, Predicate)
      * @see Predicates#nor(Predicate, Predicate)
      * @see Predicates#or(Predicate, Predicate)
      * @see Predicates#and(Predicate, Predicate)
      * @see Predicates#nand(Predicate, Predicate)
      * @see Predicates#iff(BiPredicate, BiPredicate)
+     * @see Predicate#not(Predicate)
      */
     public static <T> Predicate<T> iff(Predicate<? super T> p, Predicate<? super T> q) {
         return argument -> p.test(argument) == q.test(argument);
@@ -511,8 +493,8 @@ public final class Predicates {
      * @see Predicates#implies(BiPredicate, BiPredicate)
      * @see Predicates#impliedBy(BiPredicate, BiPredicate)
      * @see Predicates#iff(BiPredicate, BiPredicate)
-     * @see Predicates#not(Predicate)
      * @see Predicates#constant(boolean)
+     * @see Predicate#not(Predicate)
      */
     public static <T, U> BiPredicate<T, U> not(BiPredicate<? super T, ? super U> predicate) {
         return (x, y) -> !predicate.test(x, y);
