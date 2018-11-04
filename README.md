@@ -102,7 +102,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-static <T, R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R, T, R> function) {
+static <T,R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R,T,R> function) {
     return StreamSupport.stream(
         new AbstractSpliterator<>(Long.MAX_VALUE /* estimated size */, 0 /* characteristics */) {
             Spliterator<T> spliterator = null;
@@ -134,7 +134,7 @@ could easily write if it weren't already included:
 import io.github.gdejohn.procrastination.Sequence;
 import java.util.function.BiFunction;
 
-static <T, R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R, T, R> function) {
+static <T,R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R,T,R> function) {
     return Sequence.cons(
         initial,
         () -> sequence.match(
@@ -174,7 +174,7 @@ static <T> Trampoline<Boolean> any(Sequence<T> sequence, Predicate<T> predicate)
 }
 ```
 
-To get the result from a trampoline, use the instance method [`evaluate()`][evaluate]:
+To get the result from a trampoline, use the instance method [`evaluate`][evaluate]:
 
 ```java
 boolean result = any(sequence, predicate).evaluate();
@@ -187,10 +187,9 @@ unwrapped. These are irrelevant and burdensome implementation details that shoul
 usual practice is to delegate to a private helper method. Alternatively, the recursive computation can be defined
 inline!
 
-[`Functions.fix()`][fix] returns the fixed point of a unary operator on functions, enabling recursive lambda
-expressions (i.e., anonymous recursion). Lambda expressions by definition are unnamed, making explicit recursion
-impossible. The trick here is to abstract the recursive call by taking the function itself as an argument and letting
-`fix()` tie the knot. For example:
+[`Functions.fix`][fix] returns the fixed point of a unary operator on functions, enabling anonymous recursion. Lambda
+expressions by definition are unnamed, making explicit recursion impossible. The trick here is to abstract the
+recursive call by taking the function itself as an argument and letting `fix` tie the knot. For example:
 
 ```java
 Function<Integer,Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
@@ -233,8 +232,8 @@ You might just forget that you're writing Java!
 ## Getting started
 
 The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
-number. Check the [releases] for the available versions, links to their Javadocs, and changelogs. This project uses
-[semantic versioning][semver]. See [JitPack][jitpack] for instructions on using other build tools.
+number. Check the [releases] for the available versions, links to their Javadocs, and changelogs. See
+[JitPack][jitpack] for instructions on using other build tools.
 
 ### Gradle
 
@@ -318,7 +317,6 @@ module to the JShell environment and imports all of the top-level types and thei
 [releases]: https://github.com/gdejohn/procrastination/releases
 [right]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#right(B)
 [scan]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#scanLeft(R,java.util.function.BiFunction)
-[semver]: https://semver.org/
 [sequence]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html
 [snapshot]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
 [spliterator]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Spliterator.html
