@@ -14,7 +14,11 @@
 - stack-safe tail-recursive anonymous functions via trampolines and fixed points
 - an extensible, reusable alternative to Java 8's [`Stream`][stream]
 
-## Data Structures
+The goal is to help you write better code by making it harder to introduce bugs. To that end, this project borrows
+ideas from functional programming languages but strives to make them accessible. If you're comfortable with streams and
+optionals, then you already know enough about functional programming to be productive with this library!
+
+## Data structures
 
 Lazy evaluation means that the data structures procrastinate, doing the minimum amount of work required and putting it
 off for as long as possible, only computing each of their elements on demand. They can also be memoized such that each
@@ -32,8 +36,9 @@ to distinguish which data constructor was used and extract the components in a s
 
 Everything else is ultimately defined in terms of the data constructors and `match()` methods. None of the classes hide
 anything interesting. They don't have any instance fields. They each have just one constructor, declared private,
-taking no arguments, with an empty body, only used by the static factory methods. If some useful operation is missing,
-anyone can define it externally as a static method just as easily as writing an instance method inside the class.
+taking no arguments, with an empty body, only used by the core static factory methods. If some useful operation is
+missing, anyone can define it externally as a static method just as easily as writing an instance method inside the
+class.
 
 While it is easy to define new operations on these types, it is impossible to add new cases. Since the classes only
 expose static factory methods and not their constructors, they are effectively sealed types, so the `match()` methods
@@ -150,14 +155,14 @@ ever find yourself reaching for something in the Stream API that isn't there, an
 
 Applying imperative idioms to sequences is ugly and error prone; recursive data types call for recursive algorithms.
 Unfortunately, Java isn't very recursion friendly: deep call stacks soon run into `StackOverflowError`, and tail
-recursion doesn't help because tail calls aren't eliminated. This isn't a problem for lazy operations like
-[`Sequence.map(Function)`][map], but whenever a potentially large number of elements must be eagerly traversed, as in
-[`Sequence.filter(Predicate)`][filter], stack overflow is waiting to pounce. Enter trampolines.
+recursion doesn't help because tail calls aren't eliminated. That wasn't a problem for `scanLeft` because it's lazy,
+but whenever a potentially large number of elements must be eagerly traversed, stack overflow is waiting to pounce.
+Enter trampolines.
 
 [`Trampoline`][trampoline] transforms tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
 return type `R`, change the return type to `Trampoline<R>`, wrap the expressions returned in base cases with the static
-factory method [`terminate()`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and
-wrap the suspended recursive calls with the static factory method [`call()`][call]. For example:
+factory method [`terminate`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and wrap
+the suspended recursive calls with the static factory method [`call`][call]. For example:
 
 ```java
 /** True if and only if the sequence contains at least one element that satisfies the predicate. */
@@ -175,7 +180,7 @@ To get the result from a trampoline, use the instance method [`evaluate()`][eval
 boolean result = any(sequence, predicate).evaluate();
 ```
 
-### Anonymous Recursion
+### Fixed points and anonymous recursion
 
 Tail recursion often requires additional "accumulator" parameters, and trampolining means that the result must be
 unwrapped. These are irrelevant and burdensome implementation details that shouldn't be exposed to the caller, so the
@@ -188,13 +193,13 @@ impossible. The trick here is to abstract the recursive call by taking the funct
 `fix()` tie the knot. For example:
 
 ```java
-Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
+Function<Integer,Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
 ```
 
 And `fix()` is implemented like this:
 
 ```java
-static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
+static <T,R> Function<T,R> fix(UnaryOperator<Function<T,R>> function) {
     return function.apply(argument -> fix(function).apply(argument));
 }
 ```
@@ -203,10 +208,11 @@ This is almost, but not quite, the fabled [Y combinator][combinator]. Technicall
 explicit recursion. But it doesn't need to be a combinator, it only needs to output fixed points. And it does!
 
 This works for trampolined and curried functions as well. [`Trampoline.evaluate()`][helper] isn't just an instance
-method, it's also overloaded as an all-in-one static helper method that accepts a trampolined anonymous function and an
-appropriate number of arguments, fixes the function to make it recursive, applies it to the arguments, evaluates the
-resulting trampoline, and returns the unwrapped value. And to complement this pattern, the static factory method
-[`Trampoline.call()`][complement] is overloaded to accept curried functions and matching arguments. For example:
+method, it's also overloaded as an all-in-one static helper method that accepts a trampolined anonymous function in
+unfixed form and an appropriate number of arguments, fixes the function to make it recursive, applies it to the
+arguments, evaluates the resulting trampoline, and returns the unwrapped value. And to complement this pattern, the
+static factory method [`Trampoline.call()`][complement] is overloaded to accept curried functions and matching
+arguments. For example:
 
 ```java
 static int length(Sequence<?> sequence) {
@@ -224,7 +230,7 @@ static int length(Sequence<?> sequence) {
 That's a stack-safe tail-recursive local helper function taking full advantage of type inference and pattern matching!
 You might just forget that you're writing Java!
 
-## Getting Started
+## Getting started
 
 The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
 number. Check the [releases] for the available versions, links to their Javadocs, and changelogs. This project uses
@@ -295,7 +301,6 @@ module to the JShell environment and imports all of the top-level types and thei
 [empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
 [evaluate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate()
-[filter]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#filter(java.util.function.Predicate)
 [fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
 [gitter]: https://gitter.im/gdejohn/procrastination
 [hash]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#hashCode()
@@ -305,7 +310,6 @@ module to the JShell environment and imports all of the top-level types and thei
 [jshell]: procrastination.jsh
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
 [license]: https://img.shields.io/badge/license-Apache--2.0-blue.svg
-[map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
 [memoize]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
