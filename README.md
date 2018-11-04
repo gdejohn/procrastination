@@ -50,9 +50,9 @@ method [`match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequ
 binary function to its head and tail and returns the result, otherwise it returns a default value produced by the given
 supplier.
 
-Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! Some methods, like
-[`last()`][last], must traverse an entire sequence and will never return if it's infinite. Other methods can
-short-circuit, like [`find(Predicate)`][find], so they might return given an infinite sequence or they might not. Even
+Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! For example,
+[`hashing`][hash] a sequence requires traversing the entire thing and will never return if it's infinite. Other methods
+can short-circuit, like [`contains`][contains], so they might return given an infinite sequence or they might not. Even
 if a sequence is finite, eager methods like these can still throw `OutOfMemoryError` if the sequence is memoized, can't
 be garbage-collected, and doesn't fit in memory.
 
@@ -226,6 +226,10 @@ You might just forget that you're writing Java!
 
 ## Getting Started
 
+The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
+number. Check the [releases] for the available versions, links to their Javadocs, and changelogs. This project uses
+[semantic versioning][semver]. See [JitPack][jitpack] for instructions on using other build tools.
+
 ### Gradle
 
 Add JitPack to your root `build.gradle` at the end of the repositories:
@@ -243,7 +247,7 @@ And add the dependency:
 
 ```gradle
 dependencies {
-    implementation 'io.github.gdejohn:procrastination:0.3.0'
+    implementation 'io.github.gdejohn:procrastination:master-SNAPSHOT'
 }
 ```
 
@@ -266,23 +270,16 @@ And add the dependency:
 <dependency>
     <groupId>io.github.gdejohn</groupId>
     <artifactId>procrastination</artifactId>
-    <version>0.3.0</version>
+    <version>master-SNAPSHOT</version>
 </dependency>
 ```
 
-See instructions for other build tools at [JitPack][jitpack]. To build from the latest commit, replace the version
-string for the dependency with `master-SNAPSHOT`. See the [releases] for links to the Javadocs for particular versions.
+### JShell
 
-### jshell
-
-The jshell script [`procrastination.jsh`][jshell] makes it easy to play around with this library, assuming JDK 11 and a
+The JShell script [`procrastination.jsh`][jshell] makes it easy to play around with this library, assuming JDK 11 and a
 recent version of Maven are installed and present on your `PATH`. Just clone or download the repository, and from the
 root directory run <code>mvn&nbsp;compile</code> and <code>jshell&nbsp;procrastination.jsh</code>. The script adds the
-module to the jshell environment and imports all of the top-level types and their public static members.
-
-## Versioning
-
-This project uses [semantic versioning][semver]. Check the [releases] for the available versions.
+module to the JShell environment and imports all of the top-level types and their public static members.
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
 [artifacts]: https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue
@@ -292,20 +289,20 @@ This project uses [semantic versioning][semver]. Check the [releases] for the av
 [combinator]: https://mvanier.livejournal.com/2897.html
 [complement]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Function,T,U)
 [cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
+[contains]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#contains(T)
 [coverage]: https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg
 [either]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
 [empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
 [evaluate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate()
 [filter]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#filter(java.util.function.Predicate)
-[find]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#find(java.util.function.Predicate)
 [fix]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Functions.html#fix(java.util.function.UnaryOperator)
 [gitter]: https://gitter.im/gdejohn/procrastination
+[hash]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#hashCode()
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [jshell]: procrastination.jsh
-[last]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#last()
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
 [license]: https://img.shields.io/badge/license-Apache--2.0-blue.svg
 [map]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#map(java.util.function.Function)
