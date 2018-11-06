@@ -287,7 +287,7 @@ root directory run <code>mvn&nbsp;compile</code> and <code>jshell&nbsp;procrasti
 module to the JShell environment and imports all of the top-level types and their public static members.
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
-[artifacts]: https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases&query=%24%5B0%5D.tag_name&colorB=blue
+[artifacts]: https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases%2Flatest&query=%24.name&colorB=blue
 [call]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#call(java.util.function.Supplier)
 [chat]: https://badges.gitter.im/gdejohn/procrastination.svg
 [codecov]: https://codecov.io/gh/gdejohn/procrastination
