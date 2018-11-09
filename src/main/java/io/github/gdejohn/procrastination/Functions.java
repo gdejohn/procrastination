@@ -42,13 +42,15 @@ public final class Functions {
     }
 
     /**
-     * A thread-safe lazy supplier that computes its non-null value at most once, delegating to the given supplier and
+     * A thread-safe lazy supplier that computes its non-null value at most once, delegating to a given supplier and
      * caching the result.
      *
-     * <p>If the given supplier throws, the returned supplier keeps a reference to the throwable, and that same
-     * throwable is thrown each time the returned supplier is invoked. If the given supplier returns null, a
-     * {@code NullPointerException} is created, the returned supplier keeps a reference to it, and that same exception
-     * is thrown each time the returned supplier is invoked.
+     * <p>The given supplier will only be invoked at most once, the first time the returned supplier is invoked. If it
+     * throws, the returned supplier keeps a reference to the throwable, and that same throwable is thrown each time
+     * the returned supplier is invoked. If it returns null, the returned supplier creates a
+     * {@code NullPointerException} and keeps a reference to it, and that same exception is thrown each time the
+     * returned supplier is invoked. Otherwise, the returned supplier keeps a reference to the non-null result, and
+     * that same value is returned each time the returned supplier is invoked.
      *
      * <p>If a supplier returned by this method is passed to this method as an argument, the same supplier is returned.
      *
@@ -64,19 +66,20 @@ public final class Functions {
                 this.delegate = () -> {
                     synchronized(this) {
                         if(!this.initialized) {
+                            this.delegate = null;
                             try {
                                 T result = requireNonNull(principal.get());
                                 this.delegate = () -> result;
-                                this.initialized = true;
                                 return result;
                             } catch (Throwable throwable) {
                                 this.delegate = () -> {
                                     throw throwable;
                                 };
+                            } finally {
                                 this.initialized = true;
                             }
                         }
-                        return this.delegate.get();
+                        return this.get();
                     }
                 };
             }
@@ -360,10 +363,9 @@ public final class Functions {
     /**
      * A function that applies a function to its argument and passes the result to another function.
      *
-     * {@code compose(f,g)} is equivalent to {@code x -> f.apply(g.apply(x))}.
-     *
-     * <p>{@code compose(f,g)} is also equivalent to {@link Function#compose f.compose(g)} and
-     * {@link Function#andThen g.andThen(f)}, but is more convenient if {@code f} and {@code g} are method references.
+     * <p>{@code compose(f,g)} is equivalent to {@code x -> f.apply(g.apply(x))}. {@code compose(f,g)} is also
+     * equivalent to {@link Function#compose f.compose(g)} and {@link Function#andThen g.andThen(f)}, but is more
+     * convenient if {@code f} and {@code g} are method references.
      *
      * @see Functions#compose(BiFunction, Function)
      * @see Functions#on(BiFunction, Function)
@@ -532,7 +534,7 @@ public final class Functions {
      *
      * @throws X if the callable throws an exception
      */
-    public static <T, X extends RuntimeException> T uncheck(Callable<T> callable, Function<? super Exception, ? extends X> wrap) {
+    public static <T, X extends RuntimeException> T uncheck(Callable<T> callable, Function<? super Exception, X> wrap) {
         requireNonNull(wrap);
         try {
             return callable.call();
