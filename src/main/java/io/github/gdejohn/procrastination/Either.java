@@ -90,7 +90,7 @@ public abstract class Either<A, B> {
         };
     }
 
-    private static <A, B> Either<A, B> memoize(Proxy<A, B> either) {
+    private static <A, B> Either<A, B> memoize(Either.Proxy<A, B> either) {
         var principal = Functions.memoize(either::principal);
         return new Either.Proxy<>() {
             @Override
@@ -120,6 +120,55 @@ public abstract class Either<A, B> {
             public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
                 return right.apply((Supplier<B>) () -> value);
             }
+
+            @Override
+            public Maybe<B> right() {
+                return Maybe.of(value);
+            }
+
+            @Override
+            public Maybe<A> left() {
+                return Maybe.empty();
+            }
+
+            @Override
+            public Either<B, A> swap() {
+                return Either.left(value);
+            }
+
+            @Override
+            public <C> Either<A, C> mapRight(Function<? super B, ? extends C> function) {
+                return Either.right(() -> function.apply(value));
+            }
+
+            @Override
+            public <C> Either<C, B> mapLeft(Function<? super A, ? extends C> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the right
+                var either = (Either<C, B>) this;
+                return either;
+            }
+
+            @Override
+            public <C, D> Either<C, D> mapEither(Function<? super A, ? extends C> left, Function<? super B, ? extends D> right) {
+                return Either.right(() -> right.apply(value));
+            }
+
+            @Override
+            public <C> Either<A, C> flatMapRight(Function<? super B, ? extends Either<? extends A, ? extends C>> function) {
+                return Either.lazy(() -> function.apply(value));
+            }
+
+            @Override
+            public <C> Either<C, B> flatMapLeft(Function<? super A, ? extends Either<? extends C, ? extends B>> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the right
+                var either = (Either<C, B>) this;
+                return either;
+            }
+
+            @Override
+            public <C, D> Either<C, D> flatMapEither(Function<? super A, ? extends Either<? extends C, ? extends D>> left, Function<? super B, ? extends Either<? extends C, ? extends D>> right) {
+                return Either.lazy(() -> right.apply(value));
+            }
         };
     }
 
@@ -142,6 +191,55 @@ public abstract class Either<A, B> {
             @Override
             public <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right) {
                 return left.apply((Supplier<A>) () -> value);
+            }
+
+            @Override
+            public Maybe<B> right() {
+                return Maybe.empty();
+            }
+
+            @Override
+            public Maybe<A> left() {
+                return Maybe.of(value);
+            }
+
+            @Override
+            public Either<B, A> swap() {
+                return Either.right(value);
+            }
+
+            @Override
+            public <C> Either<A, C> mapRight(Function<? super B, ? extends C> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the left
+                var either = (Either<A, C>) this;
+                return either;
+            }
+
+            @Override
+            public <C> Either<C, B> mapLeft(Function<? super A, ? extends C> function) {
+                return Either.left(() -> function.apply(value));
+            }
+
+            @Override
+            public <C, D> Either<C, D> mapEither(Function<? super A, ? extends C> left, Function<? super B, ? extends D> right) {
+                return Either.left(() -> left.apply(value));
+            }
+
+            @Override
+            public <C> Either<A, C> flatMapRight(Function<? super B, ? extends Either<? extends A, ? extends C>> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the left
+                var either = (Either<A, C>) this;
+                return either;
+            }
+
+            @Override
+            public <C> Either<C, B> flatMapLeft(Function<? super A, ? extends Either<? extends C, ? extends B>> function) {
+                return Either.lazy(() -> function.apply(value));
+            }
+
+            @Override
+            public <C, D> Either<C, D> flatMapEither(Function<? super A, ? extends Either<? extends C, ? extends D>> left, Function<? super B, ? extends Either<? extends C, ? extends D>> right) {
+                return Either.lazy(() -> left.apply(value));
             }
         };
     }
@@ -177,6 +275,55 @@ public abstract class Either<A, B> {
             public Either<A, B> eager() {
                 return Either.right(value.get());
             }
+
+            @Override
+            public Maybe<B> right() {
+                return Maybe.of(value);
+            }
+
+            @Override
+            public Maybe<A> left() {
+                return Maybe.empty();
+            }
+
+            @Override
+            public Either<B, A> swap() {
+                return Either.left(value);
+            }
+
+            @Override
+            public <C> Either<A, C> mapRight(Function<? super B, ? extends C> function) {
+                return Either.right(() -> function.apply(value.get()));
+            }
+
+            @Override
+            public <C> Either<C, B> mapLeft(Function<? super A, ? extends C> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the right
+                var either = (Either<C, B>) this;
+                return either;
+            }
+
+            @Override
+            public <C, D> Either<C, D> mapEither(Function<? super A, ? extends C> left, Function<? super B, ? extends D> right) {
+                return Either.right(() -> right.apply(value.get()));
+            }
+
+            @Override
+            public <C> Either<A, C> flatMapRight(Function<? super B, ? extends Either<? extends A, ? extends C>> function) {
+                return Either.lazy(() -> function.apply(value.get()));
+            }
+
+            @Override
+            public <C> Either<C, B> flatMapLeft(Function<? super A, ? extends Either<? extends C, ? extends B>> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the right
+                var either = (Either<C, B>) this;
+                return either;
+            }
+
+            @Override
+            public <C, D> Either<C, D> flatMapEither(Function<? super A, ? extends Either<? extends C, ? extends D>> left, Function<? super B, ? extends Either<? extends C, ? extends D>> right) {
+                return Either.lazy(() -> right.apply(value.get()));
+            }
         };
     }
 
@@ -210,6 +357,55 @@ public abstract class Either<A, B> {
             @Override
             public Either<A, B> eager() {
                 return Either.left(value.get());
+            }
+
+            @Override
+            public Maybe<B> right() {
+                return Maybe.empty();
+            }
+
+            @Override
+            public Maybe<A> left() {
+                return Maybe.of(value);
+            }
+
+            @Override
+            public Either<B, A> swap() {
+                return Either.right(value);
+            }
+
+            @Override
+            public <C> Either<A, C> mapRight(Function<? super B, ? extends C> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the left
+                var either = (Either<A, C>) this;
+                return either;
+            }
+
+            @Override
+            public <C> Either<C, B> mapLeft(Function<? super A, ? extends C> function) {
+                return Either.left(() -> function.apply(value.get()));
+            }
+
+            @Override
+            public <C, D> Either<C, D> mapEither(Function<? super A, ? extends C> left, Function<? super B, ? extends D> right) {
+                return Either.left(() -> left.apply(value.get()));
+            }
+
+            @Override
+            public <C> Either<A, C> flatMapRight(Function<? super B, ? extends Either<? extends A, ? extends C>> function) {
+                @SuppressWarnings("unchecked") // safe because the value is already on the left
+                var either = (Either<A, C>) this;
+                return either;
+            }
+
+            @Override
+            public <C> Either<C, B> flatMapLeft(Function<? super A, ? extends Either<? extends C, ? extends B>> function) {
+                return Either.lazy(() -> function.apply(value.get()));
+            }
+
+            @Override
+            public <C, D> Either<C, D> flatMapEither(Function<? super A, ? extends Either<? extends C, ? extends D>> left, Function<? super B, ? extends Either<? extends C, ? extends D>> right) {
+                return Either.lazy(() -> left.apply(value.get()));
             }
         };
     }
@@ -257,7 +453,7 @@ public abstract class Either<A, B> {
      */
     public static <A, B> Either<A, B> joinRight(Either<? extends A, ? extends Either<? extends A, ? extends B>> either) {
         requireNonNull(either);
-        return Either.lazy(() -> either.matchLazy(Either::left, Either::lazy));
+        return Either.lazy(() -> either.matchLazy(Either::left, Supplier::get));
     }
 
     /**
@@ -269,7 +465,7 @@ public abstract class Either<A, B> {
      */
     public static <A, B> Either<A, B> joinLeft(Either<? extends Either<? extends A, ? extends B>, ? extends B> either) {
         requireNonNull(either);
-        return Either.lazy(() -> either.matchLazy(Either::lazy, Either::right));
+        return Either.lazy(() -> either.matchLazy(Supplier::get, Either::right));
     }
 
     /**
@@ -280,11 +476,15 @@ public abstract class Either<A, B> {
      */
     public static <A, B> Either<A, B> join(Either<? extends Either<? extends A, ? extends B>, ? extends Either<? extends A, ? extends B>> either) {
         requireNonNull(either);
-        return Either.lazy(() -> either.matchLazy(Either::lazy, Either::lazy));
+        return Either.lazy(() -> either.matchLazy(Supplier::get, Supplier::get));
     }
 
     /**
      * Extract the value from an {@code Either}.
+     *
+     * <p>This is convenient in situations where it's not important whether the contained value was on the left or the
+     * right. Testing the type of the returned value to figure out which side it was on defeats the purpose of this
+     * class.
      */
     public static <T> T merge(Either<? extends T, ? extends T> either) {
         return either.match(Function.identity(), Function.identity());

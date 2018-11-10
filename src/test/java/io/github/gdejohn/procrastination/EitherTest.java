@@ -104,6 +104,102 @@ class EitherTest {
     }
 
     @Test
+    void memoizeLeft() {
+        var supplier = new Supplier<String>() {
+            String value = "foo";
+
+            @Override
+            public String get() {
+                return this.value;
+            }
+        };
+        var left = Either.left(supplier);
+        var memoized = left.memoize();
+        var lazyMemoized = Either.lazy(() -> left).memoize();
+        supplier.value = "baz";
+        assertThat(left.left().or("bar")).isEqualTo("baz");
+        lazyMemoized.forLeft(Consumers.noop());
+        supplier.value = "foo";
+        assertAll(
+            () -> assertThat(left.left().or("bar")).isEqualTo("foo"),
+            () -> assertThat(lazyMemoized.left().or("bar")).isEqualTo("baz"),
+            () -> assertThat(lazyMemoized.right().or("bar")).isEqualTo("bar"),
+            () -> assertThat(lazyMemoized.memoize()).isSameAs(lazyMemoized),
+            () -> assertThat(memoized.memoize()).isSameAs(memoized)
+        );
+    }
+
+    @Test
+    void memoizeRight() {
+        var supplier = new Supplier<String>() {
+            String value = "foo";
+
+            @Override
+            public String get() {
+                return this.value;
+            }
+        };
+        var right = Either.right(supplier);
+        var memoized = right.memoize();
+        var lazyMemoized = Either.lazy(() -> right).memoize();
+        supplier.value = "baz";
+        assertThat(right.right().or("bar")).isEqualTo("baz");
+        lazyMemoized.forRight(Consumers.noop());
+        supplier.value = "foo";
+        assertAll(
+            () -> assertThat(right.right().or("bar")).isEqualTo("foo"),
+            () -> assertThat(lazyMemoized.right().or("bar")).isEqualTo("baz"),
+            () -> assertThat(lazyMemoized.left().or("bar")).isEqualTo("bar"),
+            () -> assertThat(lazyMemoized.memoize()).isSameAs(lazyMemoized),
+            () -> assertThat(memoized.memoize()).isSameAs(memoized)
+        );
+    }
+
+    @Test
+    void eagerLeft() {
+        var supplier = new Supplier<String>() {
+            String value = "foo";
+
+            @Override
+            public String get() {
+                return this.value;
+            }
+        };
+        var left = Either.left(supplier);
+        var either = Either.lazy(() -> left).eager();
+        supplier.value = "baz";
+        assertAll(
+            () -> assertThat(left.left().or("bar")).isEqualTo("baz"),
+            () -> assertThat(either.left().or("bar")).isEqualTo("foo"),
+            () -> assertThat(either.right().or("bar")).isEqualTo("bar"),
+            () -> assertThat(either.eager()).isSameAs(either),
+            () -> assertThat(either.memoize()).isSameAs(either)
+        );
+    }
+
+    @Test
+    void eagerRight() {
+        var supplier = new Supplier<String>() {
+            String value = "foo";
+
+            @Override
+            public String get() {
+                return this.value;
+            }
+        };
+        var right = Either.right(supplier);
+        var either = Either.lazy(() -> right).eager();
+        supplier.value = "baz";
+        assertAll(
+            () -> assertThat(right.right().or("bar")).isEqualTo("baz"),
+            () -> assertThat(either.right().or("bar")).isEqualTo("foo"),
+            () -> assertThat(either.left().or("bar")).isEqualTo("bar"),
+            () -> assertThat(either.eager()).isSameAs(either),
+            () -> assertThat(either.memoize()).isSameAs(either)
+        );
+    }
+
+    @Test
     void equals() {
         var either = Either.right("foo");
         assertAll(
@@ -175,38 +271,96 @@ class EitherTest {
             () -> assertThat(Either.left("foo").swap().right().or("bar")).isEqualTo("foo"),
             () -> assertThat(Either.left("foo").swap().left().or("bar")).isEqualTo("bar"),
             () -> assertThat(Either.right("foo").swap().right().or("bar")).isEqualTo("bar"),
-            () -> assertThat(Either.right("foo").swap().left().or("bar")).isEqualTo("foo")
+            () -> assertThat(Either.right("foo").swap().left().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Either.left(() -> "foo").swap().right().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Either.left(() -> "foo").swap().left().or("bar")).isEqualTo("bar"),
+            () -> assertThat(Either.right(() -> "foo").swap().right().or("bar")).isEqualTo("bar"),
+            () -> assertThat(Either.right(() -> "foo").swap().left().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Either.lazy(() -> Either.right("foo")).swap().left().or("bar")).isEqualTo("foo"),
+            () -> assertThat(Either.lazy(() -> Either.left("foo")).swap().right().or("bar")).isEqualTo("foo")
         );
     }
 
     @Test
     void mapRight() {
-        assertThat(Either.right("foo").mapRight(String::length).right().or(0)).isEqualTo(3);
+        assertAll(
+            () -> assertThat(Either.right("foo").mapRight(String::length).right().or(0)).isEqualTo(3),
+            () -> assertThat(Either.right(() -> "foo").mapRight(String::length).right().or(0)).isEqualTo(3),
+            () -> assertThat(
+                Either.<String, String>left(() -> "foo").mapRight(String::length).right().or(0)
+            ).isEqualTo(0),
+            () -> assertThat(
+                Either.lazy(() -> Either.right("foo")).mapRight(String::length).right().or(0)
+            ).isEqualTo(3)
+        );
     }
 
     @Test
     void mapLeft() {
-        assertThat(Either.left("foo").mapLeft(String::length).left().or(0)).isEqualTo(3);
+        assertAll(
+            () -> assertThat(Either.left("foo").mapLeft(String::length).left().or(0)).isEqualTo(3),
+            () -> assertThat(Either.left(() -> "foo").mapLeft(String::length).left().or(0)).isEqualTo(3),
+            () -> assertThat(
+                Either.<String, String>right(() -> "foo").mapLeft(String::length).left().or(0)
+            ).isEqualTo(0),
+            () -> assertThat(Either.lazy(() -> Either.left("foo")).mapLeft(String::length).left().or(0)).isEqualTo(3)
+        );
     }
 
     @Test
     void mapEither() {
         assertAll(
             () -> assertThat(Either.left("foo").mapEither(String::length, identity()).left().or(0)).isEqualTo(3),
-            () -> assertThat(Either.right("foo").mapEither(identity(), String::length).right().or(0)).isEqualTo(3)
+            () -> assertThat(Either.left(() -> "foo").mapEither(String::length, identity()).left().or(0)).isEqualTo(3),
+            () -> assertThat(
+                Either.lazy(() -> Either.left("foo")).mapEither(String::length, identity()).left().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(Either.right("foo").mapEither(identity(), String::length).right().or(0)).isEqualTo(3),
+            () -> assertThat(
+                Either.right(() -> "foo").mapEither(identity(), String::length).right().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.lazy(() -> Either.right("foo")).mapEither(identity(), String::length).right().or(0)
+            ).isEqualTo(3)
         );
     }
 
     @Test
     void flatMapRight() {
-        assertThat(
-            Either.right("foo").flatMapRight(compose(Either::right, String::length)).right().or(0)
-        ).isEqualTo(3);
+        assertAll(
+            () -> assertThat(
+                Either.right("foo").flatMapRight(compose(Either::right, String::length)).right().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.right(() -> "foo").flatMapRight(compose(Either::right, String::length)).right().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.<String, String>left(() -> "foo").flatMapRight(compose(Either::right, String::length)).right().or(0)
+            ).isEqualTo(0),
+            () -> assertThat(
+                Either.lazy(() -> Either.right("foo")).flatMapRight(
+                    compose(Either::right, String::length)
+                ).right().or(0)
+            ).isEqualTo(3)
+        );
     }
 
     @Test
     void flatMapLeft() {
-        assertThat(Either.left("foo").flatMapLeft(compose(Either::left, String::length)).left().or(0)).isEqualTo(3);
+        assertAll(
+            () -> assertThat(
+                Either.left("foo").flatMapLeft(compose(Either::left, String::length)).left().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.left(() -> "foo").flatMapLeft(compose(Either::left, String::length)).left().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.<String, String>right(() -> "foo").flatMapLeft(compose(Either::left, String::length)).left().or(0)
+            ).isEqualTo(0),
+            () -> assertThat(
+                Either.lazy(() -> Either.left("foo")).flatMapLeft(compose(Either::left, String::length)).left().or(0)
+            ).isEqualTo(3)
+        );
     }
 
     @Test
@@ -219,7 +373,31 @@ class EitherTest {
                 ).left().or(0)
             ).isEqualTo(3),
             () -> assertThat(
+                Either.left(() -> "foo").flatMapEither(
+                    compose(Either::left, String::length),
+                    Either::right
+                ).left().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.lazy(() -> Either.left("foo")).flatMapEither(
+                    compose(Either::left, String::length),
+                    Either::right
+                ).left().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
                 Either.right("foo").flatMapEither(
+                    Either::left,
+                    compose(Either::right, String::length)
+                ).right().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.right(() -> "foo").flatMapEither(
+                    Either::left,
+                    compose(Either::right, String::length)
+                ).right().or(0)
+            ).isEqualTo(3),
+            () -> assertThat(
+                Either.lazy(() -> Either.right("foo")).flatMapEither(
                     Either::left,
                     compose(Either::right, String::length)
                 ).right().or(0)
