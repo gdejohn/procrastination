@@ -514,24 +514,24 @@ public abstract class Either<A, B> {
     public abstract <C> C matchLazy(Function<? super Supplier<A>, ? extends C> left, Function<? super Supplier<B>, ? extends C> right);
 
     /** Perform an action on the value if it is on the right. */
-    public void forRight(Consumer<? super B> action) {
-        this.matchLazy(
-            constant(unit()),
+    public Either<A, B> forRight(Consumer<? super B> action) {
+        return this.matchLazy(
+            constant(this),
             value -> {
                 action.accept(value.get());
-                return unit();
+                return this;
             }
         );
     }
 
     /** Perform an action on the value if it is on the left. */
-    public void forLeft(Consumer<? super A> action) {
-        this.matchLazy(
+    public Either<A, B> forLeft(Consumer<? super A> action) {
+        return this.matchLazy(
             value -> {
                 action.accept(value.get());
-                return unit();
+                return this;
             },
-            constant(unit())
+            constant(this)
         );
     }
 
