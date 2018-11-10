@@ -78,7 +78,7 @@ public abstract class Pair<T, U> {
         };
     }
 
-    private static <T, U> Pair<T, U> memoize(Proxy<T, U> pair) {
+    private static <T, U> Pair<T, U> memoize(Pair.Proxy<T, U> pair) {
         var principal = Functions.memoize(pair::principal);
         return new Pair.Proxy<>() {
             @Override
