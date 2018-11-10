@@ -143,7 +143,7 @@ public abstract class Trampoline<T> {
      * @see Trampoline#call(Function, Object, Object, Object, Object)
      * @see Trampoline#call(Supplier)
      */
-    public static <T, R> Trampoline<R> call(Function<? super T, ? extends Trampoline<? extends R>> function, T argument) {
+    public static <T, R> Trampoline<R> call(Function<T, Trampoline<R>> function, T argument) {
         return new Trampoline<>() {
             @Override
             protected Trampoline<? extends R> bounce() {
@@ -166,7 +166,7 @@ public abstract class Trampoline<T> {
      * @see Trampoline#call(Function, Object, Object, Object, Object)
      * @see Trampoline#call(Supplier)
      */
-    public static <T, U, R> Trampoline<R> call(Function<? super T, ? extends Function<? super U, ? extends Trampoline<? extends R>>> function, T first, U second) {
+    public static <T, U, R> Trampoline<R> call(Function<T, Function<U, Trampoline<R>>> function, T first, U second) {
         return new Trampoline<>() {
             @Override
             protected Trampoline<? extends R> bounce() {
@@ -189,7 +189,7 @@ public abstract class Trampoline<T> {
      * @see Trampoline#call(Function, Object, Object, Object, Object)
      * @see Trampoline#call(Supplier)
      */
-    public static <T, U, V, R> Trampoline<R> call(Function<? super T, ? extends Function<? super U, ? extends Function<? super V, ? extends Trampoline<? extends R>>>> function, T first, U second, V third) {
+    public static <T, U, V, R> Trampoline<R> call(Function<T, Function<U, Function<V, Trampoline<R>>>> function, T first, U second, V third) {
         return new Trampoline<>() {
             @Override
             protected Trampoline<? extends R> bounce() {
@@ -212,7 +212,7 @@ public abstract class Trampoline<T> {
      * @see Trampoline#call(Function, Object, Object, Object)
      * @see Trampoline#call(Supplier)
      */
-    public static <T, U, V, W, R> Trampoline<R> call(Function<? super T, ? extends Function<? super U, ? extends Function<? super V, ? extends Function<? super W, ? extends Trampoline<? extends R>>>>> function, T first, U second, V third, W fourth) {
+    public static <T, U, V, W, R> Trampoline<R> call(Function<T, Function<U, Function<V, Function<W, Trampoline<R>>>>> function, T first, U second, V third, W fourth) {
         return new Trampoline<>() {
             @Override
             protected Trampoline<? extends R> bounce() {
