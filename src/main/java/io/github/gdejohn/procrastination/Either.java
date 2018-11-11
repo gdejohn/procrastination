@@ -13,7 +13,6 @@
 
 package io.github.gdejohn.procrastination;
 
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -574,12 +573,12 @@ public abstract class Either<A, B> {
             var that = (Either<?, ?>) object;
             return this.matchLazy(
                 left -> that.matchLazy(
-                    Functions.apply(on(Objects::equals, Supplier::get), left),
+                    Functions.apply(on(Object::equals, Supplier::get), left),
                     constant(false)
                 ),
                 right -> that.matchLazy(
                     constant(false),
-                    Functions.apply(on(Objects::equals, Supplier::get), right)
+                    Functions.apply(on(Object::equals, Supplier::get), right)
                 )
             );
         } else {

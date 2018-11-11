@@ -15,7 +15,6 @@ package io.github.gdejohn.procrastination;
 
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -358,7 +357,7 @@ public abstract class Pair<T, U> {
         } else if (object instanceof Pair) {
             return this.matchLazy(
                 (a, b) -> ((Pair<?, ?>) object).matchLazy(
-                    (c, d) -> Objects.equals(a.get(), c.get()) && Objects.equals(b.get(), d.get())
+                    (c, d) -> a.get().equals(c.get()) && b.get().equals(d.get())
                 )
             );
         } else {

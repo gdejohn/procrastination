@@ -16,7 +16,6 @@ package io.github.gdejohn.procrastination;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -646,7 +645,7 @@ public abstract class Maybe<T> implements Iterable<T> {
             var that = (Maybe<?>) object;
             return this.matchLazy(
                 value -> that.matchLazy(
-                    Functions.apply(on(Objects::equals, Supplier::get), value),
+                    Functions.apply(on(Object::equals, Supplier::get), value),
                     false
                 ),
                 that::isEmpty
