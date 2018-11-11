@@ -24,24 +24,24 @@ Lazy evaluation means that the data structures procrastinate, doing the minimum 
 off for as long as possible, only computing each of their elements on demand. They can also be memoized such that each
 element is computed at most once, the first time it's requested, and then cached.
 
-And because the data structures are purely functional, they are fully persistent. Instead of mutators, methods are
-provided that return a new version of a given data structure reflecting the desired changes, leaving the original
-intact. Every version remains accessible. This is implemented efficiently via structural sharing, which is safe because
-the data structures are structurally immutable (i.e., elements cannot be added, removed, or replaced).
+And because the data structures are purely functional, they are persistent. Instead of mutators, methods are provided
+that return a new version of a given data structure reflecting the desired changes, leaving the original intact. This
+is implemented efficiently via structural sharing, which is safe because the data structures are structurally immutable
+(elements cannot be added, removed, or replaced).
 
 The data structures are designed to emulate algebraic data types, with basic "data constructor" static factory methods
-mirrored by abstract `match()` instance methods simulating pattern matching. This is not a general pattern-matching
+mirrored by abstract `match` instance methods simulating pattern matching. This is not a general pattern-matching
 facility; there is no matching against literals, no wildcard patterns, no nested patterns. It simply makes it possible
 to distinguish which data constructor was used and extract the components in a single step.
 
-Everything else is ultimately defined in terms of the data constructors and `match()` methods. None of the classes hide
+Everything else is ultimately defined in terms of the data constructors and `match` methods. None of the classes hide
 anything interesting. They don't have any instance fields. They each have just one constructor, declared private,
 taking no arguments, with an empty body, only used by the core static factory methods. If some useful operation is
 missing, anyone can define it externally as a static method just as easily as writing an instance method inside the
 class.
 
 While it is easy to define new operations on these types, it is impossible to add new cases. Since the classes only
-expose static factory methods and not their constructors, they are effectively sealed types, so the `match()` methods
+expose static factory methods and not their constructors, they are effectively sealed types, so the `match` methods
 will always exhaustively cover every case.
 
 None of the data structures allow null elements. Although they can't determine up front whether a lazy element is null,
@@ -55,11 +55,11 @@ method [`match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequ
 binary function to its head and tail and returns the result, otherwise it returns a default value produced by the given
 supplier.
 
-Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! For example,
-[`hashing`][hash] a sequence requires traversing the entire thing and will never return if it's infinite. Other methods
-can short-circuit, like [`contains`][contains], so they might return given an infinite sequence or they might not. Even
-if a sequence is finite, eager methods like these can still throw `OutOfMemoryError` if the sequence is memoized, can't
-be garbage-collected, and doesn't fit in memory.
+Because sequences are lazy, it's natural to work with infinite sequences. But be careful! For example,
+[`hashing`][hash] a sequence requires traversing the entire thing and will never return if it's infinite. Other
+operations can short-circuit, like determining if a sequence [`contains`][contains] a given element, so for an infinite
+sequence they might return or they might not. Even if a sequence is finite, eager methods like these can still throw
+`OutOfMemoryError` if the sequence is memoized, can't be garbage-collected, and doesn't fit in memory.
 
 ### Maybe
 
@@ -71,16 +71,16 @@ is a lazy alternative to [`Optional`][optional].
 
 [`Either`][either] is a container with exactly one element that can take on one of two possible values, labeled
 [`left`][left] and [`right`][right], which may have different types. `Either` can also be used to model failure, by
-convention failing on the left and succeeding on the right (mnemonically, *right* is *correct*). But unlike
-`Maybe.empty()`, it allows information to be attached to the failure case (e.g., an exception, or a string error
+convention failing on the left and succeeding on the right (mnemonically, *right* is *correct*). But unlike an empty
+`Maybe`, it allows information to be attached to the failure case (for example, an exception, or a string error
 message). In that sense, `Either` is the data-structure analogue of Java's checked exceptions.
 
 ### Pair
 
-[`Pair`][pair] is an ordered collection with exactly two elements, which may have different types (i.e., a 2-tuple).
-`Pair` is similar to [`Map.Entry`][entry], but by contrast it is persistent and conceptually more general.
+[`Pair`][pair] is a 2-tuple: an ordered collection with exactly two elements, which may have different types. `Pair` is
+similar to [`Map.Entry`][entry], but by contrast it is persistent and conceptually more general.
 
-## Sequences vs. Streams
+## Sequence vs. Stream
 
 `Sequence` offers an alternative to the Stream API introduced in Java 8. Like streams, there are a variety of methods
 to go back and forth between sequences and other representations, including collections, arrays, and streams. Unlike
@@ -127,8 +127,8 @@ static <T,R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R,T,R> f
 
 It's imperative, stateful, and the control flow is a little hard to follow; not exactly pleasant. (Note that the
 characteristics and estimated size of the source stream's spliterator are ignored.) On the other hand, because
-sequences are recursively defined, they admit a concise, natural recursive implementation of `scanLeft()` that anyone
-could easily write if it weren't already included:
+sequences are recursively defined, they admit a concise, natural recursive implementation of [`scanLeft`][scan] that
+anyone could easily write if it weren't already included:
 
 ```java
 import io.github.gdejohn.procrastination.Sequence;
@@ -153,11 +153,11 @@ ever find yourself reaching for something in the Stream API that isn't there, an
 
 ## Trampolines
 
-Applying imperative idioms to sequences is ugly and error prone; recursive data types call for recursive algorithms.
-Unfortunately, Java isn't very recursion friendly: deep call stacks soon run into `StackOverflowError`, and tail
-recursion doesn't help because tail calls aren't eliminated. That wasn't a problem for `scanLeft` because it's lazy,
-but whenever a potentially large number of elements must be eagerly traversed, stack overflow is waiting to pounce.
-Enter trampolines.
+Applying imperative idioms to sequences is ugly and error prone; recursive data structures call for recursive
+algorithms. Unfortunately, Java isn't very recursion friendly: deep call stacks soon run into `StackOverflowError`, and
+tail recursion doesn't help because tail calls aren't eliminated. That wasn't a problem for `scanLeft` because it's
+lazy, but whenever a large number of elements must be eagerly traversed, stack overflow is waiting to pounce. Enter
+trampolines.
 
 [`Trampoline`][trampoline] transforms tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
 return type `R`, change the return type to `Trampoline<R>`, wrap the expressions returned in base cases with the static
@@ -195,7 +195,7 @@ recursive call by taking the function itself as an argument and letting `fix` ti
 Function<Integer,Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
 ```
 
-And `fix()` is implemented like this:
+And `fix` is implemented like this:
 
 ```java
 static <T,R> Function<T,R> fix(UnaryOperator<Function<T,R>> function) {
@@ -206,11 +206,11 @@ static <T,R> Function<T,R> fix(UnaryOperator<Function<T,R>> function) {
 This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, combinators aren't allowed to use
 explicit recursion. But it doesn't need to be a combinator, it only needs to output fixed points. And it does!
 
-This works for trampolined and curried functions as well. [`Trampoline.evaluate()`][helper] isn't just an instance
+`fix` works on trampolined and curried functions as well. [`Trampoline.evaluate`][helper] isn't just an instance
 method, it's also overloaded as an all-in-one static helper method that accepts a trampolined anonymous function in
 unfixed form and an appropriate number of arguments, fixes the function to make it recursive, applies it to the
 arguments, evaluates the resulting trampoline, and returns the unwrapped value. And to complement this pattern, the
-static factory method [`Trampoline.call()`][complement] is overloaded to accept curried functions and matching
+static factory method [`Trampoline.call`][complement] is overloaded to accept curried functions and matching
 arguments. For example:
 
 ```java
@@ -237,7 +237,7 @@ number. Check the [releases] for the available versions, links to their Javadocs
 
 ### Gradle
 
-Add JitPack to your root `build.gradle` at the end of the repositories:
+Add JitPack at the end of the repositories in your root `build.gradle`:
 
 ```gradle
 allprojects {
@@ -258,7 +258,7 @@ dependencies {
 
 ### Maven
 
-Add the JitPack repository to your `pom.xml`:
+Add JitPack to the repositories in your `pom.xml`:
 
 ```maven-pom
 <repositories>
@@ -282,9 +282,10 @@ And add the dependency:
 ### JShell
 
 The JShell script [`procrastination.jsh`][jshell] makes it easy to play around with this library, assuming JDK 11 and a
-recent version of Maven are installed and present on your `PATH`. Just clone or download the repository, and from the
-root directory run <code>mvn&nbsp;compile</code> and <code>jshell&nbsp;procrastination.jsh</code>. The script adds the
-module to the JShell environment and imports all of the top-level types and their public static members.
+recent version of Maven are installed and present on your `PATH`. Just clone the repository (or download and extract),
+and from its root directory run <code>mvn&nbsp;compile</code> and <code>jshell&nbsp;procrastination.jsh</code>. The
+script adds the module to the JShell environment and imports all of the top-level types and their public static
+members.
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
 [artifacts]: https://img.shields.io/badge/dynamic/json.svg?label=jitpack&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases%2Flatest&query=%24.name&colorB=blue
