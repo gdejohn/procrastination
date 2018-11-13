@@ -714,14 +714,6 @@ public abstract class Maybe<T> implements Iterable<T> {
 
     /**
      * A lazy view of this as an {@code Either}, putting the contained value on the right if non-empty, otherwise
-     * putting an {@code AssertionError} on the left.
-     */
-    public Either<AssertionError, T> right() {
-        return this.rightOr(() -> new AssertionError("value does not exist"));
-    }
-
-    /**
-     * A lazy view of this as an {@code Either}, putting the contained value on the right if non-empty, otherwise
      * putting an eagerly evaluated default value on the left.
      */
     public <A> Either<A, T> rightOr(A otherwise) {
@@ -734,14 +726,6 @@ public abstract class Maybe<T> implements Iterable<T> {
      */
     public <A> Either<A, T> rightOr(Supplier<? extends A> otherwise) {
         return Either.lazy(() -> this.matchLazy(Either::right, () -> Either.left(otherwise)));
-    }
-
-    /**
-     * A lazy view of this as an {@code Either}, putting the contained value on the left if non-empty, otherwise
-     * putting the unit value on the right.
-     */
-    public Either<T, AssertionError> left() {
-        return this.leftOr(() -> new AssertionError("value does not exist"));
     }
 
     /**

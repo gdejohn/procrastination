@@ -188,14 +188,6 @@ class MaybeTest {
     }
 
     @Test
-    void right() {
-        assertAll(
-            () -> assertThat(Maybe.empty().right().left().optional()).containsInstanceOf(AssertionError.class),
-            () -> assertThat(Maybe.of("foo").right().right().or("bar")).isEqualTo("foo")
-        );
-    }
-
-    @Test
     void rightOrDefault() {
         assertAll(
             () -> assertThat(Maybe.empty().rightOr("foo").left().or("bar")).isEqualTo("foo"),
@@ -208,14 +200,6 @@ class MaybeTest {
         assertAll(
             () -> assertThat(Maybe.empty().rightOr(() -> "foo").left().or("bar")).isEqualTo("foo"),
             () -> assertThat(Maybe.of("foo").rightOr(() -> "bar").right().or("baz")).isEqualTo("foo")
-        );
-    }
-
-    @Test
-    void left() {
-        assertAll(
-            () -> assertThat(Maybe.empty().left().right().optional()).containsInstanceOf(AssertionError.class),
-            () -> assertThat(Maybe.of("foo").left().left().or("bar")).isEqualTo("foo")
         );
     }
 
