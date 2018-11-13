@@ -10,7 +10,7 @@
 **procrastination** is a modular, zero-dependency library for Java 11 that provides:
 
 - lazily evaluated, memoizing, purely functional data structures
-- ad hoc pattern matching
+- algebraic data types with ad hoc pattern matching
 - stack-safe tail-recursive anonymous functions via trampolines and fixed points
 - an extensible, reusable alternative to Java 8's [`Stream`][stream]
 
