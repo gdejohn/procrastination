@@ -75,11 +75,6 @@ public abstract class Maybe<T> implements Iterable<T> {
         public Maybe<T> eager() {
             return this.principal().eager();
         }
-
-        @Override
-        public <X extends Throwable> T orThrow(Supplier<X> exception) throws X {
-            return this.principal().orThrow(exception);
-        }
     }
 
     private static final Maybe<?> EMPTY = new Maybe<>() {
@@ -114,18 +109,48 @@ public abstract class Maybe<T> implements Iterable<T> {
         }
 
         @Override
-        public Stream<Object> stream() {
-            return Stream.empty();
-        }
-
-        @Override
         public Sequence<Object> sequence() {
             return Sequence.empty();
         }
 
         @Override
-        public <X extends Throwable> Object orThrow(Supplier<X> exception) throws X {
-            throw exception.get();
+        public Maybe<Object> or(Maybe<?> otherwise) {
+            return Maybe.cast(otherwise);
+        }
+
+        @Override
+        public <A> Either<A, Object> rightOr(A otherwise) {
+            return Either.left(otherwise);
+        }
+
+        @Override
+        public <A> Either<A, Object> rightOr(Supplier<? extends A> otherwise) {
+            return Either.left(otherwise);
+        }
+
+        @Override
+        public <B> Either<Object, B> leftOr(B otherwise) {
+            return Either.right(otherwise);
+        }
+
+        @Override
+        public <B> Either<Object, B> leftOr(Supplier<? extends B> otherwise) {
+            return Either.right(otherwise);
+        }
+
+        @Override
+        public <R> Maybe<R> map(Function<? super Object, ? extends R> function) {
+            return Maybe.empty();
+        }
+
+        @Override
+        public <R> Maybe<R> flatMap(Function<? super Object, ? extends Maybe<? extends R>> function) {
+            return Maybe.empty();
+        }
+
+        @Override
+        public <R> Maybe<R> apply(Maybe<? extends Function<? super Object, ? extends R>> function) {
+            return Maybe.empty();
         }
     };
 
@@ -138,7 +163,7 @@ public abstract class Maybe<T> implements Iterable<T> {
      */
     public static <T> Maybe<T> lazy(Supplier<? extends Maybe<? extends T>> maybe) {
         requireNonNull(maybe);
-        return new Proxy<>() {
+        return new Maybe.Proxy<>() {
             @Override
             protected Maybe<T> principal() {
                 return cast(maybe.get().memoize());
@@ -151,9 +176,9 @@ public abstract class Maybe<T> implements Iterable<T> {
         };
     }
 
-    private static <T> Maybe<T> memoize(Proxy<T> maybe) {
+    private static <T> Maybe<T> memoize(Maybe.Proxy<T> maybe) {
         var principal = Functions.memoize(maybe::principal);
-        return new Proxy<>() {
+        return new Maybe.Proxy<>() {
             @Override
             protected Maybe<T> principal() {
                 return principal.get();
@@ -208,8 +233,43 @@ public abstract class Maybe<T> implements Iterable<T> {
             }
 
             @Override
-            public <X extends Throwable> T orThrow(Supplier<X> exception) {
-                return value;
+            public Maybe<T> or(Maybe<? extends T> otherwise) {
+                return this;
+            }
+
+            @Override
+            public <A> Either<A, T> rightOr(A otherwise) {
+                return Either.right(value);
+            }
+
+            @Override
+            public <A> Either<A, T> rightOr(Supplier<? extends A> otherwise) {
+                return Either.right(value);
+            }
+
+            @Override
+            public <B> Either<T, B> leftOr(B otherwise) {
+                return Either.left(value);
+            }
+
+            @Override
+            public <B> Either<T, B> leftOr(Supplier<? extends B> otherwise) {
+                return Either.left(value);
+            }
+
+            @Override
+            public <R> Maybe<R> map(Function<? super T, ? extends R> function) {
+                return Maybe.of(() -> function.apply(value));
+            }
+
+            @Override
+            public <R> Maybe<R> flatMap(Function<? super T, ? extends Maybe<? extends R>> function) {
+                return Maybe.lazy(() -> function.apply(value));
+            }
+
+            @Override
+            public <R extends T> Maybe<R> narrow(Class<? extends R> type) {
+                return type.isInstance(value) ? Maybe.of(type.cast(value)) : Maybe.empty();
             }
         };
     }
@@ -250,8 +310,43 @@ public abstract class Maybe<T> implements Iterable<T> {
             }
 
             @Override
-            public <X extends Throwable> T orThrow(Supplier<X> exception) {
-                return requireNonNull(value.get());
+            public Sequence<T> sequence() {
+                return Sequence.of(value);
+            }
+
+            @Override
+            public Maybe<T> or(Maybe<? extends T> otherwise) {
+                return this;
+            }
+
+            @Override
+            public <A> Either<A, T> rightOr(A otherwise) {
+                return Either.right(value);
+            }
+
+            @Override
+            public <A> Either<A, T> rightOr(Supplier<? extends A> otherwise) {
+                return Either.right(value);
+            }
+
+            @Override
+            public <B> Either<T, B> leftOr(B otherwise) {
+                return Either.left(value);
+            }
+
+            @Override
+            public <B> Either<T, B> leftOr(Supplier<? extends B> otherwise) {
+                return Either.left(value);
+            }
+
+            @Override
+            public <R> Maybe<R> map(Function<? super T, ? extends R> function) {
+                return Maybe.of(() -> function.apply(value.get()));
+            }
+
+            @Override
+            public <R> Maybe<R> flatMap(Function<? super T, ? extends Maybe<? extends R>> function) {
+                return Maybe.lazy(() -> function.apply(value.get()));
             }
         };
     }
@@ -582,7 +677,7 @@ public abstract class Maybe<T> implements Iterable<T> {
 
     @Override
     public Spliterator<T> spliterator() {
-        return spliterator(this);
+        return Maybe.spliterator(this);
     }
 
     private static <T> Spliterator<T> spliterator(Maybe<T> maybe) {
@@ -668,18 +763,36 @@ public abstract class Maybe<T> implements Iterable<T> {
         return this.matchLazy(Functions.constant(false), true);
     }
 
-    /** If non-empty, rewrap the contained value, otherwise return another {@code Maybe}. */
+    /**
+     * If non-empty, rewrap the contained value, otherwise return another {@code Maybe}.
+     *
+     * @see Maybe#or(Object)
+     * @see Maybe#or(Supplier)
+     * @see Maybe#orThrow()
+     */
     public Maybe<T> or(Maybe<? extends T> otherwise) {
         requireNonNull(otherwise);
         return Maybe.lazy(() -> this.matchLazy(Maybe::of, otherwise));
     }
 
-    /** If non-empty, return the contained value, otherwise return a default value. */
+    /**
+     * If non-empty, return the contained value, otherwise return a default value.
+     *
+     * @see Maybe#or(Supplier)
+     * @see Maybe#or(Maybe)
+     * @see Maybe#orThrow()
+     */
     public T or(T otherwise) {
         return this.match(Function.identity(), otherwise);
     }
 
-    /** If non-empty, return the contained value, otherwise return a lazily evaluated default value. */
+    /**
+     * If non-empty, return the contained value, otherwise return a lazily evaluated default value.
+     *
+     * @see Maybe#or(Object)
+     * @see Maybe#or(Maybe)
+     * @see Maybe#orThrow()
+     */
     public T or(Supplier<? extends T> otherwise) {
         requireNonNull(otherwise);
         return this.match(Function.identity(), otherwise);
@@ -689,6 +802,11 @@ public abstract class Maybe<T> implements Iterable<T> {
      * If non-empty, return the contained value, otherwise throw an {@code AssertionError}.
      *
      * @throws AssertionError if empty
+     *
+     * @see Maybe#orThrow(Supplier)
+     * @see Maybe#or(Object)
+     * @see Maybe#or(Supplier)
+     * @see Maybe#or(Maybe)
      */
     public T orThrow() {
         return this.or(
@@ -702,6 +820,11 @@ public abstract class Maybe<T> implements Iterable<T> {
      * If non-empty, return the contained value, otherwise throw a custom exception.
      *
      * @throws X if empty
+     *
+     * @see Maybe#or(Object)
+     * @see Maybe#or(Supplier)
+     * @see Maybe#or(Maybe)
+     * @see Maybe#orThrow()
      */
     public <X extends Throwable> T orThrow(Supplier<X> exception) throws X {
         return this.or(() -> sneak(exception));
@@ -713,32 +836,48 @@ public abstract class Maybe<T> implements Iterable<T> {
     }
 
     /**
-     * A lazy view of this as an {@code Either}, putting the contained value on the right if non-empty, otherwise
-     * putting an eagerly evaluated default value on the left.
+     * A lazy view of this {@code Maybe} as an {@code Either}, putting the contained value on the right if non-empty,
+     * otherwise putting an eagerly evaluated default value on the left.
+     *
+     * @see Maybe#rightOr(Supplier)
+     * @see Maybe#leftOr(Object)
+     * @see Maybe#or(Object)
      */
     public <A> Either<A, T> rightOr(A otherwise) {
         return Either.lazy(() -> this.matchLazy(Either::right, () -> Either.left(otherwise)));
     }
 
     /**
-     * A lazy view of this as an {@code Either}, putting the contained value on the right if non-empty, otherwise
-     * putting a lazily evaluated default value on the left.
+     * A lazy view of this {@code Maybe} as an {@code Either}, putting the contained value on the right if non-empty,
+     * otherwise putting a lazily evaluated default value on the left.
+     *
+     * @see Maybe#rightOr(Object)
+     * @see Maybe#leftOr(Supplier)
+     * @see Maybe#or(Supplier)
      */
     public <A> Either<A, T> rightOr(Supplier<? extends A> otherwise) {
         return Either.lazy(() -> this.matchLazy(Either::right, () -> Either.left(otherwise)));
     }
 
     /**
-     * A lazy view of this as an {@code Either}, putting the contained value on the left if non-empty, otherwise
-     * putting an eagerly evaluated default value on the right.
+     * A lazy view of this {@code Maybe} as an {@code Either}, putting the contained value on the left if non-empty,
+     * otherwise putting an eagerly evaluated default value on the right.
+     *
+     * @see Maybe#leftOr(Supplier)
+     * @see Maybe#rightOr(Object)
+     * @see Maybe#or(Object)
      */
     public <B> Either<T, B> leftOr(B otherwise) {
         return Either.lazy(() -> this.matchLazy(Either::left, () -> Either.right(otherwise)));
     }
 
     /**
-     * A lazy view of this as an {@code Either}, putting the contained value on the left if non-empty, otherwise
-     * putting a lazily evaluated default value on the right.
+     * A lazy view of this {@code Maybe} as an {@code Either}, putting the contained value on the left if non-empty,
+     * otherwise putting a lazily evaluated default value on the right.
+     *
+     * @see Maybe#leftOr(Object)
+     * @see Maybe#rightOr(Supplier)
+     * @see Maybe#or(Supplier)
      */
     public <B> Either<T, B> leftOr(Supplier<? extends B> otherwise) {
         return Either.lazy(() -> this.matchLazy(Either::left, () -> Either.right(otherwise)));

@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.github.gdejohn.procrastination.Functions.compose;
 import static io.github.gdejohn.procrastination.Functions.constant;
-import static io.github.gdejohn.procrastination.Maybe.when;
 import static io.github.gdejohn.procrastination.Predicates.constant;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -90,6 +90,16 @@ class MaybeTest {
     }
 
     @Test
+    void sequence() {
+        assertAll(
+            () -> assertThat(Maybe.empty().sequence()).isEmpty(),
+            () -> assertThat(Maybe.of("foo").sequence()).containsExactly("foo"),
+            () -> assertThat(Maybe.of(() -> "foo").sequence()).containsExactly("foo"),
+            () -> assertThat(Maybe.lazy(() -> Maybe.of("foo")).sequence()).containsExactly("foo")
+        );
+    }
+
+    @Test
     void equals() {
         assertAll(
             () -> assertThat(Maybe.empty()).isEqualTo(Maybe.empty()),
@@ -141,7 +151,11 @@ class MaybeTest {
             () -> assertThat(Maybe.empty().or(Maybe.empty())).isEmpty(),
             () -> assertThat(Maybe.empty().or(Maybe.of("bar"))).containsExactly("bar"),
             () -> assertThat(Maybe.of("foo").or(Maybe.empty())).containsExactly("foo"),
-            () -> assertThat(Maybe.of("foo").or(Maybe.of("bar"))).containsExactly("foo")
+            () -> assertThat(Maybe.of("foo").or(Maybe.of("bar"))).containsExactly("foo"),
+            () -> assertThat(Maybe.of(() -> "foo").or(Maybe.empty())).containsExactly("foo"),
+            () -> assertThat(Maybe.of(() -> "foo").or(Maybe.of("bar"))).containsExactly("foo"),
+            () -> assertThat(Maybe.lazy(Maybe::empty).or(Maybe.of("bar"))).containsExactly("bar"),
+            () -> assertThat(Maybe.lazy(() -> Maybe.of("foo")).or(Maybe.of("bar"))).containsExactly("foo")
         );
     }
 
@@ -180,18 +194,12 @@ class MaybeTest {
     }
 
     @Test
-    void sequence() {
-        assertAll(
-            () -> assertThat(Maybe.empty().sequence()).isEmpty(),
-            () -> assertThat(Maybe.of("foo").sequence()).containsExactly("foo")
-        );
-    }
-
-    @Test
     void rightOrDefault() {
         assertAll(
             () -> assertThat(Maybe.empty().rightOr("foo").left().or("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").rightOr("bar").right().or("baz")).isEqualTo("foo")
+            () -> assertThat(Maybe.of("foo").rightOr("bar").right().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of(() -> "foo").rightOr("bar").right().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.lazy(() -> Maybe.of("foo")).rightOr("bar").right().or("baz")).isEqualTo("foo")
         );
     }
 
@@ -199,7 +207,9 @@ class MaybeTest {
     void rightOrDefaultLazy() {
         assertAll(
             () -> assertThat(Maybe.empty().rightOr(() -> "foo").left().or("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").rightOr(() -> "bar").right().or("baz")).isEqualTo("foo")
+            () -> assertThat(Maybe.of("foo").rightOr(() -> "bar").right().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of(() -> "foo").rightOr(() -> "bar").right().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.lazy(() -> Maybe.of("foo")).rightOr(() -> "bar").right().or("baz")).isEqualTo("foo")
         );
     }
 
@@ -207,7 +217,9 @@ class MaybeTest {
     void leftOrDefault() {
         assertAll(
             () -> assertThat(Maybe.empty().leftOr("foo").right().or("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").leftOr("bar").left().or("baz")).isEqualTo("foo")
+            () -> assertThat(Maybe.of("foo").leftOr("bar").left().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of(() -> "foo").leftOr("bar").left().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.lazy(() -> Maybe.of("foo")).leftOr("bar").left().or("baz")).isEqualTo("foo")
         );
     }
 
@@ -215,7 +227,9 @@ class MaybeTest {
     void leftOrDefaultLazy() {
         assertAll(
             () -> assertThat(Maybe.empty().leftOr(() -> "foo").right().or("bar")).isEqualTo("foo"),
-            () -> assertThat(Maybe.of("foo").leftOr(() -> "bar").left().or("baz")).isEqualTo("foo")
+            () -> assertThat(Maybe.of("foo").leftOr(() -> "bar").left().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.of(() -> "foo").leftOr(() -> "bar").left().or("baz")).isEqualTo("foo"),
+            () -> assertThat(Maybe.lazy(() -> Maybe.of("foo")).leftOr(() -> "bar").left().or("baz")).isEqualTo("foo")
         );
     }
 
@@ -223,7 +237,9 @@ class MaybeTest {
     void map() {
         assertAll(
             () -> assertThat(Maybe.empty().map(constant("foo"))).isEmpty(),
-            () -> assertThat(Maybe.of("foo").map(String::length)).containsExactly(3)
+            () -> assertThat(Maybe.of("foo").map(String::length)).containsExactly(3),
+            () -> assertThat(Maybe.of(() -> "foo").map(String::length)).containsExactly(3),
+            () -> assertThat(Maybe.lazy(() -> Maybe.of("foo")).map(String::length)).containsExactly(3)
         );
     }
 
@@ -231,8 +247,12 @@ class MaybeTest {
     void flatMap() {
         assertAll(
             () -> assertThat(Maybe.empty().flatMap(x -> Maybe.of("foo"))).isEmpty(),
-            () -> assertThat(Maybe.of("foo").flatMap(s -> when(!s.isEmpty(), s + "bar"))).containsExactly("foobar"),
-            () -> assertThat(Maybe.of("foo").flatMap(constant(Maybe.empty()))).isEmpty()
+            () -> assertThat(Maybe.of("foo").flatMap(compose(Maybe::of, String::length))).containsExactly(3),
+            () -> assertThat(Maybe.of("foo").flatMap(constant(Maybe.empty()))).isEmpty(),
+            () -> assertThat(Maybe.of(() -> "foo").flatMap(compose(Maybe::of, String::length))).containsExactly(3),
+            () -> assertThat(
+                Maybe.lazy(() -> Maybe.of("foo")).flatMap(compose(Maybe::of, String::length))
+            ).containsExactly(3)
         );
     }
 
