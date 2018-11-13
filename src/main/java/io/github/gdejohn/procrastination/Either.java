@@ -21,7 +21,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static io.github.gdejohn.procrastination.Functions.constant;
-import static io.github.gdejohn.procrastination.Functions.on;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
@@ -570,15 +569,14 @@ public abstract class Either<A, B> {
         if (this == object) {
             return true;
         } else if (object instanceof Either) {
-            var that = (Either<?, ?>) object;
-            return this.matchLazy(
-                left -> that.matchLazy(
-                    Functions.apply(on(Object::equals, Supplier::get), left),
+            return ((Either<?, ?>) object).matchLazy(
+                left -> this.matchLazy(
+                    value -> value.get().equals(left.get()),
                     constant(false)
                 ),
-                right -> that.matchLazy(
+                right -> this.matchLazy(
                     constant(false),
-                    Functions.apply(on(Object::equals, Supplier::get), right)
+                    value -> value.get().equals(right.get())
                 )
             );
         } else {
