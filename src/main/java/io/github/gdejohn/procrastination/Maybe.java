@@ -676,7 +676,6 @@ public abstract class Maybe<T> implements Iterable<T> {
 
     /** If non-empty, return the contained value, otherwise return a default value. */
     public T or(T otherwise) {
-        requireNonNull(otherwise);
         return this.match(Function.identity(), otherwise);
     }
 
