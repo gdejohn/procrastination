@@ -29,7 +29,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static io.github.gdejohn.procrastination.Functions.on;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
 
@@ -642,13 +641,12 @@ public abstract class Maybe<T> implements Iterable<T> {
         if (this == object) {
             return true;
         } else if (object instanceof Maybe) {
-            var that = (Maybe<?>) object;
-            return this.matchLazy(
-                value -> that.matchLazy(
-                    Functions.apply(on(Object::equals, Supplier::get), value),
+            return ((Maybe<?>) object).matchLazy(
+                that -> this.matchLazy(
+                    value -> value.get().equals(that.get()),
                     false
                 ),
-                that::isEmpty
+                this::isEmpty
             );
         } else {
             return false;
