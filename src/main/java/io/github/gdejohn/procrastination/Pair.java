@@ -355,9 +355,9 @@ public abstract class Pair<T, U> {
         if (this == object) {
             return true;
         } else if (object instanceof Pair) {
-            return this.matchLazy(
-                (a, b) -> ((Pair<?, ?>) object).matchLazy(
-                    (c, d) -> a.get().equals(c.get()) && b.get().equals(d.get())
+            return ((Pair<?, ?>) object).matchLazy(
+                (c, d) -> this.matchLazy(
+                    (a, b) -> a.get().equals(c.get()) && b.get().equals(d.get())
                 )
             );
         } else {
