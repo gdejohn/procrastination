@@ -64,6 +64,11 @@ public abstract class Either<A, B> {
         public Either<A, B> eager() {
             return this.principal().eager();
         }
+
+        @Override
+        public Either<B, A> swap() {
+            return Either.lazy(() -> this.principal().swap());
+        }
     }
 
     private Either() {}
@@ -127,11 +132,6 @@ public abstract class Either<A, B> {
             @Override
             public Maybe<A> left() {
                 return Maybe.empty();
-            }
-
-            @Override
-            public Either<B, A> swap() {
-                return Either.left(value);
             }
 
             @Override
@@ -199,11 +199,6 @@ public abstract class Either<A, B> {
             @Override
             public Maybe<A> left() {
                 return Maybe.of(value);
-            }
-
-            @Override
-            public Either<B, A> swap() {
-                return Either.right(value);
             }
 
             @Override
@@ -622,7 +617,7 @@ public abstract class Either<A, B> {
 
     /** If the value is on the right, put it on the left; if the value is on the left, put it on the right. */
     public Either<B, A> swap() {
-        return Either.lazy(() -> this.matchLazy(Either::right, Either::left));
+        return this.match(Either::right, Either::left);
     }
 
     /** Apply a function to the value if it is on the right. */
