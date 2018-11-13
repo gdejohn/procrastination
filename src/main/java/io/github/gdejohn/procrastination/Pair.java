@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static io.github.gdejohn.procrastination.Functions.flip;
 import static io.github.gdejohn.procrastination.Functions.let;
 import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.util.Objects.requireNonNull;
@@ -49,6 +50,11 @@ public abstract class Pair<T, U> {
         @Override
         public <R> R matchLazy(BiFunction<? super Supplier<T>, ? super Supplier<U>, ? extends R> function) {
             return this.principal().matchLazy(function);
+        }
+
+        @Override
+        public Pair<U, T> swap() {
+            return Pair.lazy(() -> this.principal().swap());
         }
     }
 
@@ -144,6 +150,11 @@ public abstract class Pair<T, U> {
                 var memoized = Functions.memoize(second);
                 return memoized == second ? this : Pair.of(first, memoized);
             }
+
+            @Override
+            public Pair<U, T> swap() {
+                return Pair.of(second, first);
+            }
         };
     }
 
@@ -173,6 +184,11 @@ public abstract class Pair<T, U> {
             public Pair<T, U> memoize() {
                 var memoized = Functions.memoize(first);
                 return memoized == first ? this : Pair.of(memoized, second);
+            }
+
+            @Override
+            public Pair<U, T> swap() {
+                return Pair.of(second, first);
             }
         };
     }
@@ -205,6 +221,11 @@ public abstract class Pair<T, U> {
                 var x = Functions.memoize(first);
                 var y = Functions.memoize(second);
                 return x == first && y == second ? this : Pair.of(x, y);
+            }
+
+            @Override
+            public Pair<U, T> swap() {
+                return Pair.of(second, first);
             }
         };
     }
@@ -387,7 +408,7 @@ public abstract class Pair<T, U> {
 
     /** Swap the elements of this pair. */
     public Pair<U, T> swap() {
-        return Pair.lazy(() -> this.matchLazy(Functions.flip(Pair::of)));
+        return this.match(flip(Pair::of));
     }
 
     /**
