@@ -341,7 +341,7 @@ public abstract class Pair<T, U> {
         return this.match(Pair::of);
     }
 
-    /** This pair as a map entry. */
+    /** This pair as an unmodifiable map entry. */
     public Map.Entry<T, U> entry() {
         return this.match(Map::entry);
     }
