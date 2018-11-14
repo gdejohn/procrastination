@@ -184,7 +184,14 @@ class PairTest {
 
     @Test
     void swap() {
-        assertThat(Sequence.from(Pair.of("foo", "bar").swap())).containsExactly("bar", "foo");
+        assertAll(
+            () -> assertThat(
+                Sequence.from(Pair.lazy(() -> Pair.of("foo", "bar")).swap())
+            ).containsExactly("bar", "foo"),
+            () -> assertThat(Sequence.from(Pair.of("foo", () -> "bar").swap())).containsExactly("bar", "foo"),
+            () -> assertThat(Sequence.from(Pair.of(() -> "foo", "bar").swap())).containsExactly("bar", "foo"),
+            () -> assertThat(Sequence.from(Pair.of(() -> "foo", () -> "bar").swap())).containsExactly("bar", "foo")
+        );
     }
 
     @Test
