@@ -923,16 +923,13 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A lazy view of a CharSequence as a sequence of code points, each represented as a string.
+     * A lazy view of a {@code CharSequence} as a sequence of code points, each represented as a string.
      *
      * @see CharSequence#codePoints()
-     * @see Character#toChars(int)
-     * @see String#String(char[])
+     * @see Character#toString(int)
      */
-    public static Sequence<String> from(CharSequence characters) {
-        return Sequence.lazy(() -> Sequence.memoize(characters.codePoints())).map(
-            codePoint -> new String(Character.toChars(codePoint))
-        );
+    public static Sequence<String> from(CharSequence string) {
+        return Sequence.lazy(() -> Sequence.memoize(string.codePoints().mapToObj(Character::toString)));
     }
 
     /** A sequence containing the values of an enum, in the order that they are declared. */
