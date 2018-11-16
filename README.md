@@ -232,6 +232,10 @@ You might just forget that you're writing Java!
 
 ## Getting started
 
+If you give this library a try, I want to hear from you! Tell me what you think should be changed, what should be
+removed, what should be added, what needs better documentation. Come chat with me on [Gitter], and check the [issues]
+to see what's already on my radar.
+
 The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
 number. Check the [releases] for the available versions, links to their Javadocs, and changelogs. See
 [JitPack][jitpack] for instructions on using other build tools.
@@ -306,6 +310,7 @@ members.
 [gitter]: https://gitter.im/gdejohn/procrastination
 [hash]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#hashCode()
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
+[issues]: https://github.com/gdejohn/procrastination/issues
 [javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [jshell]: procrastination.jsh
