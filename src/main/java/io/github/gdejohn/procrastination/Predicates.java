@@ -23,6 +23,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
+import static java.util.Comparator.comparing;
+
 /**
  * Predicate combinators.
  *
@@ -730,14 +732,19 @@ public final class Predicates {
         return (x, y) -> comparator.compare(x, y) < 0;
     }
 
-    /** The binary relation {@code <=} imposed by a natural order. */
+    /** The binary relation {@code ≤} imposed by a natural order. */
     public static <T extends Comparable<? super T>> BiPredicate<T, T> increasing() {
         return (x, y) -> x.compareTo(y) <= 0;
     }
 
-    /** The binary relation {@code <=} imposed by a comparator. */
+    /** The binary relation {@code ≤} imposed by a comparator. */
     public static <T> BiPredicate<T, T> increasing(Comparator<? super T> comparator) {
         return (x, y) -> comparator.compare(x, y) <= 0;
+    }
+
+    /** The binary relation {@code ≤} imposed by a function. */
+    public static <T, R extends Comparable<? super R>> BiPredicate<T, T> increasing(Function<? super T, ? extends R> function) {
+        return increasing(comparing(function));
     }
 
     /** The binary relation {@code >} imposed by a natural order. */
@@ -750,12 +757,12 @@ public final class Predicates {
         return (x, y) -> comparator.compare(x, y) > 0;
     }
 
-    /** The binary relation {@code >=} imposed by a natural order. */
+    /** The binary relation {@code ≥} imposed by a natural order. */
     public static <T extends Comparable<? super T>> BiPredicate<T, T> decreasing() {
         return (x, y) -> x.compareTo(y) >= 0;
     }
 
-    /** The binary relation {@code >=} imposed by a comparator. */
+    /** The binary relation {@code ≥} imposed by a comparator. */
     public static <T> BiPredicate<T, T> decreasing(Comparator<? super T> comparator) {
         return (x, y) -> comparator.compare(x, y) >= 0;
     }
