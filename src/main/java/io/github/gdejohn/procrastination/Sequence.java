@@ -3663,16 +3663,23 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#group()
      * @see Sequence#group(long)
      */
-    public Sequence<Sequence<T>> group(BiPredicate<? super T, ? super T> predicate) {
+    public Sequence<Sequence<T>> group(BiPredicate<? super T, ? super T> relation) {
         return Sequence.lazy(
-            () -> this.matchLazy(
-                (head, tail) -> tail.span(element -> predicate.test(head.get(), element)).match(
-                    (equal, rest) -> Sequence.cons(
-                        Sequence.cons(head, equal),
-                        rest.group(predicate)
-                    )
-                ),
+            () -> this.match(
+                (head, tail) -> group(head, cons(head, tail).zip(), gather(relation)),
                 Sequence.empty()
+            )
+        );
+    }
+
+    private static <T> Sequence<Sequence<T>> group(T element, Sequence<Pair<T, T>> zipped, Predicate<Pair<T, T>> relation) {
+        return zipped.span(relation).match(
+            (group, rest) -> cons(
+                cons(element, group.map(Pair::second)),
+                () -> rest.match(
+                    (pair, pairs) -> group(pair.second(), pairs, relation),
+                    Sequence.empty()
+                )
             )
         );
     }

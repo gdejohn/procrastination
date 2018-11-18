@@ -37,6 +37,7 @@ import static io.github.gdejohn.procrastination.Predicates.divides;
 import static io.github.gdejohn.procrastination.Predicates.gather;
 import static io.github.gdejohn.procrastination.Predicates.greaterThan;
 import static io.github.gdejohn.procrastination.Predicates.greaterThanOrEqualTo;
+import static io.github.gdejohn.procrastination.Predicates.increasing;
 import static io.github.gdejohn.procrastination.Predicates.lessThan;
 import static io.github.gdejohn.procrastination.Sequence.cons;
 import static io.github.gdejohn.procrastination.Sequence.toSequence;
@@ -1370,6 +1371,65 @@ class SequenceTest {
             Sequence.of("i"),
             Sequence.from("pp"),
             Sequence.of("i")
+        );
+    }
+
+    @Test
+    void groupRelation() {
+        assertAll(
+            () -> assertThat(Sequence.empty().group((x, y) -> true)).isEmpty(),
+            () -> assertThat(
+                Sequence.of("foo").group(increasing(String::length))
+            ).containsExactly(Sequence.of("foo")),
+            () -> assertThat(
+                Sequence.of("foo", "bar").group(increasing(String::length))
+            ).containsExactly(Sequence.of("foo", "bar")),
+            () -> assertThat(
+                Sequence.of("foo", "bar", "baz").group(increasing(String::length))
+            ).containsExactly(Sequence.of("foo", "bar", "baz")),
+            () -> assertThat(
+                Sequence.of(
+                    "alpha",
+                    "bravo",
+                    "charlie",
+                    "delta",
+                    "echo",
+                    "foxtrot",
+                    "golf",
+                    "hotel",
+                    "india",
+                    "juliet",
+                    "kilo",
+                    "lima",
+                    "mike",
+                    "november",
+                    "oscar",
+                    "papa",
+                    "quebec",
+                    "romeo",
+                    "sierra",
+                    "tango",
+                    "uniform",
+                    "victor",
+                    "whiskey",
+                    "x-ray",
+                    "yearbook",
+                    "zipper"
+                ).cycle(4_000).group(increasing(String::length)).skip(12 * 3_999)
+            ).containsExactly(
+                Sequence.of("alpha", "bravo", "charlie"),
+                Sequence.of("delta"),
+                Sequence.of("echo", "foxtrot"),
+                Sequence.of("golf", "hotel", "india", "juliet"),
+                Sequence.of("kilo", "lima", "mike", "november"),
+                Sequence.of("oscar"),
+                Sequence.of("papa", "quebec"),
+                Sequence.of("romeo", "sierra"),
+                Sequence.of("tango", "uniform"),
+                Sequence.of("victor", "whiskey"),
+                Sequence.of("x-ray", "yearbook"),
+                Sequence.of("zipper")
+            )
         );
     }
 
