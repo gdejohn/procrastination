@@ -1413,9 +1413,9 @@ class SequenceTest {
                     "victor",
                     "whiskey",
                     "x-ray",
-                    "yearbook",
-                    "zipper"
-                ).cycle(4_000).group(increasing(String::length)).skip(12 * 3_999)
+                    "yankee",
+                    "zulu"
+                ).cycle(1_000).group(increasing(String::length)).deduplicate()
             ).containsExactly(
                 Sequence.of("alpha", "bravo", "charlie"),
                 Sequence.of("delta"),
@@ -1427,8 +1427,9 @@ class SequenceTest {
                 Sequence.of("romeo", "sierra"),
                 Sequence.of("tango", "uniform"),
                 Sequence.of("victor", "whiskey"),
-                Sequence.of("x-ray", "yearbook"),
-                Sequence.of("zipper")
+                Sequence.of("x-ray", "yankee"),
+                Sequence.of("zulu", "alpha", "bravo", "charlie"),
+                Sequence.of("zulu")
             )
         );
     }

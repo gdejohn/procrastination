@@ -3672,13 +3672,15 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    private static <T> Sequence<Sequence<T>> group(T element, Sequence<Pair<T, T>> zipped, Predicate<Pair<T, T>> relation) {
+    private static <T> Sequence<Sequence<T>> group(T head, Sequence<Pair<T, T>> zipped, Predicate<Pair<T, T>> relation) {
         return zipped.span(relation).match(
             (group, rest) -> cons(
-                cons(element, group.map(Pair::second)),
-                () -> rest.match(
-                    (pair, pairs) -> group(pair.second(), pairs, relation),
-                    Sequence.empty()
+                cons(head, group.map(Pair::second)),
+                Sequence.lazy(
+                    () -> rest.match(
+                        (pair, pairs) -> group(pair.second(), pairs, relation),
+                        Sequence.empty()
+                    )
                 )
             )
         );
