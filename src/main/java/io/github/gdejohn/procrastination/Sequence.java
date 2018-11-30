@@ -751,7 +751,12 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A lazy view of an Iterable as a sequence.
+     * A lazy view of an {@code Iterable} as a sequence.
+     *
+     * <p>This method assumes that the argument can be iterated over multiple times. If that's not the case, do this
+     * instead:
+     *
+     * <pre>    {@code var sequence = Sequence.memoize(iterable.iterator());}</pre>
      *
      * @see Sequence#from(Object[])
      * @see Sequence#from(Map)
