@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.Spliterators.AbstractSpliterator;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -68,8 +67,6 @@ import static io.github.gdejohn.procrastination.Unit.unit;
 import static java.lang.Math.multiplyExact;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
-import static java.util.Spliterator.NONNULL;
-import static java.util.Spliterator.ORDERED;
 import static java.util.function.Predicate.isEqual;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
@@ -1789,6 +1786,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * A late-binding spliterator over this sequence.
      *
+     * <p>The spliterator does not report {@link Spliterator#ORDERED ORDERED} or
+     * {@link Spliterator#IMMUTABLE IMMUTABLE} because it may just be a view of an unordered or mutable data source.
+     *
      * @see Sequence#iterator()
      * @see Sequence#stream()
      * @see Sequence#list()
@@ -1800,11 +1800,10 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     private static <T> Spliterator<T> spliterator(Sequence<T> sequence) {
-        class Spliterator extends AbstractSpliterator<T> {
+        class Spliterator implements java.util.Spliterator<T> {
             private Sequence<T> sequence;
 
             Spliterator(Sequence<T> sequence) {
-                super(Long.MAX_VALUE, NONNULL);
                 this.sequence = sequence;
             }
 
@@ -1821,6 +1820,21 @@ public abstract class Sequence<T> implements Iterable<T> {
                         return false;
                     }
                 );
+            }
+
+            @Override
+            public java.util.Spliterator<T> trySplit() {
+                return null;
+            }
+
+            @Override
+            public long estimateSize() {
+                return Long.MAX_VALUE;
+            }
+
+            @Override
+            public int characteristics() {
+                return NONNULL;
             }
         }
 
