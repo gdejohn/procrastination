@@ -951,8 +951,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A view of an {@code Optional} as either a singleton sequence containing the optional value if present, or an
-     * empty sequence.
+     * A singleton sequence containing an optional value if present, otherwise the empty sequence.
      *
      * @see Sequence#nullable(Object)
      * @see Sequence#nullable(Supplier)
