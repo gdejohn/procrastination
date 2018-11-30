@@ -1915,12 +1915,12 @@ public abstract class Sequence<T> implements Iterable<T> {
             return Trampoline.evaluate(
                 this,
                 (Sequence<?>) object,
-                equal -> sequence -> other -> sequence.matchLazy(
-                    (x, xs) -> other.match(
-                        (y, ys) -> x.get().equals(y) ? call(equal, xs, ys) : terminate(false),
+                equal -> sequence -> other -> other.matchLazy(
+                    (y, ys) -> sequence.match(
+                        (x, xs) -> x.equals(y.get()) ? call(equal, xs, ys) : terminate(false),
                         () -> terminate(false)
                     ),
-                    () -> terminate(other.isEmpty())
+                    () -> terminate(sequence.isEmpty())
                 )
             );
         } else {
