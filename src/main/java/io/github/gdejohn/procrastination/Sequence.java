@@ -779,7 +779,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static <T> Sequence<T> from(T[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -796,7 +796,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static Sequence<Integer> from(int[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -813,7 +813,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static Sequence<Long> from(long[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -830,7 +830,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static Sequence<Short> from(short[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -847,7 +847,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static Sequence<Byte> from(byte[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -864,7 +864,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static Sequence<Character> from(char[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -881,7 +881,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static Sequence<Boolean> from(boolean[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -898,7 +898,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(double[])
      */
     public static Sequence<Float> from(float[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
     /**
@@ -915,12 +915,12 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#from(float[])
      */
     public static Sequence<Double> from(double[] array) {
-        return Sequence.from(index -> array[index], array.length, 0);
+        return Sequence.from(index -> array[index], 0, array.length);
     }
 
-    private static <T> Sequence<T> from(IntFunction<T> array, int length, int index) {
-        if (index < length) {
-            return Sequence.cons(() -> array.apply(index), () -> Sequence.from(array, length, index + 1));
+    private static <T> Sequence<T> from(IntFunction<T> function, int from, int to) {
+        if (from < to) {
+            return Sequence.cons(function.apply(from), () -> Sequence.from(function, from + 1, to));
         } else {
             return Sequence.empty();
         }
