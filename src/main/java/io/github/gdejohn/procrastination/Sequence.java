@@ -1561,8 +1561,11 @@ public abstract class Sequence<T> implements Iterable<T> {
 
             @Override
             public int size() {
-                this.spliterator.forEachRemaining(this.list::add);
-                return this.list.size();
+                int size = this.list.size();
+                while (size < Integer.MAX_VALUE && this.spliterator.tryAdvance(this.list::add)) {
+                    size++;
+                }
+                return size;
             }
 
             @Override
@@ -1607,7 +1610,37 @@ public abstract class Sequence<T> implements Iterable<T> {
 
             @Override
             public Spliterator<T> spliterator() {
-                return Spliterators.spliteratorUnknownSize(this.iterator(), NONNULL | ORDERED);
+                return new Spliterator<>() {
+                    private Iterator<T> iterator = null;
+
+                    @Override
+                    public boolean tryAdvance(Consumer<? super T> action) {
+                        if (this.iterator == null) {
+                            this.iterator = List.this.iterator();
+                        }
+                        if (this.iterator.hasNext()) {
+                            action.accept(this.iterator.next());
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+
+                    @Override
+                    public Spliterator<T> trySplit() {
+                        return null;
+                    }
+
+                    @Override
+                    public long estimateSize() {
+                        return Long.MAX_VALUE;
+                    }
+
+                    @Override
+                    public int characteristics() {
+                        return NONNULL | ORDERED;
+                    }
+                };
             }
 
             @Override
