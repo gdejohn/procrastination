@@ -166,13 +166,13 @@ class EitherTest {
             }
         };
         var left = Either.left(supplier);
-        var either = Either.lazy(() -> left).eager();
+        var either = Either.lazy(() -> left).evaluate();
         supplier.value = "baz";
         assertAll(
             () -> assertThat(left.left().or("bar")).isEqualTo("baz"),
             () -> assertThat(either.left().or("bar")).isEqualTo("foo"),
             () -> assertThat(either.right().or("bar")).isEqualTo("bar"),
-            () -> assertThat(either.eager()).isSameAs(either),
+            () -> assertThat(either.evaluate()).isSameAs(either),
             () -> assertThat(either.memoize()).isSameAs(either)
         );
     }
@@ -188,13 +188,13 @@ class EitherTest {
             }
         };
         var right = Either.right(supplier);
-        var either = Either.lazy(() -> right).eager();
+        var either = Either.lazy(() -> right).evaluate();
         supplier.value = "baz";
         assertAll(
             () -> assertThat(right.right().or("bar")).isEqualTo("baz"),
             () -> assertThat(either.right().or("bar")).isEqualTo("foo"),
             () -> assertThat(either.left().or("bar")).isEqualTo("bar"),
-            () -> assertThat(either.eager()).isSameAs(either),
+            () -> assertThat(either.evaluate()).isSameAs(either),
             () -> assertThat(either.memoize()).isSameAs(either)
         );
     }

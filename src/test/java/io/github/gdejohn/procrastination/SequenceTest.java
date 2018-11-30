@@ -332,16 +332,16 @@ class SequenceTest {
     void eager() {
         var list = new LinkedList<>(List.of(1, 2, 3));
         var lazy = Sequence.from(list);
-        var eager = lazy.eager();
+        var eager = lazy.evaluate();
         assertThat(lazy).containsExactly(1, 2, 3);
         assertThat(eager).containsExactly(1, 2, 3);
         list.clear();
         assertThat(lazy).isEmpty();
         assertThat(eager).containsExactly(1, 2, 3);
-        assertThat(eager.eager()).isSameAs(eager);
+        assertThat(eager.evaluate()).isSameAs(eager);
         assertThat(eager.memoize()).isSameAs(eager);
         var rest = eager.match((head, tail) -> tail, Sequence.<Integer>empty());
-        assertThat(rest.eager()).isSameAs(rest);
+        assertThat(rest.evaluate()).isSameAs(rest);
         assertThat(rest.memoize()).isSameAs(rest);
         assertThat(rest).containsExactly(2, 3);
     }

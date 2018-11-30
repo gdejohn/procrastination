@@ -72,8 +72,8 @@ public abstract class Maybe<T> implements Iterable<T> {
         }
 
         @Override
-        public Maybe<T> eager() {
-            return this.principal().eager();
+        public Maybe<T> evaluate() {
+            return this.principal().evaluate();
         }
     }
 
@@ -305,7 +305,7 @@ public abstract class Maybe<T> implements Iterable<T> {
             }
 
             @Override
-            public Maybe<T> eager() {
+            public Maybe<T> evaluate() {
                 return Maybe.of(value.get());
             }
 
@@ -601,7 +601,7 @@ public abstract class Maybe<T> implements Iterable<T> {
     /**
      * Force the evaluation of and rewrap the contained value if it exists, otherwise return an empty {@code Maybe}.
      */
-    public Maybe<T> eager() {
+    public Maybe<T> evaluate() {
         return this;
     }
 

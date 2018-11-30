@@ -206,8 +206,8 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
 
         @Override
-        public Sequence<T> eager() {
-            return this.principal().eager();
+        public Sequence<T> evaluate() {
+            return this.principal().evaluate();
         }
     }
 
@@ -253,7 +253,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
 
         @Override
-        public Sequence<T> eager() {
+        public Sequence<T> evaluate() {
             return this;
         }
 
@@ -507,6 +507,11 @@ public abstract class Sequence<T> implements Iterable<T> {
                 var memoized = Sequence.memoize(tail);
                 return memoized == tail ? this : Sequence.cons(head, memoized);
             }
+
+            @Override
+            public Sequence<T> evaluate() {
+                return tail instanceof Sequence.Eager ? this : super.evaluate();
+            }
         };
     }
 
@@ -612,6 +617,11 @@ public abstract class Sequence<T> implements Iterable<T> {
                 var x = Functions.memoize(head);
                 var xs = Sequence.memoize(tail);
                 return x == head && xs == tail ? this : Sequence.cons(x, xs);
+            }
+
+            @Override
+            public Sequence<T> evaluate() {
+                return tail instanceof Sequence.Eager ? Sequence.cons(head.get(), tail) : super.evaluate();
             }
         };
     }
@@ -1265,6 +1275,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Collect values into a sequence, preserving any order imposed by the source.
      *
      * <p>All of the collector functions run in constant time, allowing optimal speedup for parallel reductions.
+     *
+     * @see Sequence#evaluate()
      */
     public static <T> Collector<T, ?, Sequence<T>> toSequence() {
         return new Collector<T, Builder<T>, Sequence<T>>() {
@@ -1490,6 +1502,11 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * A sequence that lazily delegates to this sequence, only computing each element at most once, the first time it
      * is asked for, and then caching it.
+     *
+     * @see Sequence#evaluate()
+     * @see Sequence#memoize(Iterator)
+     * @see Sequence#memoize(Spliterator)
+     * @see Sequence#memoize(BaseStream)
      */
     public Sequence<T> memoize() {
         return this;
@@ -1497,8 +1514,11 @@ public abstract class Sequence<T> implements Iterable<T> {
 
     /**
      * A fully materialized sequence containing exactly the elements of this sequence, in the same order.
+     *
+     * @see Sequence#memoize()
+     * @see Sequence#toSequence()
      */
-    public Sequence<T> eager() {
+    public Sequence<T> evaluate() {
         return this.collect(toSequence());
     }
 

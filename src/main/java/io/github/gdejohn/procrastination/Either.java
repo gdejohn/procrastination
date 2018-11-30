@@ -61,8 +61,8 @@ public abstract class Either<A, B> {
         }
 
         @Override
-        public Either<A, B> eager() {
-            return this.principal().eager();
+        public Either<A, B> evaluate() {
+            return this.principal().evaluate();
         }
 
         @Override
@@ -265,7 +265,7 @@ public abstract class Either<A, B> {
             }
 
             @Override
-            public Either<A, B> eager() {
+            public Either<A, B> evaluate() {
                 return Either.right(value.get());
             }
 
@@ -348,7 +348,7 @@ public abstract class Either<A, B> {
             }
 
             @Override
-            public Either<A, B> eager() {
+            public Either<A, B> evaluate() {
                 return Either.left(value.get());
             }
 
@@ -551,7 +551,7 @@ public abstract class Either<A, B> {
     }
 
     /** Force the evaluation of the contained value and rewrap it on the same side. */
-    public Either<A, B> eager() {
+    public Either<A, B> evaluate() {
         return this;
     }
 

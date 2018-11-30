@@ -53,6 +53,11 @@ public abstract class Pair<T, U> {
         }
 
         @Override
+        public Pair<T, U> evaluate() {
+            return this.principal().evaluate();
+        }
+
+        @Override
         public Pair<U, T> swap() {
             return Pair.lazy(() -> this.principal().swap());
         }
@@ -117,7 +122,7 @@ public abstract class Pair<T, U> {
             }
 
             @Override
-            public Pair<T, U> eager() {
+            public Pair<T, U> evaluate() {
                 return this;
             }
         };
@@ -358,7 +363,7 @@ public abstract class Pair<T, U> {
     }
 
     /** Eagerly evaluate the elements of this pair and return the results as a new pair. */
-    public Pair<T, U> eager() {
+    public Pair<T, U> evaluate() {
         return this.match(Pair::of);
     }
 
