@@ -412,7 +412,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     private static <T> Sequence<T> memoize(Sequence<T> sequence) {
-        final class Memoized extends Sequence.Proxy<T> {
+        class Memoized extends Sequence.Proxy<T> {
             private final Supplier<Sequence<T>> principal;
 
             Memoized(Supplier<Sequence<T>> principal) {
