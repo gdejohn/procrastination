@@ -319,70 +319,65 @@ public abstract class Sequence<T> implements Iterable<T> {
         }
     }
 
-    private static final Sequence<?> EMPTY = new Sequence<>() {
+    private static final Sequence<Void> EMPTY = new Sequence<>() {
         @Override
-        public <R> R match(BiFunction<? super Object, ? super Sequence<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
+        public <R> R match(BiFunction<? super Void, ? super Sequence<Void>, ? extends R> function, Supplier<? extends R> otherwise) {
             return otherwise.get();
         }
 
         @Override
-        public <R> R match(BiFunction<? super Object, ? super Sequence<Object>, ? extends R> function, R otherwise) {
+        public <R> R match(BiFunction<? super Void, ? super Sequence<Void>, ? extends R> function, R otherwise) {
             return otherwise;
         }
 
         @Override
-        public <R> Maybe<R> match(BiFunction<? super Object, ? super Sequence<Object>, ? extends R> function) {
+        public <R> Maybe<R> match(BiFunction<? super Void, ? super Sequence<Void>, ? extends R> function) {
             return Maybe.empty();
         }
 
         @Override
-        public <R> R matchLazy(BiFunction<? super Supplier<Object>, ? super Sequence<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
+        public <R> R matchLazy(BiFunction<? super Supplier<Void>, ? super Sequence<Void>, ? extends R> function, Supplier<? extends R> otherwise) {
             return otherwise.get();
         }
 
         @Override
-        public <R> R matchLazy(BiFunction<? super Supplier<Object>, ? super Sequence<Object>, ? extends R> function, R otherwise) {
+        public <R> R matchLazy(BiFunction<? super Supplier<Void>, ? super Sequence<Void>, ? extends R> function, R otherwise) {
             return otherwise;
         }
 
         @Override
-        public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<Object>, ? super Sequence<Object>, ? extends R> function) {
+        public <R> Maybe<R> matchLazy(BiFunction<? super Supplier<Void>, ? super Sequence<Void>, ? extends R> function) {
             return Maybe.empty();
         }
 
         @Override
-        public <R> R matchNonEmpty(Function<? super Sequence<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
+        public <R> R matchNonEmpty(Function<? super Sequence<Void>, ? extends R> function, Supplier<? extends R> otherwise) {
             return otherwise.get();
         }
 
         @Override
-        public <R> R matchNonEmpty(Function<? super Sequence<Object>, ? extends R> function, R otherwise) {
+        public <R> R matchNonEmpty(Function<? super Sequence<Void>, ? extends R> function, R otherwise) {
             return otherwise;
         }
 
         @Override
-        public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<Object>, ? extends R> function) {
+        public <R> Maybe<R> matchNonEmpty(Function<? super Sequence<Void>, ? extends R> function) {
             return Maybe.empty();
         }
 
         @Override
-        public Sequence<Object> eager() {
+        public Sequence<Void> evaluate() {
             return this;
         }
 
         @Override
-        public Iterator<Object> iterator() {
+        public Iterator<Void> iterator() {
             return Collections.emptyIterator();
         }
 
         @Override
-        public Spliterator<Object> spliterator() {
+        public Spliterator<Void> spliterator() {
             return Spliterators.emptySpliterator();
-        }
-
-        @Override
-        public Stream<Object> stream() {
-            return Stream.empty();
         }
     };
 
