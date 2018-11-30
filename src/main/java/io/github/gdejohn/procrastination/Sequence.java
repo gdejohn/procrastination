@@ -85,13 +85,14 @@ import static java.util.stream.Collectors.mapping;
  *
  * <p>Sequences are lazy in the sense that they procrastinate: they put off work for as long as possible, only
  * computing each element on demand. They can also be {@link Sequence#memoize() memoized} such that each element is
- * computed at most once, the first time it is asked for, and then cached.
+ * computed at most once, the first time it's requested, and then cached. Or they can be eagerly materialized all at
+ * once.
  *
- * <p>Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! Some
- * methods, like {@link Sequence#last()}, must traverse an entire sequence and will never return if it's infinite.
- * Other methods can short-circuit, like {@link Sequence#find find()}, so they might return given an infinite sequence
- * or they might not. Even if a sequence is finite, eager methods like these can still throw {@link OutOfMemoryError}
- * if the sequence is memoized, can't be garbage-collected, and doesn't fit in memory.
+ * <p>Because sequences are lazy, it is perfectly natural to work with infinite sequences. But be careful! For example,
+ * {@link Sequence#hashCode() hashCode} must traverse an entire sequence and will never return if it's infinite. Other
+ * methods can short-circuit, like {@link Sequence#contains(Object) contains}, so they might return given an infinite
+ * sequence or they might not. Even if a sequence is finite, eager methods like these can still throw
+ * {@link OutOfMemoryError} if the sequence is memoized, can't be garbage-collected, and doesn't fit in memory.
  *
  * <p>Sequences implement {@link Iterable}, so they can be used in for-each loops. Unlike {@link Stream streams},
  * sequences can be traversed any number of times. The trade-off is that sequences derived from one-shot sources (e.g.,
@@ -99,37 +100,36 @@ import static java.util.stream.Collectors.mapping;
  * to recursively define new operations on sequences than working with spliterators to define new operations on
  * streams.
  *
- * <p>There are a variety of static factory methods for lazily viewing other sources of data as sequences:
+ * <p>There are static factory methods for lazily viewing a variety of data sources as sequences:
  *
  * <ul>
  * <li>{@link Sequence#from(Iterable) Sequence.&lt;T&gt;from(Iterable&lt;T&gt;)}
  * <li>{@link Sequence#from(Object[]) Sequence.&lt;T&gt;from(T[])} (plus overloads for every kind of primitive array)
- * <li>{@link Sequence#from(CharSequence) Sequence.from(CharSequence)}
- * <li>{@link Sequence#from(Class) Sequence.&lt;T extends Enum&lt;T&gt;&gt;from(Class&lt;T&gt;)}
  * <li>{@link Sequence#from(Map) Sequence.&lt;K,V&gt;from(Map&lt;K,V&gt;)}
+ * <li>{@link Sequence#from(CharSequence) Sequence.from(String)}
+ * <li>{@link Sequence#from(Class) Sequence.&lt;T extends Enum&lt;T&gt;&gt;from(Class&lt;T&gt;)}
  * <li>{@link Sequence#from(Optional) Sequence.&lt;T&gt;from(Optional&lt;T&gt;)}
  * <li>{@link Sequence#from(Callable) Sequence.&lt;T&gt;from(Callable&lt;T&gt;)}
  * <li>{@link Sequence#from(CompletableFuture) Sequence.&lt;T&gt;from(CompletableFuture&lt;T&gt;)}
  * <li>{@link Sequence#from(Pair) Sequence.&lt;T&gt;from(Pair&lt;T,T&gt;)}
  * </ul>
  *
- * <p>There are also static factory methods for lazily viewing one-shot sources as memoized sequences:
+ * <p>There are also static factory methods for lazily viewing one-shot sources as memoizing sequences:
  *
  * <ul>
- * <li>{@link Sequence#memoize(BaseStream) Sequence.&lt;T&gt;memoize(BaseStream&lt;T&gt;)}
+ * <li>{@link Sequence#memoize(BaseStream) Sequence.&lt;T&gt;memoize(Stream&lt;T&gt;)}
  * <li>{@link Sequence#memoize(Iterator) Sequence.&lt;T&gt;memoize(Iterator&lt;T&gt;)}
  * <li>{@link Sequence#memoize(Spliterator) Sequence.&lt;T&gt;memoize(Spliterator&lt;T&gt;)}
- * <li>{@link Sequence#memoize(Enumeration) Sequence.&lt;T&gt;memoize(Enumeration&lt;T&gt;)}
  * </ul>
  *
  * <p>And there are several instance methods for converting sequences into other representations:
  *
  * <ul>
- * <li>{@link Sequence#stream() Sequence.stream()}
  * <li>{@link Sequence#list() Sequence.list()}
+ * <li>{@link Sequence#array(IntFunction) Sequence.&lt;A&gt;array(IntFunction&lt;A[]&gt;)}
+ * <li>{@link Sequence#stream() Sequence.stream()}
  * <li>{@link Sequence#iterator() Sequence.iterator()}
  * <li>{@link Sequence#spliterator() Sequence.spliterator()}
- * <li>{@link Sequence#array(IntFunction) Sequence.&lt;A&gt;array(IntFunction&lt;A[]&gt;)}
  * </ul>
  *
  * <p>Just like streams, a sequence can be the target of a mutable reduction, including via the {@link Collector} API:
@@ -140,7 +140,11 @@ import static java.util.stream.Collectors.mapping;
  * <li>{@link Sequence#collect(Supplier) Sequence.&lt;C extends Collection&lt;T&gt;&gt;collect(Supplier&lt;C&gt;)}
  * </ul>
  *
- * <p>There's also a collector that produces sequences, and it can take advantage of parallelism:
+ * <p>That last one is an especially convenient way to convert a sequence into an arbitrary collection. For example:
+ *
+ * <pre>    {@code HashSet<String> set = Sequence.of("foo", "bar").collect(HashSet::new);}</pre>
+ *
+ * <p>There's also a collector that produces sequences, taking full advantage of parallelism:
  *
  * <ul>
  * <li>{@link Sequence#toSequence() Sequence.toSequence()}
