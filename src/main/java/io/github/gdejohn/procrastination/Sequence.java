@@ -2030,7 +2030,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * True if and only if this sequence is longer than a given length.
      *
-     * This is more efficient than comparing against {@link Sequence#length Sequence.length()} because it does not
+     * <p>This is more efficient than comparing against {@link Sequence#length Sequence.length()} because it does not
      * necessarily traverse the entire sequence, which also means that it terminates on infinite sequences.
      *
      * @see Sequence#shorterThan(long)
@@ -2042,8 +2042,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * True if and only if this sequence has more elements than the given sequence.
      *
-     * This is more efficient than comparing {@link Sequence#length lengths} because it does not necessarily traverse
-     * the entirety of both sequences, which also means that it terminates if at least one of the sequences is finite.
+     * <p>This is more efficient than comparing {@link Sequence#length lengths} because it does not necessarily
+     * traverse the entirety of both sequences, which also means that it terminates if at least one of the sequences is
+     * finite.
      *
      * @see Sequence#shorterThan(Sequence)
      */
@@ -2064,20 +2065,21 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * True if and only if this sequence is shorter than a given length.
      *
-     * This is more efficient than comparing against {@link Sequence#length Sequence.length()} because it does not
+     * <p>This is more efficient than comparing against {@link Sequence#length Sequence.length()} because it does not
      * necessarily traverse the entire sequence, which also means that it terminates on infinite sequences.
      *
      * @see Sequence#longerThan(long)
      */
     public boolean shorterThan(long length) {
-        return !this.longerThan(length - 1);
+        return length > 0 && !this.longerThan(length - 1);
     }
 
     /**
      * True if and only if this sequence has fewer elements than the given sequence.
      *
-     * This is more efficient than comparing {@link Sequence#length lengths} because it does not necessarily traverse
-     * the entirety of both sequences, which also means that it terminates if at least one of the sequences is finite.
+     * <p>This is more efficient than comparing {@link Sequence#length lengths} because it does not necessarily
+     * traverse the entirety of both sequences, which also means that it terminates if at least one of the sequences is
+     * finite.
      *
      * @see Sequence#longerThan(Sequence)
      */
@@ -2452,8 +2454,16 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Combine the elements of this sequence into a single result, accumulating from the left.
      *
+     * <p>This is similar to
+     * {@link Stream#reduce(Object,BiFunction,BinaryOperator) Stream.reduce(Object,BiFunction,BinaryOperator)}, but the
+     * combining binary operator isn't needed because this method is constrained to run sequentially.
+     *
      * @param <R> the type of the result
      *
+     * @see Sequence#foldLeft(BiFunction)
+     * @see Sequence#foldRight(Object,BiFunction)
+     * @see Sequence#collect(Supplier,BiConsumer)
+     * @see Sequence#collect(Collector)
      * @see Functions#flip(BiFunction)
      */
     public <R> R foldLeft(R initial, BiFunction<R, ? super T, R> function) {
@@ -2470,6 +2480,12 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Combine the elements of this sequence into a single result of the same type with a binary operator, accumulating
      * from the left, using the first element as the initial value if this sequence is non-empty.
+     *
+     * <p>This is similar to {@link Stream#reduce(BinaryOperator) Stream.reduce(BinaryOperator)}, but the combiner
+     * isn't needed because this method is constrained to run sequentially.
+     *
+     * @see Sequence#foldLeft(Object,BiFunction)
+     * @see Sequence#foldRight(BiFunction)
      */
     public Maybe<T> foldLeft(BiFunction<T, T, T> operator) {
         return this.match((head, tail) -> tail.foldLeft(head, operator));
@@ -2479,6 +2495,12 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Combine the elements of this sequence into a single result, accumulating from the right.
      *
      * @param <R> the type of the result
+     *
+     * @see Sequence#foldRight(Object,Function)
+     * @see Sequence#foldRightLazy(Object,BiFunction)
+     * @see Sequence#foldRight(BiFunction)
+     * @see Sequence#foldLeft(Object,BiFunction)
+     * @see Functions#flip(BiFunction)
      */
     public <R> R foldRight(R initial, BiFunction<? super T, R, R> function) {
         return this.reverse().foldLeft(initial, flip(function));
@@ -2487,6 +2509,11 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Combine the elements of this sequence into a single result of the same type with a binary operator, accumulating
      * from the right, using the last element as the initial value if this sequence is non-empty.
+     *
+     * @see Sequence#foldRight(Function)
+     * @see Sequence#foldRightLazy(BiFunction)
+     * @see Sequence#foldRight(Object,BiFunction)
+     * @see Sequence#foldLeft(BiFunction)
      */
     public Maybe<T> foldRight(BiFunction<T, T, T> operator) {
         return this.reverse().foldLeft(flip(operator));
@@ -2498,6 +2525,10 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
+     *
+     * @see Sequence#foldRight(Object,BiFunction)
+     * @see Sequence#foldRightLazy(Object,BiFunction)
+     * @see Sequence#foldRight(Function)
      */
     public <R> R foldRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Trampoline.evaluate(
@@ -2519,6 +2550,10 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences.
+     *
+     * @see Sequence#foldRight(BiFunction)
+     * @see Sequence#foldRightLazy(BiFunction)
+     * @see Sequence#foldRight(Object,Function)
      */
     public Maybe<T> foldRight(Function<T, Either<T, Function<T, T>>> operator) {
         return Maybe.lazy(
@@ -2546,6 +2581,10 @@ public abstract class Sequence<T> implements Iterable<T> {
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences. Unlike {@link Sequence#foldRight(Object, Function)}, this
      * method is not stack safe if the reducing function eagerly evaluates the partial results.
+     *
+     * @see Sequence#foldRightLazy(BiFunction)
+     * @see Sequence#foldRight(Object,Function)
+     * @see Sequence#foldRight(Object,BiFunction)
      */
     public <R> R foldRightLazy(R initial, BiFunction<? super T, Supplier<R>, R> function) {
         return this.match(
@@ -2561,6 +2600,10 @@ public abstract class Sequence<T> implements Iterable<T> {
      * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
      * result, allowing it to work on infinite sequences. Unlike {@link Sequence#foldRight(Function)}, this method is
      * not stack safe if the reducing function eagerly evaluates the partial results.
+     *
+     * @see Sequence#foldRightLazy(Object,BiFunction)
+     * @see Sequence#foldRight(Function)
+     * @see Sequence#foldRight(BiFunction)
      */
     public Maybe<T> foldRightLazy(BiFunction<T, Supplier<T>, T> operator) {
         return this.match(
@@ -2574,6 +2617,10 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Transfer the elements of this sequence to a collection.
      *
+     * <p>For example:
+     *
+     * <pre>    {@code HashSet<String> set = Sequence.of("foo", "bar").collect(HashSet::new);}</pre>
+     *
      * @see Sequence#collect(Collector)
      * @see Sequence#collect(Supplier,BiConsumer)
      */
@@ -2582,10 +2629,15 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Combine the elements of this sequence into a single, mutable result, accumulating from the left.
+     * Combine the elements of this sequence into a single, mutable result, accumulating from left to right.
+     *
+     * <p>This is similar to
+     * {@link Stream#collect(Supplier,BiConsumer,BiConsumer) Stream.collect(Supplier,BiConsumer,BiConsumer)}, but the
+     * combiner binary consumer isn't needed because sequences don't benefit from parallel reductions.
      *
      * @see Sequence#collect(Collector)
      * @see Sequence#collect(Supplier)
+     * @see Sequence#foldLeft(Object,BiFunction)
      */
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator) {
         R result = supplier.get();
@@ -2594,12 +2646,18 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * Combine the elements of this sequence into a single, mutable result using a collector, accumulating from the
-     * left.
+     * Combine the elements of this sequence into a single, mutable result using a collector, accumulating from left to
+     * right.
      *
-     * @see Sequence#collect(Supplier, BiConsumer)
-     * @see Sequence#collect(Supplier)
+     * <p>This method enables any collector designed for use with the Stream API to work with sequences as well. The
+     * collector's {@link Collector#combiner() combiner} isn't used because sequences don't benefit from parallel
+     * reductions.
+     *
      * @see Collectors
+     * @see Sequence#collect(Supplier,BiConsumer)
+     * @see Sequence#collect(Supplier)
+     * @see Stream#collect(Collector)
+     * @see Sequence#foldLeft(Object,BiFunction)
      */
     public <R> R collect(Collector<? super T, ?, ? extends R> collector) {
         return Sequence.collect(this, collector);
@@ -2830,7 +2888,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A prefix of this sequence.
+     * A prefix of this sequence with a given length.
      *
      * @see Sequence#skip(long)
      * @see Sequence#slice(long, long)
@@ -2848,13 +2906,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     public Sequence<T> takeWhile(Predicate<? super T> predicate) {
         return Sequence.lazy(
             () -> this.match(
-                (head, tail) -> {
-                    if (predicate.test(head)) {
-                        return Sequence.cons(head, tail.takeWhile(predicate));
-                    } else {
-                        return Sequence.empty();
-                    }
-                },
+                (head, tail) -> predicate.test(head) ? cons(head, tail.takeWhile(predicate)) : Sequence.empty(),
                 Sequence.empty()
             )
         );
@@ -2865,10 +2917,7 @@ public abstract class Sequence<T> implements Iterable<T> {
         return Sequence.lazy(
             () -> this.matchLazy(
                 (x, xs) -> sequence.matchLazy(
-                    (y, ys) -> Sequence.cons(
-                        x,
-                        xs.takeWhile(ys)
-                    ),
+                    (y, ys) -> cons(x, xs.takeWhile(ys)),
                     Sequence.empty()
                 ),
                 Sequence.empty()
@@ -2895,13 +2944,15 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    /** The elements following the longest prefix of elements of this sequence that satisfy a predicate. */
+    /**
+     * A view of this sequence excluding the longest prefix such that every element satisfies a predicate.
+     */
     public Sequence<T> skipWhile(Predicate<? super T> predicate) {
         return Sequence.lazy(
             () -> Trampoline.evaluate(
                 this,
                 skip -> sequence -> sequence.match(
-                    (head, tail) -> predicate.test(head) ? call(skip, tail) : terminate(Sequence.cons(head, tail)),
+                    (head, tail) -> predicate.test(head) ? call(skip, tail) : terminate(cons(head, tail)),
                     () -> terminate(Sequence.empty())
                 )
             )
@@ -3117,7 +3168,10 @@ public abstract class Sequence<T> implements Iterable<T> {
         );
     }
 
-    /** A view of this sequence with a subsequence starting at the given index replaced by the given sequence. */
+    /**
+     * A view of this sequence with a contiguous subsequence starting at the given index replaced by the given
+     * sequence.
+     */
     public Sequence<T> replace(long index, Sequence<? extends T> sequence) {
         return index < 0 ? this.replace(0, sequence.skip(Math.abs(index))) : Sequence.lazy(
             () -> this.matchLazy(
@@ -3140,13 +3194,10 @@ public abstract class Sequence<T> implements Iterable<T> {
     public Sequence<T> update(long index, Function<? super T, ? extends T> function) {
         return index < 0 ? this : Sequence.lazy(
             () -> this.matchLazy(
-                (head, tail) -> {
-                    if (index == 0) {
-                        return Sequence.cons(() -> function.apply(head.get()), tail);
-                    } else {
-                        return Sequence.cons(head, tail.update(index - 1, function));
-                    }
-                },
+                (head, tail) -> index == 0 ? Sequence.cons(() -> function.apply(head.get()), tail) : Sequence.cons(
+                    head,
+                    tail.update(index - 1, function)
+                ),
                 Sequence.empty()
             )
         );
@@ -3505,12 +3556,12 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * The sequence of partial results of a right fold over this sequence, deferring evaluation of the partial results.
      *
-     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
-     * result, allowing it to work on infinite sequences.
+     * <p>The returned sequence can start producing elements without evaluating all of this sequence if the reducing
+     * function does not evaluate the partial result, allowing it to work on infinite sequences.
      */
     public <R> Sequence<R> scanRight(R initial, Function<? super T, ? extends Either<? extends R, ? extends Function<R, R>>> function) {
         return Sequence.lazy(
-            () -> Trampoline.evaluate(
+            (Supplier<Sequence<R>>) () -> Trampoline.evaluate(
                 this,
                 Sequence.<Function<R, R>>empty(),
                 scan -> sequence -> reversed -> sequence.match(
@@ -3533,8 +3584,8 @@ public abstract class Sequence<T> implements Iterable<T> {
      * The sequence of partial results of a right fold over this sequence, using the last element as the initial value
      * if this sequence is non-empty, deferring evaluation of the partial results.
      *
-     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
-     * result, allowing it to work on infinite sequences.
+     * <p>The returned sequence can start producing elements without evaluating all of this sequence if the reducing
+     * function does not evaluate the partial result, allowing it to work on infinite sequences.
      */
     public Sequence<T> scanRight(Function<T, Either<T, Function<T, T>>> operator) {
         return Sequence.lazy(
@@ -3564,9 +3615,10 @@ public abstract class Sequence<T> implements Iterable<T> {
      * The sequence of partial results of a lazy right fold over this sequence, deferring evaluation of the partial
      * results.
      *
-     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
-     * result, allowing it to work on infinite sequences. Unlike {@link Sequence#scanRight(Object, Function)}, this
-     * method is not stack safe if the reducing function eagerly evaluates the partial results.
+     * <p>The returned sequence can start producing elements without evaluating all of this sequence if the reducing
+     * function does not evaluate the partial result, allowing it to work on infinite sequences. Unlike
+     * {@link Sequence#scanRight(Object,Function)}, this method is not stack safe if the reducing function eagerly
+     * evaluates the partial results.
      */
     public <R> Sequence<R> scanRightLazy(R initial, BiFunction<? super T, Supplier<R>, R> function) {
         return Sequence.lazy(
@@ -3587,9 +3639,10 @@ public abstract class Sequence<T> implements Iterable<T> {
      * The sequence of partial results of a lazy right fold over this sequence, using the last element as the initial
      * value if this sequence is non-empty, deferring evaluation of the partial results.
      *
-     * <p>This can return without evaluating the entire sequence if the reducing function does not evaluate the partial
-     * result, allowing it to work on infinite sequences. Unlike {@link Sequence#scanRight(Function)}, this method is
-     * not stack safe if the reducing function eagerly evaluates the partial results.
+     * <p>The returned sequence can start producing elements without evaluating all of this sequence if the reducing
+     * function does not evaluate the partial result, allowing it to work on infinite sequences. Unlike
+     * {@link Sequence#scanRight(Function)}, this method is not stack safe if the reducing function eagerly evaluates
+     * the partial results.
      */
     public Sequence<T> scanRightLazy(BiFunction<T, Supplier<T>, T> operator) {
         return Sequence.lazy(
