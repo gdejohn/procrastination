@@ -18,7 +18,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import static io.github.gdejohn.procrastination.Functions.constant;
 import static io.github.gdejohn.procrastination.Functions.gather;
@@ -28,6 +27,8 @@ import static io.github.gdejohn.procrastination.Predicates.compose;
 import static io.github.gdejohn.procrastination.Predicates.gather;
 import static io.github.gdejohn.procrastination.Trampoline.call;
 import static io.github.gdejohn.procrastination.Trampoline.terminate;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
@@ -441,7 +442,7 @@ public final class Sequences {
      * @see Sequence#group(long)
      * @see Sequence#group(BiPredicate)
      * @see Sequence#group(Function)
-     * @see Sequences#group(Sequence, Predicate)
+     * @see Sequences#group(Sequence, Function)
      * @see Sequences#group(Sequence, Comparator)
      */
     public static <T extends Comparable<? super T>> Sequence<Sequence<T>> group(Sequence<? extends T> sequence) {
@@ -456,14 +457,15 @@ public final class Sequences {
      * @see Sequence#group(BiPredicate)
      * @see Sequence#group(Function)
      * @see Sequences#group(Sequence)
-     * @see Sequences#group(Sequence, Predicate)
+     * @see Sequences#group(Sequence,Function)
      */
     public static <T> Sequence<Sequence<T>> group(Sequence<? extends T> sequence, Comparator<? super T> comparator) {
         return Sequence.<T>cast(sequence).group(Predicates.equal(comparator));
     }
 
     /**
-     * Split this sequence into runs of elements that are equivalent when projected through a predicate.
+     * Split this sequence into runs of elements that are equivalent according to a natural order when projected
+     * through a function.
      *
      * @see Sequence#group()
      * @see Sequence#group(long)
@@ -472,8 +474,8 @@ public final class Sequences {
      * @see Sequences#group(Sequence)
      * @see Sequences#group(Sequence, Comparator)
      */
-    public static <T> Sequence<Sequence<T>> group(Sequence<? extends T> sequence, Predicate<? super T> predicate) {
-        return Sequence.<T>cast(sequence).group((x, y) -> predicate.test(x) == predicate.test(y));
+    public static <T, R extends Comparable<? super R>> Sequence<Sequence<T>> group(Sequence<? extends T> sequence, Function<? super T, R> function) {
+        return group(sequence, comparing(function));
     }
 
     /**
