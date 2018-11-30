@@ -42,7 +42,6 @@ import static io.github.gdejohn.procrastination.Predicates.lessThan;
 import static io.github.gdejohn.procrastination.Sequence.cons;
 import static io.github.gdejohn.procrastination.Sequence.toSequence;
 import static io.github.gdejohn.procrastination.Unit.unit;
-import static java.util.Collections.enumeration;
 import static java.util.concurrent.CompletableFuture.delayedExecutor;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -261,16 +260,6 @@ class SequenceTest {
     @Test
     void fromSpliterator() {
         var sequence = Sequence.memoize(IntStream.rangeClosed(1, 5).spliterator());
-        //noinspection DuplicateExpressions
-        assertAll(
-            () -> assertThat(sequence).containsExactly(1, 2, 3, 4, 5),
-            () -> assertThat(sequence).containsExactly(1, 2, 3, 4, 5)
-        );
-    }
-
-    @Test
-    void fromEnumeration() {
-        var sequence = Sequence.memoize(enumeration(List.of(1, 2, 3, 4, 5)));
         //noinspection DuplicateExpressions
         assertAll(
             () -> assertThat(sequence).containsExactly(1, 2, 3, 4, 5),
