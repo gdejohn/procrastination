@@ -354,7 +354,7 @@ class SequenceTest {
     }
 
     @Test
-    void toList() {
+    void asList() {
         var sequence = Sequences.range(1, 5);
         var list = sequence.list();
         assertThat(list.isEmpty()).isFalse();
@@ -742,7 +742,7 @@ class SequenceTest {
         var list = Sequences.range(1, 5).collect(ArrayList::new);
         assertAll(
             () -> assertThat(Sequence.<String>empty().<List<String>>collect(ArrayList::new)).isEmpty(),
-            () -> assertThat(list).isInstanceOf(ArrayList.class),
+            () -> assertThat(list).isExactlyInstanceOf(ArrayList.class),
             () -> assertThat(list).containsExactly(1, 2, 3, 4, 5)
         );
     }
@@ -1367,9 +1367,7 @@ class SequenceTest {
     void groupRelation() {
         assertAll(
             () -> assertThat(Sequence.empty().group((x, y) -> true)).isEmpty(),
-            () -> assertThat(
-                Sequence.of("foo").group(increasing(String::length))
-            ).containsExactly(Sequence.of("foo")),
+            () -> assertThat(Sequence.of("foo").group(increasing(String::length))).containsExactly(Sequence.of("foo")),
             () -> assertThat(
                 Sequence.of("foo", "bar").group(increasing(String::length))
             ).containsExactly(Sequence.of("foo", "bar")),
@@ -1568,16 +1566,10 @@ class SequenceTest {
     void fizzBuzz() {
         assertThat(
             Sequences.ints().map(
-                i -> Sequence.of(
+                n -> Sequence.of(
                     Pair.of(3, "Fizz"),
                     Pair.of(5, "Buzz")
-                ).filter(
-                    compose(divides(i), Pair::first)
-                ).map(
-                    Pair::second
-                ).foldLeft(
-                    String::concat
-                ).or(i::toString)
+                ).filter(compose(divides(n), Pair::first)).map(Pair::second).foldLeft(String::concat).or(n::toString)
             ).element(90)
         ).containsExactly("FizzBuzz");
     }
@@ -1656,7 +1648,7 @@ class SequenceTest {
     void collectParallelStreamToSequence() {
         for (var sequence : Sequences.range(1, 6).prefixes().flatMap(Sequence::permutations)) {
             assertThat(
-                new TreeSet<>(sequence.list()).parallelStream().collect(toSequence())
+                sequence.collect(TreeSet::new).parallelStream().collect(toSequence())
             ).containsExactlyElementsOf(Sequences.sort(sequence));
         }
     }
