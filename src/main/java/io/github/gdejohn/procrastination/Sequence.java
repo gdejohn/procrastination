@@ -1054,15 +1054,6 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A memoized sequence of the elements produced by an enumeration.
-     *
-     * The sequence must be {@link Sequence#memoize() memoized} because enumerations can only be traversed once.
-     */
-    public static <T> Sequence<T> memoize(Enumeration<? extends T> enumeration) {
-        return Sequence.memoize(enumeration.asIterator());
-    }
-
-    /**
      * Safe covariant cast.
      *
      * <p>Widen the element type of a sequence.
