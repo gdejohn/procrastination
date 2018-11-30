@@ -945,37 +945,9 @@ public abstract class Sequence<T> implements Iterable<T> {
      * A lazy view of a map as a sequence of key-value pairs.
      *
      * @see Sequence#from(Iterable)
-     * @see Sequence#from(Map,BiFunction)
-     * @see Sequence#from(Map,BiPredicate,BiFunction)
      */
     public static <K, V> Sequence<Pair<K, V>> from(Map<? extends K, ? extends V> map) {
         return Sequence.from(map.entrySet()).map(Pair::from);
-    }
-
-    /**
-     * A lazy view of a map as a sequence of key-value pairs, mapping over the pairs.
-     *
-     * @see Sequence#from(Map)
-     * @see Sequence#from(Map,BiPredicate,BiFunction)
-     */
-    public static <K, V, R> Sequence<R> from(Map<? extends K, ? extends V> map, BiFunction<? super K, ? super V, ? extends R> function) {
-        return Sequence.from(map.entrySet()).map(entry -> function.apply(entry.getKey(), entry.getValue()));
-    }
-
-    /**
-     * A lazy view of a map as a sequence of key-value pairs, filtering and mapping over the pairs.
-     *
-     * @see Sequence#from(Map)
-     * @see Sequence#from(Map,BiFunction)
-     */
-    public static <K, V, R> Sequence<R> from(Map<? extends K, ? extends V> map, BiPredicate<? super K, ? super V> predicate, BiFunction<? super K, ? super V, ? extends R> function) {
-        return Sequence.from(
-            map.entrySet()
-        ).filter(
-            entry -> predicate.test(entry.getKey(), entry.getValue())
-        ).map(
-            entry -> function.apply(entry.getKey(), entry.getValue())
-        );
     }
 
     /**
