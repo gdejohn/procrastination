@@ -2973,7 +2973,9 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * Every {@code n}th element of this sequence, starting with the head.
      *
-     * <p>If this sequence is empty, the resulting sequence is empty.
+     * <p>If this sequence is empty, the returned sequence is empty. Otherwise, if the given step size is less than or
+     * equal to zero, the returned sequence contains only the head element of this sequence. If the given step size is
+     * equal to one, this sequence is returned.
      */
     public Sequence<T> step(long n) {
         if (n <= 0) {
