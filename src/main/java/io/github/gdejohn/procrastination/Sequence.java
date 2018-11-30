@@ -287,17 +287,11 @@ public abstract class Sequence<T> implements Iterable<T> {
         };
 
         private Supplier<Sequence<T>> build = () -> {
-            this.build = () -> {
-                throw new IllegalStateException("sequence builder cannot be reused");
-            };
-            this.append = (builder, element) -> {
-                throw new IllegalStateException("sequence builder cannot be reused");
-            };
-            this.concatenate = (builder, other) -> {
-                throw new IllegalStateException("sequence builder cannot be reused");
-            };
             var sequence = this.sequence;
             this.sequence = null;
+            this.append = null;
+            this.concatenate = null;
+            this.build = null;
             return sequence;
         };
 
@@ -1276,30 +1270,30 @@ public abstract class Sequence<T> implements Iterable<T> {
      * @see Sequence#evaluate()
      */
     public static <T> Collector<T, ?, Sequence<T>> toSequence() {
-        return new Collector<T, Builder<T>, Sequence<T>>() {
+        return new Collector<T, Sequence.Builder<T>, Sequence<T>>() {
             @Override
-            public Supplier<Builder<T>> supplier() {
-                return Builder::new;
+            public Supplier<Sequence.Builder<T>> supplier() {
+                return Sequence.Builder::new;
             }
 
             @Override
-            public BiConsumer<Builder<T>, T> accumulator() {
-                return Builder::append;
+            public BiConsumer<Sequence.Builder<T>, T> accumulator() {
+                return Sequence.Builder::append;
             }
 
             @Override
-            public BinaryOperator<Builder<T>> combiner() {
-                return Builder::concatenate;
+            public BinaryOperator<Sequence.Builder<T>> combiner() {
+                return Sequence.Builder::concatenate;
             }
 
             @Override
-            public Function<Builder<T>, Sequence<T>> finisher() {
-                return Builder::build;
+            public Function<Sequence.Builder<T>, Sequence<T>> finisher() {
+                return Sequence.Builder::build;
             }
 
             @Override
             public Set<Characteristics> characteristics() {
-                return Set.of();
+                return Collections.emptySet();
             }
         };
     }

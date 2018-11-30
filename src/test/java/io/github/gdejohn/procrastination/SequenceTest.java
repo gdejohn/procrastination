@@ -1635,11 +1635,11 @@ class SequenceTest {
         accumulator.accept(b, 1);
         accumulator.accept(b, 2);
         var e = combiner.apply(a, b);
-        assertThatThrownBy(() -> accumulator.accept(b, 0)).hasMessage("sequence builder cannot be reused");
-        assertThatThrownBy(() -> combiner.apply(b, supplier.get())).hasMessage("sequence builder cannot be reused");
-        assertThatThrownBy(() -> combiner.apply(supplier.get(), b)).hasMessage("sequence builder cannot be reused");
+        assertThatThrownBy(() -> accumulator.accept(b, 0)).isExactlyInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> combiner.apply(b, supplier.get())).isExactlyInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> combiner.apply(supplier.get(), b)).isExactlyInstanceOf(NullPointerException.class);
         var finisher = collector.finisher();
-        assertThatThrownBy(() -> finisher.apply(b)).hasMessage("sequence builder cannot be reused");
+        assertThatThrownBy(() -> finisher.apply(b)).isExactlyInstanceOf(NullPointerException.class);
         accumulator.accept(a, 3);
         assertThat(finisher.apply(a)).containsExactly(1, 2, 3);
     }
