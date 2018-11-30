@@ -963,7 +963,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A view of a {@code Callable} as either an empty sequence if {@link Callable#call()} throws an exception or
+     * A lazy view of a {@code Callable} as either an empty sequence if {@link Callable#call()} throws an exception or
      * returns null, or a singleton sequence containing the result.
      *
      * @see Maybe#from(Callable)
@@ -982,8 +982,8 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A view of a {@code CompletableFuture} as either an empty sequence if {@link CompletableFuture#get()} throws an
-     * exception or returns null, or a singleton sequence containing the result.
+     * A lazy view of a {@code CompletableFuture} as either an empty sequence if {@link CompletableFuture#get()} throws
+     * an exception or returns null, or a singleton sequence containing the result.
      *
      * @see Maybe#from(CompletableFuture)
      * @see Either#from(CompletableFuture)
@@ -1008,21 +1008,35 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A memoized sequence of the elements produced by a stream.
+     * A lazy view of a stream as a memoizing sequence.
      *
      * <p>The sequence must be {@link Sequence#memoize() memoized} because streams can only be traversed once.
      *
-     * <p>This method accepts any kind of {@link BaseStream} (e.g., {@link Stream}, {@link IntStream},
-     * {@link LongStream}, {@link DoubleStream}, or custom implementations).
+     * <p>This method accepts any kind of {@link BaseStream}: {@link Stream}, {@link IntStream}, {@link LongStream},
+     * {@link DoubleStream}, or custom implementations.
+     *
+     * <p>If you keep a strong reference to a sequence created by this static factory method so that you can apply
+     * multiple eager operations to it, then it will start to consume memory as those operations cause its elements to
+     * be cached. That memory won't be eligible for garbage collection as long as any strong references to the sequence
+     * still exist. However, if your data source can be repeatedly viewed as a fresh stream (e.g.,
+     * {@link java.util.BitSet#stream() BitSet.stream()}), then you can create a sequence like this:
+     *
+     * <pre>    {@code Sequence<Integer> indices = Sequence.lazy(() -> Sequence.memoize(bitSet.stream()));}</pre>
+     *
+     * <p>The underlying sequence is recreated for each eager operation. It's still memoized each time, but no strong
+     * references to it are kept, so each cached element becomes eligible for garbage collection as soon as you move
+     * past it.
      */
     public static <T> Sequence<T> memoize(BaseStream<? extends T, ?> stream) {
         return Sequence.memoize(stream.iterator());
     }
 
     /**
-     * A memoized sequence of the elements produced by an iterator.
+     * A lazy view of an iterator as a memoizing sequence.
      *
      * <p>The sequence must be {@link Sequence#memoize() memoized} because iterators can only be traversed once.
+     *
+     * @see Enumeration#asIterator()
      */
     public static <T> Sequence<T> memoize(Iterator<? extends T> iterator) {
         return Sequence.lazy(
@@ -1031,7 +1045,7 @@ public abstract class Sequence<T> implements Iterable<T> {
     }
 
     /**
-     * A memoized sequence of the elements produced by a spliterator.
+     * A lazy view of a spliterator as a memoizing sequence.
      *
      * <p>The sequence must be {@link Sequence#memoize() memoized} because spliterators can only be traversed once.
      */
@@ -1526,7 +1540,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      *
      * <p>The returned list gets filled in on the fly, delegating to this sequence to compute each element just in time
      * when first requested. Structural modifications of the list (adding, removing, or replacing elements) do not
-     * affect this sequence (nor could they, because sequences are structurally immutable). Manual synchronization is
+     * affect this sequence, nor could they, because sequences are structurally immutable. Manual synchronization is
      * required to safely share the list among multiple threads.
      *
      * @see Sequence#array(IntFunction)
