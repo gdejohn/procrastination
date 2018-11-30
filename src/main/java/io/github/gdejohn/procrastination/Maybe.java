@@ -77,79 +77,79 @@ public abstract class Maybe<T> implements Iterable<T> {
         }
     }
 
-    private static final Maybe<?> EMPTY = new Maybe<>() {
+    private static final Maybe<Void> EMPTY = new Maybe<>() {
         @Override
-        public <R> R match(Function<? super Object, ? extends R> function, Supplier<? extends R> otherwise) {
+        public <R> R match(Function<? super Void, ? extends R> function, Supplier<? extends R> otherwise) {
             return otherwise.get();
         }
 
         @Override
-        public <R> R match(Function<? super Object, ? extends R> function, R otherwise) {
+        public <R> R match(Function<? super Void, ? extends R> function, R otherwise) {
             return otherwise;
         }
 
         @Override
-        public <R> R matchLazy(Function<? super Supplier<Object>, ? extends R> function, Supplier<? extends R> otherwise) {
+        public <R> R matchLazy(Function<? super Supplier<Void>, ? extends R> function, Supplier<? extends R> otherwise) {
             return otherwise.get();
         }
 
         @Override
-        public <R> R matchLazy(Function<? super Supplier<Object>, ? extends R> function, R otherwise) {
+        public <R> R matchLazy(Function<? super Supplier<Void>, ? extends R> function, R otherwise) {
             return otherwise;
         }
 
         @Override
-        public Iterator<Object> iterator() {
+        public Iterator<Void> iterator() {
             return Collections.emptyIterator();
         }
 
         @Override
-        public Spliterator<Object> spliterator() {
+        public Spliterator<Void> spliterator() {
             return Spliterators.emptySpliterator();
         }
 
         @Override
-        public Sequence<Object> sequence() {
+        public Sequence<Void> sequence() {
             return Sequence.empty();
         }
 
         @Override
-        public Maybe<Object> or(Maybe<?> otherwise) {
+        public Maybe<Void> or(Maybe<? extends Void> otherwise) {
             return Maybe.cast(otherwise);
         }
 
         @Override
-        public <A> Either<A, Object> rightOr(A otherwise) {
+        public <A> Either<A, Void> rightOr(A otherwise) {
             return Either.left(otherwise);
         }
 
         @Override
-        public <A> Either<A, Object> rightOr(Supplier<? extends A> otherwise) {
+        public <A> Either<A, Void> rightOr(Supplier<? extends A> otherwise) {
             return Either.left(otherwise);
         }
 
         @Override
-        public <B> Either<Object, B> leftOr(B otherwise) {
+        public <B> Either<Void, B> leftOr(B otherwise) {
             return Either.right(otherwise);
         }
 
         @Override
-        public <B> Either<Object, B> leftOr(Supplier<? extends B> otherwise) {
+        public <B> Either<Void, B> leftOr(Supplier<? extends B> otherwise) {
             return Either.right(otherwise);
         }
 
         @Override
-        public <R> Maybe<R> map(Function<? super Object, ? extends R> function) {
+        public <R> Maybe<R> map(Function<? super Void, ? extends R> function) {
             return Maybe.empty();
         }
 
         @Override
-        public <R> Maybe<R> flatMap(Function<? super Object, ? extends Maybe<? extends R>> function) {
+        public <R> Maybe<R> flatMap(Function<? super Void, ? extends Maybe<? extends R>> function) {
             return Maybe.empty();
         }
 
         @Override
-        public <R> Maybe<R> apply(Maybe<? extends Function<? super Object, ? extends R>> function) {
+        public <R> Maybe<R> apply(Maybe<? extends Function<? super Void, ? extends R>> function) {
             return Maybe.empty();
         }
     };
