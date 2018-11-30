@@ -340,7 +340,7 @@ public final class Sequences {
      * @see Sequence#pairwiseDistinct(Comparator)
      */
     public static <T extends Comparable<? super T>> boolean pairwiseDistinct(Sequence<T> sequence) {
-        return sequence.pairwiseDistinct(Comparator.naturalOrder());
+        return sequence.pairwiseDistinct(naturalOrder());
     }
 
     /**
@@ -354,7 +354,7 @@ public final class Sequences {
      * @see Sequences#strictlyDecreasing(Sequence) Sequence.strictlyDecreasing(Sequence)
      */
     public static <T extends Comparable<? super T>> boolean increasing(Sequence<T> sequence) {
-        return sequence.increasing(Comparator.naturalOrder());
+        return sequence.increasing(naturalOrder());
     }
 
     /**
@@ -368,7 +368,7 @@ public final class Sequences {
      * @see Sequences#strictlyDecreasing(Sequence) Sequence.strictlyDecreasing(Sequence)
      */
     public static <T extends Comparable<? super T>> boolean strictlyIncreasing(Sequence<T> sequence) {
-        return sequence.strictlyIncreasing(Comparator.naturalOrder());
+        return sequence.strictlyIncreasing(naturalOrder());
     }
 
     /**
@@ -382,7 +382,7 @@ public final class Sequences {
      * @see Sequences#strictlyDecreasing(Sequence) Sequence.strictlyDecreasing(Sequence)
      */
     public static <T extends Comparable<? super T>> boolean decreasing(Sequence<T> sequence) {
-        return sequence.decreasing(Comparator.naturalOrder());
+        return sequence.decreasing(naturalOrder());
     }
 
     /**
@@ -396,17 +396,17 @@ public final class Sequences {
      * @see Sequences#decreasing(Sequence) Sequence.decreasing(Sequence)
      */
     public static <T extends Comparable<? super T>> boolean strictlyDecreasing(Sequence<T> sequence) {
-        return sequence.strictlyDecreasing(Comparator.naturalOrder());
+        return sequence.strictlyDecreasing(naturalOrder());
     }
 
     /** The greatest element of a sequence according to the natural order of the elements, if the sequence is non-empty. */
     public static <T extends Comparable<? super T>> Maybe<T> maximum(Sequence<? extends T> sequence) {
-        return Maybe.cast(sequence.maximum(Comparator.naturalOrder()));
+        return Maybe.cast(sequence.maximum(naturalOrder()));
     }
 
     /** The least element of a sequence according to the natural order of the elements, if the sequence is non-empty. */
     public static <T extends Comparable<? super T>> Maybe<T> minimum(Sequence<? extends T> sequence) {
-        return Maybe.cast(sequence.minimum(Comparator.naturalOrder()));
+        return Maybe.cast(sequence.minimum(naturalOrder()));
     }
 
     /**
@@ -419,7 +419,7 @@ public final class Sequences {
      * @see Sequence#deduplicate(Comparator)
      */
     public static <T extends Comparable<? super T>> Sequence<T> deduplicate(Sequence<? extends T> sequence) {
-        return Sequence.cast(sequence.deduplicate(Comparator.naturalOrder()));
+        return Sequence.cast(sequence.deduplicate(naturalOrder()));
     }
 
     /**
@@ -432,7 +432,7 @@ public final class Sequences {
      * @see Sequences#strictlyDecreasing(Sequence)
      */
     public static <T extends Comparable<? super T>> Sequence<T> sort(Sequence<? extends T> sequence) {
-        return Sequence.cast(sequence.sort(Comparator.naturalOrder()));
+        return Sequence.cast(sequence.sort(naturalOrder()));
     }
 
     /**
@@ -446,7 +446,7 @@ public final class Sequences {
      * @see Sequences#group(Sequence, Comparator)
      */
     public static <T extends Comparable<? super T>> Sequence<Sequence<T>> group(Sequence<? extends T> sequence) {
-        return Sequences.group(sequence, Comparator.naturalOrder());
+        return group(sequence, naturalOrder());
     }
 
     /**
@@ -484,7 +484,7 @@ public final class Sequences {
      * @see Sequences#lexicographically(Comparator) Sequence.lexicographically(Comparator)
      */
     public static <T extends Comparable<? super T>> Comparator<Sequence<T>> lexicographically() {
-        return lexicographically(Comparator.naturalOrder());
+        return lexicographically(naturalOrder());
     }
 
     /**
