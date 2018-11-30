@@ -103,7 +103,7 @@ import static java.util.stream.Collectors.mapping;
  * <p>There are static factory methods for lazily viewing a variety of data sources as sequences:
  *
  * <ul>
- * <li>{@link Sequence#from(Iterable) Sequence.&lt;T&gt;from(Iterable&lt;T&gt;)}
+ * <li>{@link Sequence#from(Iterable) Sequence.&lt;T&gt;from(Collection&lt;T&gt;)}
  * <li>{@link Sequence#from(Object[]) Sequence.&lt;T&gt;from(T[])} (plus overloads for every kind of primitive array)
  * <li>{@link Sequence#from(Map) Sequence.&lt;K,V&gt;from(Map&lt;K,V&gt;)}
  * <li>{@link Sequence#from(CharSequence) Sequence.from(String)}
