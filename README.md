@@ -12,7 +12,7 @@
 - lazily evaluated, memoizing, purely functional data structures
 - algebraic data types with ad hoc pattern matching
 - stack-safe tail-recursive anonymous functions via trampolines and fixed points
-- an extensible, reusable alternative to Java 8's [`Stream`][stream]
+- a comprehensive, extensible, reusable alternative to the [`Stream`][package] API
 
 The goal is to help you write better code by making it harder to introduce bugs. To that end, this project borrows
 ideas from functional programming languages but strives to make them accessible. If you're comfortable with streams and
@@ -103,26 +103,27 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-static <T,R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R,T,R> function) {
-    return StreamSupport.stream(
-        new AbstractSpliterator<>(Long.MAX_VALUE /* estimated size */, 0 /* characteristics */) {
-            Spliterator<T> spliterator = null;
+static <T, R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R, T, R> function) {
+    var estimatedSize = Long.MAX_VALUE;
+    var characteristics = 0;
+    var scan = new AbstractSpliterator<R>(estimatedSize, characteristics) {
+        Spliterator<T> source = null;
 
-            R result = initial;
+        R result = initial;
 
-            @Override
-            public boolean tryAdvance(Consumer<? super R> action) {
-                if (spliterator == null) {
-                    spliterator = stream.spliterator();
-                } else if (!spliterator.tryAdvance(element -> result = function.apply(result, element))) {
-                    return false;
-                }
-                action.accept(result);
-                return true;
+        @Override
+        public boolean tryAdvance(Consumer<? super R> action) {
+            if (source == null) {
+                source = stream.spliterator();
+            } else if (!source.tryAdvance(element -> result = function.apply(result, element))) {
+                return false;
             }
-        },
-        false // parallel
-    );
+            action.accept(result);
+            return true;
+        }
+    };
+    var parallel = false;
+    return StreamSupport.stream(scan, parallel);
 }
 ```
 
@@ -135,7 +136,7 @@ anyone could easily write if it weren't already included:
 import io.github.gdejohn.procrastination.Sequence;
 import java.util.function.BiFunction;
 
-static <T,R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R,T,R> function) {
+static <T, R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R, T, R> function) {
     return Sequence.cons(
         initial,
         () -> sequence.match(
@@ -193,13 +194,13 @@ expressions by definition are unnamed, making explicit recursion impossible. The
 recursive call by taking the function itself as an argument and letting `fix` tie the knot. For example:
 
 ```java
-Function<Integer,Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
+Function<Integer, Integer> factorial = fix(f -> n -> n == 0 ? 1 : n * f.apply(n - 1));
 ```
 
 And `fix` is implemented like this:
 
 ```java
-static <T,R> Function<T,R> fix(UnaryOperator<Function<T,R>> function) {
+static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
     return function.apply(argument -> fix(function).apply(argument));
 }
 ```
@@ -320,6 +321,7 @@ members.
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
 [memoize]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
 [optional]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Optional.html
+[package]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/package-summary.html
 [pair]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Pair.html
 [releases]: https://github.com/gdejohn/procrastination/releases
 [right]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#right(B)
@@ -328,7 +330,6 @@ members.
 [snapshot]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/
 [spliterator]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Spliterator.html
 [status]: https://travis-ci.com/gdejohn/procrastination.svg?branch=master
-[stream]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/stream/Stream.html
 [supplier]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/Supplier.html
 [terminate]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#terminate(T)
 [trampoline]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html
