@@ -2108,6 +2108,8 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * True if and only if this sequence contains at least one element that satisfies a predicate.
      *
+     * @see Sequence#all(Predicate)
+     * @see Sequence#none(Predicate)
      * @see Sequence#or(Sequence)
      */
     public boolean any(Predicate<? super T> predicate) {
@@ -2123,10 +2125,22 @@ public abstract class Sequence<T> implements Iterable<T> {
     /**
      * True if and only if this sequence contains zero elements that are rejected by a predicate.
      *
+     * @see Sequence#any(Predicate)
+     * @see Sequence#none(Predicate)
      * @see Sequence#and(Sequence)
      */
     public boolean all(Predicate<? super T> predicate) {
-        return !this.any(predicate.negate());
+        return this.none(predicate.negate());
+    }
+
+    /**
+     * True if and only if this sequence contains zero elements that satisfy a predicate.
+     *
+     * @see Sequence#any(Predicate)
+     * @see Sequence#all(Predicate)
+     */
+    public boolean none(Predicate<? super T> predicate) {
+        return !this.any(predicate);
     }
 
     /**
