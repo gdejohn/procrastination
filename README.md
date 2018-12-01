@@ -234,7 +234,7 @@ You might just forget that you're writing Java!
 ## Getting started
 
 If you give this library a try, I want to hear from you! Tell me what you think should be changed, what should be
-removed, what should be added, what needs better documentation. Come chat with me on [Gitter], and check the [issues]
+added, what should be removed, what needs better documentation. Come chat with me on [Gitter], and check the [issues]
 to see what's already on my radar.
 
 The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
