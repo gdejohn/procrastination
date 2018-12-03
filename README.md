@@ -1,5 +1,6 @@
 [![artifacts]][jitpack]
-[![javadoc]][snapshot]
+[![javadoc]][latest]
+[![master]][snapshot]
 [![license]][apache]
 [![status]][travis]
 [![coverage]][codecov]
@@ -312,11 +313,13 @@ members.
 [hash]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#hashCode()
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [issues]: https://github.com/gdejohn/procrastination/issues
-[javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
+[javadoc]: https://img.shields.io/badge/dynamic/json.svg?label=javadoc&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases%2Flatest&query=%24.name&colorB=blue
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [jshell]: procrastination.jsh
+[latest]: https://jitpack.io/io/github/gdejohn/procrastination/latest/javadoc/
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
 [license]: https://img.shields.io/badge/license-Apache--2.0-blue.svg
+[master]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
 [memoize]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
