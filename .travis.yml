@@ -1,6 +1,4 @@
-os: linux
-dist: trusty
-sudo: false
+dist: xenial
 
 language: java
 jdk: openjdk11
