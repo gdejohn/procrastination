@@ -56,7 +56,7 @@ method [`match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequ
 binary function to its head and tail and returns the result, otherwise it returns a default value produced by the given
 supplier.
 
-Because sequences are lazy, it's natural to work with infinite sequences. But be careful! For example,
+Because sequences are lazy, it's easy to work with infinite sequences. But beware eager operations! For example,
 [`hashing`][hash] a sequence requires traversing the entire thing and will never return if it's infinite. Other
 operations can short-circuit, like determining if a sequence [`contains`][contains] a given element, so for an infinite
 sequence they might return or they might not. Even if a sequence is finite, eager methods like these can still throw
@@ -107,7 +107,7 @@ import java.util.stream.StreamSupport;
 static <T, R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R, T, R> function) {
     var estimatedSize = Long.MAX_VALUE;
     var characteristics = 0;
-    var scan = new AbstractSpliterator<R>(estimatedSize, characteristics) {
+    var spliterator = new AbstractSpliterator<R>(estimatedSize, characteristics) {
         Spliterator<T> source = null;
 
         R result = initial;
@@ -124,7 +124,7 @@ static <T, R> Stream<R> scanLeft(Stream<T> stream, R initial, BiFunction<R, T, R
         }
     };
     var parallel = false;
-    return StreamSupport.stream(scan, parallel);
+    return StreamSupport.stream(spliterator, parallel);
 }
 ```
 
@@ -190,7 +190,7 @@ unwrapped. These are irrelevant and burdensome implementation details that shoul
 usual practice is to delegate to a private helper method. Alternatively, the recursive computation can be defined
 inline!
 
-[`Functions.fix`][fix] returns the fixed point of a unary operator on functions, enabling anonymous recursion. Lambda
+[`Functions::fix`][fix] returns the fixed point of a unary operator on functions, enabling anonymous recursion. Lambda
 expressions by definition are unnamed, making explicit recursion impossible. The trick here is to abstract the
 recursive call by taking the function itself as an argument and letting `fix` tie the knot. For example:
 
@@ -209,11 +209,11 @@ static <T, R> Function<T, R> fix(UnaryOperator<Function<T, R>> function) {
 This is almost, but not quite, the fabled [Y combinator][combinator]. Technically, combinators aren't allowed to use
 explicit recursion. But it doesn't need to be a combinator, it only needs to output fixed points. And it does!
 
-`fix` works on trampolined and curried functions as well. [`Trampoline.evaluate`][helper] isn't just an instance
+`fix` works on trampolined and curried functions as well. [`Trampoline::evaluate`][helper] isn't just an instance
 method, it's also overloaded as an all-in-one static helper method that accepts a trampolined anonymous function in
 unfixed form and an appropriate number of arguments, fixes the function to make it recursive, applies it to the
 arguments, evaluates the resulting trampoline, and returns the unwrapped value. And to complement this pattern, the
-static factory method [`Trampoline.call`][complement] is overloaded to accept curried functions and matching
+static factory method [`Trampoline::call`][complement] is overloaded to accept curried functions and matching
 arguments. For example:
 
 ```java
