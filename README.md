@@ -1,6 +1,5 @@
 [![artifacts]][jitpack]
-[![javadoc]][latest]
-[![master]][snapshot]
+[![javadoc]][snapshot]
 [![license]][apache]
 [![status]][travis]
 [![coverage]][codecov]
@@ -12,8 +11,8 @@
 
 - lazily evaluated, memoizing, purely functional data structures
 - algebraic data types with ad hoc pattern matching over data constructors
+- a comprehensive, extensible, replayable alternative to the [`Stream`][package] API
 - stack-safe tail-recursive anonymous functions via trampolines and fixed points
-- a comprehensive, extensible, reusable alternative to the [`Stream`][package] API
 
 The goal is to help you write better code by making it harder to introduce bugs. To that end, this project borrows
 ideas from functional programming languages but strives to make them accessible. If you're comfortable with streams and
@@ -83,11 +82,11 @@ similar to [`Map.Entry`][entry], but by contrast it is persistent and conceptual
 
 ## Sequence vs. Stream
 
-`Sequence` offers an alternative to the Stream API introduced in Java 8. Like streams, there are a variety of methods
-to go back and forth between sequences and other representations, including collections, arrays, and streams. Unlike
-streams, sequences can be traversed any number of times (although this does mean that sequences derived from one-shot
-sources like iterators *must* be memoized). Sequences provide a much more comprehensive API, and it's significantly
-easier to define new functionality for sequences.
+[`Sequence`][sequence] offers an alternative to the [`Stream`][package] API introduced in Java 8. Like streams, there
+are a variety of methods to go back and forth between sequences and other representations, including collections,
+arrays, and streams. Unlike streams, sequences can be replayed any number of times (although this does mean that
+sequences derived from one-shot sources like iterators *must* be memoized). Sequences provide a much more comprehensive
+API, and it's significantly easier to define new functionality for sequences.
 
 One of the biggest goals of the Stream API was parallel processing, which is why streams were designed around
 [`spliterators`][spliterator]. So, processing a given stream in a way that isn't covered by the API means working
@@ -313,13 +312,11 @@ members.
 [hash]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#hashCode()
 [helper]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Trampoline.html#evaluate(T,U,java.util.function.UnaryOperator)
 [issues]: https://github.com/gdejohn/procrastination/issues
-[javadoc]: https://img.shields.io/badge/dynamic/json.svg?label=javadoc&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fgdejohn%2Fprocrastination%2Freleases%2Flatest&query=%24.name&colorB=blue
+[javadoc]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
 [jitpack]: https://jitpack.io/#io.github.gdejohn/procrastination
 [jshell]: procrastination.jsh
-[latest]: https://jitpack.io/io/github/gdejohn/procrastination/latest/javadoc/
 [left]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html#left(A)
 [license]: https://img.shields.io/badge/license-Apache--2.0-blue.svg
-[master]: https://img.shields.io/badge/javadoc-SNAPSHOT-blue.svg
 [match]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#match(java.util.function.BiFunction,java.util.function.Supplier)
 [maybe]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Maybe.html
 [memoize]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#memoize()
