@@ -150,7 +150,7 @@ static <T, R> Sequence<R> scanLeft(Sequence<T> sequence, R initial, BiFunction<R
 Compared to the stream implementation, it's declarative, straightforward, and a lot less code; not bad! (With a little
 bit of code golfing, the method body could even fit comfortably on a single line!) The trade-off is overhead from the
 extra allocation and indirection, and there's no parallel processing. The priority here is developer ergonomics. If you
-ever find yourself reaching for something in the Stream API that isn't there, and you don't need parallelism, give
+ever find yourself reaching for something in the `Stream` API that isn't there, and you don't need parallelism, give
 `Sequence` a try!
 
 ## Trampolines
@@ -163,8 +163,8 @@ trampolines.
 
 [`Trampoline`][trampoline] transforms tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
 return type `R`, change the return type to `Trampoline<R>`, wrap the expressions returned in base cases with the static
-factory method [`terminate`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and wrap
-the suspended recursive calls with the static factory method [`call`][call]. For example:
+factory method [`Trampoline::terminate`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and wrap
+the suspended recursive calls with the static factory method [`Trampoline::call`][call]. For example:
 
 ```java
 /** True if and only if the sequence contains at least one element that satisfies the predicate. */
@@ -176,7 +176,7 @@ static <T> Trampoline<Boolean> any(Sequence<T> sequence, Predicate<T> predicate)
 }
 ```
 
-To get the result from a trampoline, use the instance method [`evaluate`][evaluate]:
+Use the instance method [`Trampoline::evaluate`][evaluate] to get the result:
 
 ```java
 boolean result = any(sequence, predicate).evaluate();
