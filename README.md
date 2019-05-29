@@ -163,8 +163,9 @@ trampolines.
 
 [`Trampoline`][trampoline] transforms tail recursion into a stack-safe loop. To trampoline a tail-recursive method with
 return type `R`, change the return type to `Trampoline<R>`, wrap the expressions returned in base cases with the static
-factory method [`Trampoline::terminate`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda expressions, and wrap
-the suspended recursive calls with the static factory method [`Trampoline::call`][call]. For example:
+factory method [`Trampoline::terminate`][terminate], suspend recursive calls in [`Supplier`][supplier] lambda
+expressions, and wrap the suspended recursive calls with the static factory method [`Trampoline::call`][call]. For
+example:
 
 ```java
 /** True if and only if the sequence contains at least one element that satisfies the predicate. */
