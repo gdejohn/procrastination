@@ -238,6 +238,10 @@ If you give this library a try, I want to hear from you! Tell me what you think 
 added, what should be removed, what needs better documentation. Come chat with me on [Gitter], and check the [issues]
 to see what's already on my radar.
 
+The easiest way to get started contributing or extending this library is using Gitpod, a free online dev environment.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/gdejohn/procrastination)
+
 The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
 number. Check the [releases] for the available versions, links to their Javadocs, and changelogs. See
 [JitPack][jitpack] for instructions on using other build tools.
