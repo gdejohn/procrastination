@@ -55,11 +55,11 @@ method [`match(BiFunction,Supplier)`][match] pulls a sequence apart: if the sequ
 binary function to its head and tail and returns the result, otherwise it returns a default value produced by the given
 supplier.
 
-Because sequences are lazy, it's easy to work with infinite sequences. But beware eager operations! For example,
-[`hashing`][hash] a sequence requires traversing the entire thing and will never return if it's infinite. Other
-operations can short-circuit, like determining if a sequence [`contains`][contains] a given element, so for an infinite
-sequence they might return or they might not. Even if a sequence is finite, eager methods like these can still throw
-`OutOfMemoryError` if the sequence is memoized, can't be garbage-collected, and doesn't fit in memory.
+Because sequences are lazy, it's easy to work with very large or even infinite sequences. But beware eager operations!
+For example, [`hashing`][hash] a sequence requires traversing the entire thing and will never return if it's infinite.
+Other operations can short-circuit, like determining if a sequence [`contains`][contains] a given element, so for an
+infinite sequence they might return or they might not. Even if a sequence is finite, eager methods like these can still
+throw `OutOfMemoryError` if the sequence is memoized and can't be garbage-collected.
 
 ### Maybe
 
