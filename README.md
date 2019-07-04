@@ -234,13 +234,13 @@ You might just forget that you're writing Java!
 
 ## Getting started
 
-If you give this library a try, I want to hear from you! Tell me what you think should be changed, what should be
-added, what should be removed, what needs better documentation. Come chat with me on [Gitter], and check the [issues]
-to see what's already on my radar.
+If you use this library, I want to hear from you! Tell me what you think should be changed, what should be added, what
+should be removed, what needs better documentation. Come chat with me on [Gitter], and check the [issues] to see what's
+already on my radar.
 
 The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
-number. Check the [releases] for the available versions, links to their Javadocs, and changelogs. See
-[JitPack][jitpack] for instructions on using other build tools.
+number. Check the [releases] for the available versions, links to their Javadocs, changelogs, and known issues. This
+project uses [semantic versioning][semver]. See [JitPack] for instructions on using other build tools.
 
 ### Gradle
 
