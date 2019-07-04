@@ -239,8 +239,8 @@ should be removed, what needs better documentation. Come chat with me on [Gitter
 already on my radar.
 
 The examples below build from the latest commit; to use a particular version, replace `master-SNAPSHOT` with a version
-number. Check the [releases] for the available versions, links to their Javadocs, changelogs, and known issues. This
-project uses [semantic versioning][semver]. See [JitPack] for instructions on using other build tools.
+number. Check the [releases] for the available versions, links to their Javadocs, changelogs, and known issues. See
+[JitPack] for instructions on using other build tools.
 
 ### Gradle
 
