@@ -89,7 +89,7 @@ sequences derived from one-shot sources like iterators *must* be memoized). Sequ
 API, and it's significantly easier to define new functionality for sequences.
 
 One of the biggest goals of the Stream API was parallel processing, which is why streams were designed around
-[`spliterators`][spliterator]. So, processing a given stream in a way that isn't covered by the API means working
+[`Spliterator`][spliterator]. So, processing a given stream in a way that isn't covered by the API means working
 directly with its spliterator, and creating a new stream in a way that isn't covered by the API means implementing a
 spliterator. Let's define the `scanLeft` operator, which returns every intermediate result of a left fold (a left fold
 iteratively applies a binary function to combine all of the elements into a single value, accumulating from left to
