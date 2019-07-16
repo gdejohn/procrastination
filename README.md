@@ -3,6 +3,7 @@
 [![license]][apache]
 [![status]][travis]
 [![coverage]][codecov]
+[![downloads]][jitpack]
 [![chat]][gitter]
 
 # procrastination
@@ -304,6 +305,7 @@ members.
 [cons]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#cons(T,io.github.gdejohn.procrastination.Sequence)
 [contains]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#contains(T)
 [coverage]: https://img.shields.io/codecov/c/github/gdejohn/procrastination.svg
+[downloads]: https://jitpack.io/v/io.github.gdejohn/procrastination/month.svg
 [either]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Either.html
 [empty]: https://jitpack.io/io/github/gdejohn/procrastination/master-SNAPSHOT/javadoc/io.github.gdejohn.procrastination/io/github/gdejohn/procrastination/Sequence.html#empty()
 [entry]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.Entry.html
