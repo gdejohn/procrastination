@@ -58,28 +58,26 @@ public final class Functions {
      */
     public static <T> Supplier<T> memoize(Supplier<? extends T> supplier) {
         class Proxy implements Supplier<T> {
-            private boolean initialized = false;
-
             private Supplier<T> delegate;
 
             Proxy(Supplier<? extends T> principal) {
-                this.delegate = () -> {
-                    synchronized(this) {
-                        if(!this.initialized) {
-                            this.delegate = null;
-                            try {
-                                T result = requireNonNull(principal.get());
-                                this.delegate = () -> result;
-                                return result;
-                            } catch (Throwable throwable) {
-                                this.delegate = () -> {
-                                    throw throwable;
-                                };
-                            } finally {
-                                this.initialized = true;
-                            }
+                this.delegate = new Supplier<>() {
+                    private boolean initialized = false;
+
+                    @Override
+                    public synchronized T get() {
+                        if (!this.initialized) try {
+                            T result = requireNonNull(principal.get());
+                            Proxy.this.delegate = () -> result;
+                            return result;
+                        } catch (Throwable throwable) {
+                            Proxy.this.delegate = () -> {
+                                throw throwable;
+                            };
+                        } finally {
+                            this.initialized = true;
                         }
-                        return this.get();
+                        return Proxy.this.get();
                     }
                 };
             }
