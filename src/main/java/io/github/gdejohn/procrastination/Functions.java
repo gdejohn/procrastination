@@ -58,7 +58,7 @@ public final class Functions {
      */
     public static <T> Supplier<T> memoize(Supplier<? extends T> supplier) {
         class Proxy implements Supplier<T> {
-            private Supplier<T> delegate;
+            Supplier<T> delegate;
 
             Proxy(Supplier<? extends T> principal) {
                 this.delegate = new Supplier<>() {
